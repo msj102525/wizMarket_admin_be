@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/test-chrome", response_class=Response)
 async def test_chrome_driver():
     # 크롬 드라이버 경로 설정
-    driver_path = os.path.join(os.path.dirname(__file__), '..', 'drivers', 'chromedriver.exe')
+    driver_path = os.path.join(os.path.dirname(__file__), '../../', 'drivers', 'chromedriver.exe')
 
     # 크롬 옵션 설정
     options = Options()
