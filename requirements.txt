@@ -2,3 +2,4 @@ fastapi==0.112.0
 uvicorn[standard]==0.30.5
 python-dotenv==1.0.0
 selenium==4.23.1
+webdriver_manager
