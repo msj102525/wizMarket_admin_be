@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 from app.api.endpoints import hello
+from app.api.endpoints import test_chrome
 
 app = FastAPI()
 
@@ -25,3 +26,4 @@ async def read_root():
 
 
 app.include_router(hello.router, prefix="/hello")
+app.include_router(test_chrome.router)

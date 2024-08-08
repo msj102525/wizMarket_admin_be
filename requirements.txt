@@ -3,3 +3,7 @@ uvicorn[standard]==0.30.5
 python-dotenv==1.0.0
 selenium==4.23.1
 webdriver_manager
+httpx==0.24.1
+requests==2.31.0
+pytest==7.4.0
+pytest-asyncio==0.21.0
