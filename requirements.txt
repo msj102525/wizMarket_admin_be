@@ -2,3 +2,8 @@ fastapi==0.112.0
 uvicorn[standard]==0.30.5
 python-dotenv==1.0.0
 selenium==4.23.1
+httpx==0.24.1  # 비동기 HTTP 클라이언트
+requests==2.31.0  # 동기 HTTP 클라이언트
+webdriver_manager==4.0.0  # Selenium WebDriver 자동 관리
+pytest==7.4.0  # 테스트 프레임워크
+pytest-asyncio==0.21.0  # 비동기 코드 테스트용 플러그인
