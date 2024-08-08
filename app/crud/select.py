@@ -3,7 +3,7 @@ from app.db.connect import get_db_connection
 def select_wiz():
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM wiz")
+    cursor.execute("SELECT name FROM wiz where id = 1")
     row = cursor.fetchone()
     cursor.close()
     connection.close()
