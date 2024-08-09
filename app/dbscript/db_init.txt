@@ -1,0 +1,10 @@
+insert.py 호출
+
+insert('테이블명',컬럼1=값1,컬럼2=값2)
+띄어쓰기 주의
+
+예시
+insert_record(
+            'users',
+            id=1,
+            name="John Doe")
