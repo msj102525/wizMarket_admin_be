@@ -55,7 +55,6 @@ def read_element(wait, by, value):
     text = element.text
     time.sleep(0.3)
     driver.implicitly_wait(5)  # 안전장치
-    # print(text)
     return text
 
 
@@ -100,7 +99,7 @@ def get_city_count():
 
 def get_district_count(city_count):
     try:
-        for city_idx in range(city_count):
+        for city_idx in range(1):
             driver = setup_driver()
             print(f"idx: {city_idx}")
             driver.get(commercial_district_url)  # URL 접속
@@ -132,9 +131,9 @@ def get_district_count(city_count):
             print(f"구 갯수: {len(district_ul_li)}")
 
             get_sub_district_count(city_idx, len(district_ul_li))
-            
+
             driver.quit()
-            
+
     except Exception as e:
         raise Exception(
             f"Failed to fetch data from {commercial_district_url}: {str(e)}"
@@ -254,6 +253,35 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            rising_ul = wait.until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="cardBoxTop5"]'))
+            )
+
+            rising_ul_li = rising_ul.find_elements(By.CSS_SELECTOR, "#cardBoxTop5 > li")
+
+            data = {
+                "location": {
+                    "city": city_text,
+                    "district": district_text,
+                    "sub_district": sub_district_text,
+                },
+                "rising_top5": {},
+            }
+
+            # li 태그 갯수만큼 rising_top5에 데이터 추가
+            for i, li in enumerate(rising_ul_li):
+                li_text = li.text.strip().split("\n")
+                if len(li_text) >= 2:
+                    business_name = li_text[1]  # 업종명
+                    growth_rate = li_text[2] if len(li_text) == 3 else ""  # 증가율
+                    data["rising_top5"][f"business_{i + 1}"] = {
+                        "business_name": business_name,
+                        "growth_rate": growth_rate,
+                    }
+
+            print(data)
+            data_list.append(data)  # data_list에 추가
+
             end_time = time.time()
             elapsed_time = end_time - start_time
 
@@ -275,3 +303,4 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
 
 if __name__ == "__main__":
     get_city_count()
+    print(data_list)
