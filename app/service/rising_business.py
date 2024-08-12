@@ -89,6 +89,8 @@ def get_city_count():
         driver.quit()
         get_district_count(len(city_ul_li))
 
+        return data_list
+    
     except Exception as e:
         raise Exception(
             f"Failed to fetch data from {commercial_district_url}: {str(e)}"
