@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from app.crud.insert import insert_record
+from app.crud.population_data import insert_record
 router = APIRouter()
 
 

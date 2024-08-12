@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 from app.api.endpoints import hello
 from app.api.endpoints import testchrome
-from app.api.endpoints import dbtest
+from app.api.endpoints import getmonthpop
+from app.api.endpoints import testopenup
 
 app = FastAPI()
 
@@ -27,4 +28,6 @@ async def read_root():
 
 app.include_router(hello.router, prefix="/hello")
 app.include_router(testchrome.router)
-app.include_router(dbtest.router)
+app.include_router(getmonthpop.router)
+app.include_router(testopenup.router)
+
