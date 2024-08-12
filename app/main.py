@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 from app.api.endpoints import hello
-from app.api.endpoints import test_chrome
+from app.api.endpoints import testchrome
 from app.api.endpoints import dbtest
 
 app = FastAPI()
@@ -26,5 +26,5 @@ async def read_root():
     return {"message": "Welcome to FastAPI!"}
 
 app.include_router(hello.router, prefix="/hello")
-app.include_router(test_chrome.router)
+app.include_router(testchrome.router)
 app.include_router(dbtest.router)
