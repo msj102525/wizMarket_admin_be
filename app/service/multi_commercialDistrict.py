@@ -7,6 +7,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
 
+data_list = []
+
 
 def setup_driver():
     driver_path = os.path.join(
@@ -40,10 +42,10 @@ driver = setup_driver()
 
 
 def click_element(wait, by, value):
-    element = wait.until(EC.visibility_of_element_located((by, value)))
+    element = wait.until(EC.element_to_be_clickable((by, value)))
     text = element.text
     element.click()
-    time.sleep(0.2)
+    time.sleep(0.7)
     driver.implicitly_wait(10)  # 안전장치
     return text
 
@@ -51,7 +53,7 @@ def click_element(wait, by, value):
 def read_element(wait, by, value):
     element = wait.until(EC.presence_of_element_located((by, value)))
     text = element.text
-    time.sleep(0.2)
+    time.sleep(0.3)
     driver.implicitly_wait(5)  # 안전장치
     # print(text)
     return text
@@ -61,8 +63,112 @@ def convert_to_float(percent_str):
     return float(percent_str.replace("%", "").strip())
 
 
+def get_district_count():
+    driver = setup_driver()
+    try:
 
-def search_commercial_district():
+        driver.get(commercial_district_url)  # URL 접속
+        driver.implicitly_wait(10)
+
+        wait = WebDriverWait(driver, 10)  # 10초 대기
+
+        # 분석 지역을해주세요
+        click_element(
+            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+        )
+
+        # 시/도
+        city_text = click_element(
+            wait,
+            By.XPATH,
+            '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[1]/a',
+        )
+
+        district_ul = wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH, '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul')
+            )
+        )
+        district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
+
+        print(f"구 갯수: {len(district_ul_li)}")
+        driver.quit()
+        loop_search_commercial_district(len(district_ul_li))
+
+    except Exception as e:
+        raise Exception(
+            f"Failed to fetch data from {commercial_district_url}: {str(e)}"
+        )
+    finally:
+        driver.quit()
+
+
+def loop_search_commercial_district(district_count):
+    print(district_count)
+    driver = setup_driver()
+    try:
+        for idx in range(district_count):
+            print(f'idx: {idx}')
+            driver.get(commercial_district_url)  # URL 접속
+            driver.implicitly_wait(10)
+
+            wait = WebDriverWait(driver, 10)  # 10초 대기
+
+            # 분석 지역을해주세요
+            click_element(
+                wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+            )
+
+            # 시/도
+            city_text = click_element(
+                wait,
+                By.XPATH,
+                '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[1]/a',
+            )
+
+            # 시/군/구
+            click_element(
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{idx + 1}]/a',
+            )
+
+            sub_district_ul = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        '#basicReport > div.sheet.sheet_01.md_sheet.on > div.sheet_body.pd > div.box.select_bx > div > div.loca_list_bx > ul',
+                    )
+                )
+            )
+            sub_district_ul_li_real = sub_district_ul.find_elements(By.TAG_NAME, "li")
+            sub_district_ul_li = [1, 2, 3]
+
+            print(f"동 갯수: {len(sub_district_ul_li_real)}")
+            # print(f"동 갯수: {len(sub_district_ul_li)}")
+
+            # 읍/면/동
+            sub_district_text = click_element(
+                wait,
+                By.XPATH,
+                '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[1]/a',
+            )
+            for idx2 in range(len(sub_district_ul_li)):
+                print(idx, idx2)
+                driver.quit()
+                search_commercial_district(idx, idx2)
+
+    except Exception as e:
+        raise Exception(
+            f"Failed to fetch data from {commercial_district_url}: {str(e)}"
+        )
+    finally:
+        driver.quit()
+
+
+def search_commercial_district(district_idx, sub_district_idx):
+    driver = setup_driver()
+    print(district_idx, sub_district_idx)
     try:
         start_time = time.time()  # 시작 시간 기록
 
@@ -86,38 +192,24 @@ def search_commercial_district():
             '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[1]/a',
         )
 
-        district_ul = wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul')
-            )
-        )
-        district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
-
-        print(f"구 갯수: {len(district_ul_li)}")
-
         # 시/군/구
         district_text = click_element(
             wait,
             By.XPATH,
-            '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[1]/a',
+            f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
         )
-
-        sub_district_ul = wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul')
-            )
-        )
-        sub_district_ul_li = sub_district_ul.find_elements(By.TAG_NAME, "li")
-
-        print(f"동 갯수: {len(sub_district_ul_li)}")
+        time.sleep(1)
 
         # 읍/면/동
         sub_district_text = click_element(
             wait,
             By.XPATH,
-            '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[1]/a',
+            f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
         )
 
+        print('성공1')
+
+        time.sleep(1)
         # 대분류
         main_category = click_element(
             wait,
@@ -125,6 +217,8 @@ def search_commercial_district():
             '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]/li[1]/button',
         )
 
+        print('성공2')
+        time.sleep(1)
         # 중분류
         sub_category = click_element(
             wait,
@@ -132,6 +226,8 @@ def search_commercial_district():
             '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[2]/ul/li[1]/button',
         )
 
+        print('성공3')
+        time.sleep(1)
         # 소분류
         detail_category = click_element(
             wait,
@@ -139,12 +235,15 @@ def search_commercial_district():
             '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[2]/ul/li[2]/ul/li[1]/button',
         )
 
+        print('성공4')
+        time.sleep(1)
+
         detail_category = detail_category.replace("(확장 분석)", "").strip()
 
-        loop_data = len(district_ul_li) ,len(sub_district_ul_li)
 
-        print(loop_data)
+        print(city_text, district_text, sub_district_text, main_category, sub_category, detail_category)
 
+        print('성공5')
         data = search_data(
             wait,
             title,
@@ -156,15 +255,14 @@ def search_commercial_district():
             detail_category,
         )
 
-        data_list = []
-
         data_list.append(data)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
 
         print(f"Time taken : {elapsed_time}")
-        print(f"Result : {data_list}")
+        # print(f"Result : {data_list}")
+        print(f"Result : {city_text, district_text, sub_district_text}")
 
         # return data, elapsed_time
     except Exception as e:
@@ -645,8 +743,6 @@ def search_data(
 
     time.sleep(1.5)
 
-    
-
     data = {
         "title": title,
         "location": {
@@ -698,9 +794,7 @@ def search_data(
     return data
 
 
-# def loop_crowling():
-#     for 
-
 if __name__ == "__main__":
-    search_commercial_district()
-
+    get_district_count()
+    # loop_search_commercial_district()
+    print(data_list)
