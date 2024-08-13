@@ -6,7 +6,7 @@ CREATE TABLE RISING_BUSINESS (
     district VARCHAR(50) NOT NULL,
     sub_district VARCHAR(50) NOT NULL,
     business_name VARCHAR(50),
-    growth_rate DECIMAL(5, 2),
+    growth_rate DECIMAL(6, 1),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

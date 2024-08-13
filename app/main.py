@@ -6,6 +6,7 @@ from app.api.endpoints import hello
 from app.api.endpoints import testchrome
 from app.api.endpoints import getmonthpop
 from app.api.endpoints import testopenup
+from multiprocessing import cpu_count
 
 app = FastAPI()
 
@@ -31,3 +32,4 @@ app.include_router(testchrome.router)
 app.include_router(getmonthpop.router)
 app.include_router(testopenup.router)
 
+print(f"최대 CPU 개수는 {cpu_count()}.")

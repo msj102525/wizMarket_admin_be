@@ -11,8 +11,6 @@ import os
 from app.schemas.rising_business import RisingBusinessCreate, Location, BusinessDetail
 import app.crud.rising_business as rb
 
-# data_list: List[RisingBusinessCreate] = []
-
 
 def setup_driver():
     driver_path = os.path.join(
@@ -82,16 +80,19 @@ def get_city_count():
 
         get_district_count(len(city_ul_li))
 
-    except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
 def get_district_count(city_count):
     driver = setup_driver()
     try:
-        for city_idx in range(city_count):  # Loop through all cities
+        # for city_idx in range(city_count):
+        for city_idx in range(1):
             print(f"idx: {city_idx}")
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
@@ -115,16 +116,19 @@ def get_district_count(city_count):
 
             get_sub_district_count(city_idx, len(district_ul_li))
 
-    except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
 def get_sub_district_count(city_idx, district_count):
     driver = setup_driver()
     try:
-        for district_idx in range(district_count):  # Loop through all districts
+        # for district_idx in range(district_count):
+        for district_idx in range(1):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
@@ -166,18 +170,21 @@ def get_sub_district_count(city_idx, district_count):
                 city_idx, district_idx, len(sub_district_ul_li)
             )
 
-    except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
 def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
     driver = setup_driver()
     try:
-        for sub_district_idx in range(
-            sub_district_count
-        ):  # Loop through all sub-districts
+        data_list: List[RisingBusinessCreate] = []
+
+        # for sub_district_idx in range(sub_district_count):
+        for sub_district_idx in range(6):
             start_time = time.time()
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
@@ -231,9 +238,7 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
                 rising_top5=rising_top5,
             )
 
-            print(data)
-            # data_list.append(data)
-            rb.insert_rising_business(data)
+            data_list.append(data)
 
             end_time = time.time()
             elapsed_time = end_time - start_time
@@ -242,12 +247,16 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
                 f"시/도: {city_text}, 시/군/구: {district_text}, 읍/면/동: {sub_district_text}"
             )
 
-    except Exception as e:
-        print(f"Failed to fetch data from!! {commercial_district_url}: {str(e)}")
+        rb.insert_rising_business(data_list)
+
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
 if __name__ == "__main__":
     get_city_count()
-    # print(data_list)
+    print("성공!")
