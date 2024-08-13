@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import List
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,8 +9,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
 from app.schemas.rising_business import RisingBusinessCreate, Location, BusinessDetail
+from concurrent.futures import ThreadPoolExecutor
 import app.crud.rising_business as rb
-
 # data_list: List[RisingBusinessCreate] = []
 
 
@@ -45,7 +45,7 @@ def click_element(wait, by, value):
     element = wait.until(EC.element_to_be_clickable((by, value)))
     text = element.text
     element.click()
-    time.sleep(0.7)
+    time.sleep(1)
     return text
 
 
@@ -64,7 +64,10 @@ def convert_to_float(percent_str):
         return 0.0
 
 
-def get_city_count():
+from concurrent.futures import ThreadPoolExecutor
+
+
+def get_city_count(start_idx: int, end_idx: int):
     driver = setup_driver()
     try:
         driver.get(commercial_district_url)
@@ -80,7 +83,8 @@ def get_city_count():
         city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
         print(f"시 갯수: {len(city_ul_li)}")
 
-        get_district_count(len(city_ul_li))
+        for city_idx in range(start_idx, end_idx):
+            get_district_count(city_idx)
 
     except Exception as e:
         print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
@@ -88,41 +92,38 @@ def get_city_count():
         driver.quit()
 
 
-def get_district_count(city_count):
-    driver = setup_driver()
+def get_district_count(city_idx):
+    driver = setup_driver()  # 새로운 드라이버 인스턴스 생성
     try:
-        for city_idx in range(city_count):  # Loop through all cities
-            print(f"idx: {city_idx}")
-            driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
-            click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
-            click_element(
-                wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
-            )
-            city_text = click_element(
-                wait,
-                By.XPATH,
-                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-            )
+        print(f"idx: {city_idx}")
+        driver.get(commercial_district_url)
+        wait = WebDriverWait(driver, 10)
+        click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+        click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
+        city_text = click_element(
+            wait,
+            By.XPATH,
+            f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+        )
 
-            district_ul = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
-                )
+        district_ul = wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
             )
-            district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
-            print(f"구 갯수: {len(district_ul_li)}")
+        )
+        district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
+        print(f"구 갯수: {len(district_ul_li)}")
 
-            get_sub_district_count(city_idx, len(district_ul_li))
+        get_sub_district_count(city_idx, len(district_ul_li))
 
     except Exception as e:
         print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
-        driver.quit()
+        driver.quit()  # 드라이버 인스턴스 종료
 
 
 def get_sub_district_count(city_idx, district_count):
-    driver = setup_driver()
+    driver = setup_driver()  # 새로운 드라이버 인스턴스 생성
     try:
         for district_idx in range(district_count):  # Loop through all districts
             print(f"idx: {district_idx}")
@@ -232,8 +233,10 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
             )
 
             print(data)
-            # data_list.append(data)
+            
             rb.insert_rising_business(data)
+            
+            # data_list.append(data)
 
             end_time = time.time()
             elapsed_time = end_time - start_time
@@ -243,11 +246,24 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
             )
 
     except Exception as e:
-        print(f"Failed to fetch data from!! {commercial_district_url}: {str(e)}")
+        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
         driver.quit()
 
 
+def execute_parallel_tasks():
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [
+            executor.submit(get_city_count, 0, 4),
+            executor.submit(get_city_count, 5, 11),
+            executor.submit(get_city_count, 12, 16),
+        ]
+
+        for future in futures:
+            future.result()
+
+    print(data_list)
+
+
 if __name__ == "__main__":
-    get_city_count()
-    # print(data_list)
+    execute_parallel_tasks()
