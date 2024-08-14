@@ -5,5 +5,5 @@
 # python.exe -m pip install --upgrade pip
 # pip install -r requirements.txt  # 필수 패키지 설치
 
-
-# 터미널에서 uvicorn app.main:app --reload 으로 실행
+# 터미널 프로젝트루트디렉토리에서 python app/main.py 로 실행
+# 또는 터미널에서 uvicorn app.main:app --reload 으로 실행

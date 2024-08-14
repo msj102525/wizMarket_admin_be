@@ -6,6 +6,8 @@ from app.api.endpoints import hello
 from app.api.endpoints import testchrome
 from app.api.endpoints import getmonthpop
 from app.api.endpoints import movepop
+from app.api.endpoints import commercialDistrict
+
 app = FastAPI()
 
 load_dotenv()
@@ -21,11 +23,19 @@ app.add_middleware(
 
 print(os.getenv("ALLOWED_ORIGINS", ""))
 
+
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to FastAPI!"}
+
 
 app.include_router(hello.router, prefix="/hello")
 app.include_router(testchrome.router)
 app.include_router(getmonthpop.router)
 app.include_router(movepop.router)
+app.include_router(commercialDistrict.router, prefix="/commercial")
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

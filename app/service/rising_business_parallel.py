@@ -46,18 +46,30 @@ def setup_driver():
 
 
 def click_element(wait, by, value):
-    element = wait.until(EC.element_to_be_clickable((by, value)))
-    text = element.text
-    element.click()
-    time.sleep(0.5)
-    return text
+    try:
+        element = wait.until(EC.element_to_be_clickable((by, value)))
+        text = element.text
+        element.click()
+        time.sleep(0.5)
+        return text
+    except Exception as e:
+        print(
+            f"Exception occurred: {e} for element located by {by} with value {value}. Skipping to next element."
+        )
+        return None
 
 
 def read_element(wait, by, value):
-    element = wait.until(EC.presence_of_element_located((by, value)))
-    text = element.text
-    time.sleep(0.3)
-    return text
+    try:
+        element = wait.until(EC.presence_of_element_located((by, value)))
+        text = element.text
+        time.sleep(0.3)
+        return text
+    except Exception as e:
+        print(
+            f"Exception occurred: {e} for element located by {by} with value {value}. Skipping to next element."
+        )
+        return None
 
 
 def convert_to_float(percent_str):
@@ -137,7 +149,7 @@ def get_sub_district_count(city_idx, district_count):
     driver = setup_driver()
     try:
         for district_idx in range(district_count):
-        # for district_idx in range(1):
+            # for district_idx in range(1):
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
@@ -186,7 +198,7 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
     try:
         data_list: List[RisingBusinessCreate] = []
         for sub_district_idx in range(sub_district_count):
-        # for sub_district_idx in range(2):
+            # for sub_district_idx in range(2):
             start_time = time.time()
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
@@ -298,9 +310,6 @@ def execute_parallel_tasks():
         f"Execution finished at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}"
     )
     print(f"Total execution time: {end_time - start_time} seconds")
-
-
-
 
 
 if __name__ == "__main__":
