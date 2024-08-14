@@ -1,22 +1,25 @@
-from pydantic import BaseModel
-from typing import List
+import os
 import time
+
+from typing import List
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import os
-from app.schemas.rising_business import RisingBusinessCreate, Location, BusinessDetail
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import app.crud.rising_business as rb
 from selenium.common.exceptions import (
     UnexpectedAlertPresentException,
     NoAlertPresentException,
 )
+
 from selenium.webdriver.common.alert import Alert
-from multiprocessing import cpu_count
+
+from app.schemas.rising_business import RisingBusinessCreate, Location, BusinessDetail
+import app.crud.rising_business as rb
+
+from concurrent.futures import ThreadPoolExecutor
 
 commercial_district_url = os.getenv("RISING_TOP5_URL")
 
@@ -285,7 +288,7 @@ def execute_parallel_tasks():
         f"Execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
     )
 
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    with ThreadPoolExecutor(max_workers=12) as executor:
 
         futures = [
             # 0 ~ 1 함
