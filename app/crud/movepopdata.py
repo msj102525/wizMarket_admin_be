@@ -1,20 +1,15 @@
-import pymysql
-from app.db.connect import get_db_connection
-import mysql.connector  # 예외 처리를 위해 필요
+import mysql.connector
+from app.db.connect import get_db_connection  # Ensure this function returns a MySQL connection
 
-async def get_population_data(srchFrYm: str, srchToYm: str, region: str, subRegion: str):
-    connection = get_db_connection()
-    try:
-        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            sql = """
-            SELECT * FROM populationdata 
-            WHERE ctpvNm LIKE %s AND sggNm LIKE %s AND statsYm BETWEEN %s AND %s
-            """
-            cursor.execute(sql, (f"%{region}%", f"%{subRegion}%", srchFrYm, srchToYm))
-            result = cursor.fetchall()
-        return result
-    finally:
-        connection.close()
+def read_keywords_from_excel(file_path):
+    import openpyxl
+    wb = openpyxl.load_workbook(file_path)
+    sheet = wb.active
+    keywords = []
+    for row in sheet.iter_rows(min_row=2, max_col=1, values_only=True):
+        if row[0] is not None:
+            keywords.append(row[0])
+    return keywords
 
 def insert_record(table_name: str, **kwargs):
     connection = get_db_connection()
