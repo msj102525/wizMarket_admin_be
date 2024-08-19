@@ -35,7 +35,7 @@ def crawl_keyword(keyword: str, connection, insert_count):
         last_keyword = keyword.split()[-1]
 
         print(f"마지막 동 단위 단어 : {last_keyword}")
-        time.sleep(10)
+        time.sleep(0.8)
 
         try:
             WebDriverWait(driver, 5).until(
@@ -71,7 +71,29 @@ def crawl_keyword(keyword: str, connection, insert_count):
             }
 
         year_month = datetime.now().strftime("%Y%m")
-        insert_record('movepopdata', connection, insert_count, keyword=keyword, yearmonth=year_month, **data)
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1 FROM movepopdata WHERE keyword = %s", (keyword,))
+                if cursor.fetchone():
+                    # 이미 존재하는 경우 업데이트
+                    sql = """
+                       UPDATE movepopdata SET 
+                       location=%s, business=%s, person=%s, price=%s, wrcppl=%s, 
+                       earn=%s, cnsmp=%s, hhCnt=%s, rsdppl=%s, yearmonth=%s
+                       WHERE keyword = %s
+                       """
+                    cursor.execute(sql, (*data.values(), year_month, keyword))
+                    print(f"{insert_count}번째 update 성공")
+                else:
+                    # 존재하지 않는 경우 삽입
+                    insert_record('movepopdata', connection, insert_count, keyword=keyword, yearmonth=year_month,
+                                  **data)
+            connection.commit()
+        except Exception as e:
+            print(f"Error inserting or updating data: {e}")
+            connection.rollback()
+            raise e
 
     except Exception as e:
         print(f'Error: {e}')
@@ -133,17 +155,25 @@ def process_file(file_path):
     try:
         keywords = read_keywords_from_excel(file_path)
         for keyword in tqdm(keywords, desc=f"Processing {os.path.basename(file_path)}"):  # tqdm을 사용하여 진행 상황 표시
-            # DB에서 해당 키워드가 이미 있는지 확인
             with connection.cursor() as cursor:
-                cursor.execute("SELECT 1 FROM movepopdata WHERE keyword = %s", (keyword,))
+                # DB에서 해당 키워드가 있는지, 그리고 earn이 NULL인지 확인
+                cursor.execute("SELECT earn FROM movepopdata WHERE keyword = %s", (keyword,))
                 result = cursor.fetchone()
-                if result:
-                    print(f"Keyword {keyword} already exists. Skipping...")
-                    continue
 
-            print(f"Processing keyword: {keyword}")
+                if result:
+                    if result[0] is None:  # earn이 NULL인 경우
+                        print(f"Keyword {keyword} exists but earn is NULL. Updating data...")
+                        crawl_keyword(keyword, connection, insert_count)
+                        continue
+                    else:
+                        print(f"Keyword {keyword} already exists with non-null earn. Skipping...")
+                        continue  # earn이 NULL이 아니면 다음 키워드로 넘어감
+
+            # 키워드가 존재하지 않는 경우 새로운 데이터를 삽입
+            print(f"Keyword {keyword} does not exist. Inserting data...")
             insert_count += 1
             crawl_keyword(keyword, connection, insert_count)
+
     finally:
         close_connection(connection)
     print(f"Finished processing {os.path.basename(file_path)}")
@@ -152,11 +182,13 @@ def process_file(file_path):
 def process_keywords_from_excel():
     print("Starting to process keywords from Excel")
     directory = "C:/formovedata"
-    excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [6, 7, 8]]
-    # excel_files = [os.path.join(directory, f"list.xlsx")] 밑의 쓰레드 숫자 1로 바꾸기
+    # excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [9, 10]]
+    excel_files = [os.path.join(directory, f"list.xlsx")]
 
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    with ThreadPoolExecutor(max_workers=1) as executor:
         executor.map(process_file, excel_files)
 
     print("Finished processing all files")
 
+if __name__=="__main__":
+    process_keywords_from_excel()

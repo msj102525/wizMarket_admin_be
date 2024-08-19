@@ -1,3 +1,5 @@
+DROP TABLE population_data;
+
 CREATE TABLE population_data (
     admmCd VARCHAR(255),
     statsYm VARCHAR(255),

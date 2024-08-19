@@ -1,15 +1,16 @@
-from fastapi import APIRouter, HTTPException
-from app.service.movepop import process_keywords_from_excel
+from fastapi import APIRouter, HTTPException, Body
+from app.crud.movepop import get_population_data
 
 router = APIRouter()
 
-@router.post('/start-crawl')
-async def start_crawl():
+@router.post('/getmovepop')
+async def get_month_population(
+    srchFrYm: str = Body(..., embed=True, description="Search From Year-Month in YYYYMM format"),
+    srchToYm: str = Body(..., embed=True, description="Search To Year-Month in YYYYMM format"),
+    region: str = Body(..., embed=True, description="Region Code"),
+):
     try:
-        print("Starting process_keywords_from_excel")
-        await process_keywords_from_excel()  # await를 사용하여 비동기 함수 호출
-        print("Finished process_keywords_from_excel")
-        return {"message": "크롤링이 성공적으로 완료되었습니다."}
+        result = await get_population_data(srchFrYm, srchToYm, region)
+        return result
     except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail=f"크롤링에 실패했습니다. {e}")
+        raise HTTPException(status_code=500, detail=str(e))
