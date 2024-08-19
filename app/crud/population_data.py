@@ -1,6 +1,5 @@
 import pymysql
-from app.db.connect import get_db_connection
-import mysql.connector  # 예외 처리를 위해 필요
+from app.db.connect import get_db_connection, close_connection
 
 async def get_population_data(srchFrYm: str, srchToYm: str, region: str, subRegion: str):
     connection = get_db_connection()
@@ -14,7 +13,7 @@ async def get_population_data(srchFrYm: str, srchToYm: str, region: str, subRegi
             result = cursor.fetchall()
         return result
     finally:
-        connection.close()
+        close_connection(connection)
 
 def insert_record(table_name: str, **kwargs):
     connection = get_db_connection()
@@ -26,8 +25,8 @@ def insert_record(table_name: str, **kwargs):
             sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
             cursor.execute(sql, values)
         connection.commit()
-    except mysql.connector.IntegrityError as e:
-        if e.errno == 1062:  # Duplicate entry error code
+    except pymysql.IntegrityError as e:
+        if e.args[0] == 1062:  # Duplicate entry error code
             print(f"Duplicate entry found for {kwargs}. Skipping...")
         else:
             print(f"Error inserting data: {e}")
@@ -38,4 +37,4 @@ def insert_record(table_name: str, **kwargs):
         connection.rollback()
         raise e
     finally:
-        connection.close()
+        close_connection(connection)
