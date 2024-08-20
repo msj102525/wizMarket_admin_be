@@ -562,7 +562,6 @@ def search_commercial_district(
                 click_element(wait, By.XPATH, '//*[@id="pcBasicReport"]')
 
                 time.sleep(3)
-                
 
                 # '//*[@id="report1"]' 요소가 나타날 때까지 기다리기
                 wait.until(
@@ -1087,9 +1086,6 @@ def search_commercial_district(
                     },
                 }
 
-
-                print(data)
-
                 insert_commercial_district(data)
 
                 end_time = time.time()
@@ -1102,7 +1098,7 @@ def search_commercial_district(
 
             else:
                 print(
-                    f"{city_text}, {district_text}, {sub_district_text}, {main_category_text}, {sub_category_text} : index {detail_category_idx}."
+                    f"NO DATA : {city_text}, {district_text}, {sub_district_text}, {main_category_text}, {sub_category_text} : index {detail_category_idx}."
                 )
                 continue
 
@@ -1119,4 +1115,3 @@ def search_commercial_district(
 
 if __name__ == "__main__":
     get_city_count()
-    print("성공")
