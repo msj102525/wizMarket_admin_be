@@ -1,45 +1,26 @@
-DROP TABLE store_business
+DROP TABLE IF EXISTS store_business;
 
 CREATE TABLE store_business (
-    business_number BIGINT,
-    business_name VARCHAR(255),
-    branch_name VARCHAR(255),
-    large_category_code VARCHAR(10),
-    large_category_name VARCHAR(50),
-    medium_category_code VARCHAR(10),
-    medium_category_name VARCHAR(50),
-    small_category_code VARCHAR(10),
-    small_category_name VARCHAR(50),
-    industry_classification_code VARCHAR(10),
-    industry_classification_name VARCHAR(100),
-    city_code VARCHAR(10),
-    city_name VARCHAR(50),
-    district_code VARCHAR(10),
-    district_name VARCHAR(50),
-    administrative_dong_code VARCHAR(10),
-    administrative_dong_name VARCHAR(50),
-    legal_dong_code VARCHAR(10),
-    legal_dong_name VARCHAR(50),
-    lot_code VARCHAR(20),
-    lot_division_code VARCHAR(10),
-    lot_division_name VARCHAR(50),
-    lot_main_number VARCHAR(20),
-    lot_sub_number VARCHAR(20),
-    lot_address VARCHAR(255),
-    road_name_code VARCHAR(10),
-    road_name VARCHAR(255),
-    building_main_number VARCHAR(20),
-    building_sub_number VARCHAR(20),
-    building_management_number VARCHAR(50),
-    building_name VARCHAR(255),
-    road_name_address VARCHAR(255),
-    old_postal_code VARCHAR(10),
-    new_postal_code VARCHAR(10),
-    dong_info VARCHAR(50),
-    floor_info VARCHAR(50),
-    room_info VARCHAR(50),
-    longitude DECIMAL(15, 10),
-    latitude DECIMAL(15, 10),
-    quarter_year VARCHAR(7),  -- 분기별로 저장 (예: "2024-Q1")
-    PRIMARY KEY (building_management_number, quarter_year)
+    id INT AUTO_INCREMENT PRIMARY KEY,  -- 자동 증가 ID (프라이머리 키)
+    business_name VARCHAR(255),         -- 상호명
+    branch_name VARCHAR(255),           -- 지점명
+    major_category VARCHAR(255),        -- 상권업종대분류명
+    middle_category VARCHAR(255),       -- 상권업종중분류명
+    minor_category VARCHAR(255),        -- 상권업종소분류명
+    standard_industry_code VARCHAR(255),-- 표준산업분류명
+    city VARCHAR(255),                  -- 시도명
+    district VARCHAR(255),              -- 시군구명
+    administrative_dong_code VARCHAR(255), -- 행정동코드
+    administrative_dong_name VARCHAR(255), -- 행정동명
+    legal_dong_code VARCHAR(255),       -- 법정동코드
+    legal_dong_name VARCHAR(255),       -- 법정동명
+    land_category VARCHAR(255),         -- 대지구분명
+    lot_number_address VARCHAR(255),    -- 지번주소
+    building_name VARCHAR(255),         -- 건물명
+    road_name_address VARCHAR(255),     -- 도로명주소
+    building_unit_info VARCHAR(255),    -- 동정보
+    floor_info VARCHAR(255),            -- 층정보
+    unit_number VARCHAR(255),           -- 호정보
+    year_quarter VARCHAR(255)           -- 몇년도 몇분기
 );
+
