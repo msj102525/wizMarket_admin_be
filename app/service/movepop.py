@@ -10,6 +10,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import os, time
 from tqdm import tqdm
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 from app.db.connect import get_db_connection, close_connection
 
 
@@ -25,6 +28,11 @@ def crawl_keyword(keyword: str, connection, insert_count):
     try:
         driver.get('https://sg.sbiz.or.kr/godo/index.sg')
 
+        # 페이지 로드 완료 확인 코드 추가
+        WebDriverWait(driver, 30).until(
+            lambda d: d.execute_script('return document.readyState') == 'complete'
+        )
+
         radio_button = driver.find_element(By.ID, 'icon_list2_2')
         driver.execute_script("arguments[0].click();", radio_button)
 
@@ -35,10 +43,10 @@ def crawl_keyword(keyword: str, connection, insert_count):
         last_keyword = keyword.split()[-1]
 
         print(f"마지막 동 단위 단어 : {last_keyword}")
-        time.sleep(0.8)
+        time.sleep(0.3)
 
         try:
-            WebDriverWait(driver, 5).until(
+            WebDriverWait(driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//div[@class='cell']"))
             )
             div_elements = driver.find_elements(By.XPATH, "//div[@class='cell']")
@@ -84,12 +92,13 @@ def crawl_keyword(keyword: str, connection, insert_count):
                        WHERE keyword = %s
                        """
                     cursor.execute(sql, (*data.values(), year_month, keyword))
+                    connection.commit()
                     print(f"{insert_count}번째 update 성공")
                 else:
                     # 존재하지 않는 경우 삽입
                     insert_record('movepopdata', connection, insert_count, keyword=keyword, yearmonth=year_month,
                                   **data)
-            connection.commit()
+                    connection.commit()
         except Exception as e:
             print(f"Error inserting or updating data: {e}")
             connection.rollback()
@@ -182,10 +191,10 @@ def process_file(file_path):
 def process_keywords_from_excel():
     print("Starting to process keywords from Excel")
     directory = "C:/formovedata"
-    # excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [9, 10]]
-    excel_files = [os.path.join(directory, f"list.xlsx")]
+    excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [3, 4, 5, 6]]
+    # excel_files = [os.path.join(directory, f"list.xlsx")]
 
-    with ThreadPoolExecutor(max_workers=1) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         executor.map(process_file, excel_files)
 
     print("Finished processing all files")
