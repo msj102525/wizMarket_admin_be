@@ -1,5 +1,6 @@
+from datetime import datetime
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 class Location(BaseModel):
@@ -15,18 +16,26 @@ class Category(BaseModel):
 
 
 class Density(BaseModel):
-    national: str
-    city: str
-    district: str
-    sub_district: str
+    national: Optional[str] = None
+    city: Optional[str] = None
+    district: Optional[str] = None
+    sub_district: Optional[str] = None
 
 
 class AverageProfit(BaseModel):
-    amount: str
-    percent: str
+    sales: Optional[str] = None
+    operating_cost: Optional[str] = None
+    percent: Optional[str] = None
+    food: Optional[str] = None
+    employee: Optional[str] = None
+    rental: Optional[str] = None
+    tax: Optional[str] = None
+    family_employee: Optional[str] = None
+    ceo: Optional[str] = None
+    etc: Optional[str] = None
 
 
-class SalesDetails(BaseModel):
+class SalesByDayDetails(BaseModel):
     Monday: Optional[str] = None
     Tuesday: Optional[str] = None
     Wednesday: Optional[str] = None
@@ -37,55 +46,126 @@ class SalesDetails(BaseModel):
 
 
 class SalesByDay(BaseModel):
-    most_profitable_day: str
-    percent: str
-    details: SalesDetails
+    most_profitable_day: Optional[str] = None
+    percent: Optional[str] = None
+    details: SalesByDayDetails
 
 
 class SalesByTimeDetails(BaseModel):
-    _06_09: str
-    _09_12: str
-    _12_15: str
-    _15_18: str
-    _18_21: str
-    _21_24: str
-    _24_06: str
+    _06_09: Optional[str] = None
+    _09_12: Optional[str] = None
+    _12_15: Optional[str] = None
+    _15_18: Optional[str] = None
+    _18_21: Optional[str] = None
+    _21_24: Optional[str] = None
+    _24_06: Optional[str] = None
 
 
 class SalesByTime(BaseModel):
-    most_profitable_time: str
-    percent: str
+    most_profitable_time: Optional[str] = None
+    percent: Optional[str] = None
     details: SalesByTimeDetails
 
 
 class ClientDemographics(BaseModel):
-    dominant_gender: str
-    dominant_gender_percent: float
-    dominant_age_group: str
-    age_groups: List[str]
-    male_percents: List[float]
-    female_percents: List[float]
-    most_visitor_age: str
+    dominant_gender: Optional[str] = None
+    dominant_gender_percent: Optional[float] = None
+    dominant_age_group: Optional[str] = None
+    age_groups: Optional[List[str]] = None
+    male_percents: Optional[Dict[str, float]] = None
+    female_percents: Optional[Dict[str, float]] = None
+    most_visitor_age: Optional[str] = None
 
 
 class Top5Menus(BaseModel):
-    top5_menu_1: str
-    top5_menu_2: str
-    top5_menu_3: str
-    top5_menu_4: str
-    top5_menu_5: str
+    top5_menu_1: Optional[str] = None
+    top5_menu_2: Optional[str] = None
+    top5_menu_3: Optional[str] = None
+    top5_menu_4: Optional[str] = None
+    top5_menu_5: Optional[str] = None
 
 
 class CommercialDistrictCreate(BaseModel):
     location: Location
     category: Category
     density: Density
-    market_size: str
-    average_sales: str
-    average_price: str
-    usage_count: str
+    market_size: Optional[str] = None
+    average_sales: Optional[str] = None
+    average_price: Optional[str] = None
+    usage_count: Optional[str] = None
     average_profit: AverageProfit
     sales_by_day: SalesByDay
     sales_by_time: SalesByTime
     client_demographics: ClientDemographics
     top5_menus: Top5Menus
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class CommercialDistrictOutput(BaseModel):
+    id: int
+    city: str
+    district: str
+    sub_district: str
+    main_category: Optional[str] = None
+    sub_category: Optional[str] = None
+    detail_category: Optional[str] = None
+    national_density: Optional[str] = None
+    city_density: Optional[str] = None
+    district_density: Optional[str] = None
+    sub_district_density: Optional[str] = None
+    market_size: Optional[str] = None
+    average_sales: Optional[str] = None
+    average_operating_cost: Optional[str] = None
+    average_food: Optional[str] = None
+    average_employee: Optional[str] = None
+    average_rental: Optional[str] = None
+    average_tax: Optional[str] = None
+    average_family_employee: Optional[str] = None
+    average_ceo: Optional[str] = None
+    average_etc: Optional[str] = None
+    average_payment_cost: Optional[str] = None
+    usage_count: Optional[str] = None
+    average_profit_amount: Optional[str] = None
+    average_profit_percent: Optional[str] = None
+    most_profitable_day: Optional[str] = None
+    day_percent: Optional[str] = None
+    sales_monday: Optional[str] = None
+    sales_tuesday: Optional[str] = None
+    sales_wednesday: Optional[str] = None
+    sales_thursday: Optional[str] = None
+    sales_friday: Optional[str] = None
+    sales_saturday: Optional[str] = None
+    sales_sunday: Optional[str] = None
+    most_profitable_time: Optional[str] = None
+    time_percent: Optional[str] = None
+    sales_06_09: Optional[str] = None
+    sales_09_12: Optional[str] = None
+    sales_12_15: Optional[str] = None
+    sales_15_18: Optional[str] = None
+    sales_18_21: Optional[str] = None
+    sales_21_24: Optional[str] = None
+    sales_24_06: Optional[str] = None
+    dominant_gender: Optional[str] = None
+    dominant_gender_percent: Optional[float] = None
+    dominant_age_group: Optional[str] = None
+    most_visitor_age: Optional[str] = None
+    male_20s: Optional[float] = None
+    male_30s: Optional[float] = None
+    male_40s: Optional[float] = None
+    male_50s: Optional[float] = None
+    male_60s: Optional[float] = None
+    female_20s: Optional[float] = None
+    female_30s: Optional[float] = None
+    female_40s: Optional[float] = None
+    female_50s: Optional[float] = None
+    female_60s: Optional[float] = None
+    total_male_percent: Optional[float] = None
+    total_female_percent: Optional[float] = None
+    top_menu_1: Optional[str] = None
+    top_menu_2: Optional[str] = None
+    top_menu_3: Optional[str] = None
+    top_menu_4: Optional[str] = None
+    top_menu_5: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None

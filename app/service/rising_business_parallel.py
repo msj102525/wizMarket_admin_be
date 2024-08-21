@@ -99,7 +99,7 @@ def get_city_count(start_idx: int, end_idx: int):
     print(f"Processing range {start_idx} to {end_idx}")
     try:
         driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 20)
         click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
         click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
 
@@ -119,11 +119,11 @@ def get_city_count(start_idx: int, end_idx: int):
         driver.quit()
 
 
-def get_district_count(city_idx):
+def get_district_count(city_idx: int):
     driver = setup_driver()
     try:
         driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 20)
         click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
         click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
         click_element(
@@ -148,13 +148,13 @@ def get_district_count(city_idx):
         driver.quit()
 
 
-def get_sub_district_count(city_idx, district_count):
+def get_sub_district_count(city_idx: int, district_count: int):
     driver = setup_driver()
     try:
         for district_idx in range(district_count):
             # for district_idx in range(1):
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
@@ -196,7 +196,9 @@ def get_sub_district_count(city_idx, district_count):
         driver.quit()
 
 
-def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
+def search_rising_businesses_top5(
+    city_idx: int, district_idx: int, sub_district_count: int
+):
     driver = setup_driver()
     try:
         data_list: List[RisingBusinessCreate] = []
@@ -204,7 +206,7 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
             # for sub_district_idx in range(2):
             start_time = time.time()
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'

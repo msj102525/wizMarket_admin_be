@@ -2,11 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-from app.api.endpoints import hello
+from app.api.endpoints import hello, rising_business, commercial_district
 from app.api.endpoints import testchrome
 from app.api.endpoints import getmonthpop
 from app.api.endpoints import movepop
-from app.api.endpoints import commercialDistrict
 
 app = FastAPI()
 
@@ -33,7 +32,8 @@ app.include_router(hello.router, prefix="/hello")
 app.include_router(testchrome.router)
 app.include_router(getmonthpop.router)
 app.include_router(movepop.router)
-app.include_router(commercialDistrict.router, prefix="/commercial")
+app.include_router(commercial_district.router, prefix="/commercial")
+app.include_router(rising_business.router, prefix="/rising")
 
 if __name__ == "__main__":
     import uvicorn

@@ -13,10 +13,18 @@ CREATE TABLE
         sub_district_density VARCHAR(50),
         market_size VARCHAR(50),
         average_sales VARCHAR(50),
-        average_price VARCHAR(50),
+        average_operating_cost VARCHAR(50),
+        average_food VARCHAR(50),
+        average_employee VARCHAR(50),
+        average_rental VARCHAR(50),
+        average_tax VARCHAR(50),
+        average_family_employee VARCHAR(50),
+        average_ceo VARCHAR(50),
+        average_etc VARCHAR(50),
+        average_payment_cost VARCHAR(50),
         usage_count VARCHAR(50),
         average_profit_amount VARCHAR(50),
-        average_profit_percent VARCHAR(50),
+        -- average_profit_percent VARCHAR(50),
         most_profitable_day VARCHAR(50),
         day_percent VARCHAR(50),
         sales_monday VARCHAR(50),
@@ -49,6 +57,8 @@ CREATE TABLE
         female_40s FLOAT,
         female_50s FLOAT,
         female_60s FLOAT,
+        total_male_percent FLOAT,
+        total_female_percent FLOAT,
         top_menu_1 VARCHAR(50),
         top_menu_2 VARCHAR(50),
         top_menu_3 VARCHAR(50),
@@ -57,3 +67,5 @@ CREATE TABLE
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
+
+drop table commercial_district;

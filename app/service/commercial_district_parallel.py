@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import time
 import os
 from typing import Dict, List
@@ -9,6 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
+    UnexpectedAlertPresentException,
     NoAlertPresentException,
 )
 from selenium.webdriver.common.alert import Alert
@@ -89,46 +91,50 @@ def handle_unexpected_alert(driver):
         return False
 
 
-def get_city_count():
+# def get_city_count(start_idx: int, end_idx: int):
+#     driver = setup_driver()
+#     print(f"Processing range {start_idx} to {end_idx}")
+#     try:
+#         driver.get(commercial_district_url)
+#         wait = WebDriverWait(driver, 20)
+#         driver.implicitly_wait(10)
+
+#         # 분석 지역
+#         click_element(
+#             wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+#         )
+
+#         city_ul = wait.until(
+#             EC.presence_of_element_located(
+#                 (By.XPATH, '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul')
+#             )
+#         )
+#         city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
+#         print(f"시/도 갯수: {len(city_ul_li)}")
+
+#         for city_idx in range(start_idx, end_idx):
+#             get_district_count(len(city_ul_li))
+
+#     except Exception as e:
+#         print(f"Exception occurred: {e}.")
+#         return None
+#     finally:
+#         print(f"시/도 종료!")
+#         try:
+#         if driver:
+#         driver.quit()
+#         except Exception as quit_error:
+#         print(f"Error closing driver: {str(quit_error)}")
+
+
+def get_district_count(start_idx: int, end_idx: int):
     driver = setup_driver()
     try:
-        driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 10)
-        driver.implicitly_wait(10)
-
-        # 분석 지역
-        click_element(
-            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
-        )
-
-        city_ul = wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul')
-            )
-        )
-        city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
-        print(f"시/도 갯수: {len(city_ul_li)}")
-
-        get_district_count(len(city_ul_li))
-    except Exception as e:
-        print(f"Exception occurred: {e}.")
-        return None
-    finally:
-        try:
-            if driver:
-                driver.quit()
-        except Exception as quit_error:
-            print(f"Error closing driver: {str(quit_error)}")
-
-
-def get_district_count(city_count):
-    driver = setup_driver()
-    try:
-        for city_idx in tqdm(range(city_count), desc="시/도 Progress"):
-            print(f"idx: {city_idx}")
+        for city_idx in tqdm(range(start_idx, end_idx), desc="시/도 Progress"):
+            print(f"City idx: {city_idx}")
 
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
 
             # 분석 지역
             click_element(
@@ -164,13 +170,13 @@ def get_district_count(city_count):
             print(f"Error closing driver: {str(quit_error)}")
 
 
-def get_sub_district_count(city_idx, district_count):
+def get_sub_district_count(city_idx: int, district_count: int):
     driver = setup_driver()
     try:
         for district_idx in tqdm(range(district_count), "시/군/구 Progress"):
-            print(f"idx: {district_idx}")
+            print(f"District idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
 
             # 분석 지역
             click_element(
@@ -214,13 +220,13 @@ def get_sub_district_count(city_idx, district_count):
             print(f"Error closing driver: {str(quit_error)}")
 
 
-def get_main_category(city_idx, district_idx, sub_district_count):
+def get_main_category(city_idx: int, district_idx: int, sub_district_count: int):
     driver = setup_driver()
     try:
         for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
-            print(f"idx: {district_idx}")
+            print(f"Sub District idx: {sub_district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
 
             # 분석 지역
             click_element(
@@ -271,7 +277,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
         for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
 
             # 분석 지역
             click_element(
@@ -331,14 +337,18 @@ def get_main_category(city_idx, district_idx, sub_district_count):
 
 
 def get_sub_category(
-    city_idx, district_idx, sub_district_idx, main_category_count, m_c_ul
+    city_idx: int,
+    district_idx: int,
+    sub_district_idx: int,
+    main_category_count: int,
+    m_c_ul: int,
 ):
     driver = setup_driver()
     try:
         for main_category_idx in range(main_category_count):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
 
             # 분석 지역
             click_element(
@@ -403,18 +413,18 @@ def get_sub_category(
 
 
 def get_detail_category(
-    city_idx,
-    district_idx,
-    sub_district_idx,
-    main_category_idx,
-    sub_category_count,
-    m_c_ul,
+    city_idx: int,
+    district_idx: int,
+    sub_district_idx: int,
+    main_category_idx: int,
+    sub_category_count: int,
+    m_c_ul: int,
 ):
     driver = setup_driver()
     try:
         for sub_category_idx in range(0, sub_category_count * 2, 2):
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 20)
 
             # 분석 지역
             click_element(
@@ -503,7 +513,7 @@ def search_commercial_district(
             )
 
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 30)
+            wait = WebDriverWait(driver, 20)
 
             print(detail_category_idx)
 
@@ -661,18 +671,18 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[3]/div/ul/li[6]/a',
                 )
 
-                # 해당지역 업종 결제단가(원)
-                sub_district_average_price = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="s6"]/div[2]/div[2]/div[2]/table/tbody/tr[2]/td[7]',
-                )
-
                 # 해당지역 업종 이용건수(건)
                 sub_district_usage_count = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s6"]/div[2]/div[2]/div[2]/table/tbody/tr[1]/td[7]',
+                )
+
+                # 해당지역 업종 결제단가(원)
+                sub_district_avg_payment_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="s6"]/div[2]/div[2]/div[2]/table/tbody/tr[2]/td[7]',
                 )
 
                 # 비용/수익통계 클릭
@@ -683,10 +693,66 @@ def search_commercial_district(
                 )
 
                 # 해당지역 평균매출(원)
-                sub_district_avg_sales = read_element(
+                sub_district_total_sales = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[1]/p[2]/b',
+                )
+
+                # 해당지역 영업비용(원)
+                sub_district_operating_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[2]/p[2]/b',
+                )
+
+                # 식재료비(원)
+                sub_district_food_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[1]/p[2]',
+                )
+
+                # 고용인 인건비(원)
+                sub_district_employee_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[2]/p[2]',
+                )
+
+                # 임차료(원)
+                sub_district_rental_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[3]/p[2]',
+                )
+
+                # 세금(원)
+                sub_district_tax_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[4]/p[2]',
+                )
+
+                # 가족 종사자 인건비(원)
+                sub_district_family_employee_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[5]/p[2]',
+                )
+
+                # 대표자 인건비(원)
+                sub_district_ceo_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[6]/p[2]',
+                )
+
+                # 기타 인건비(원)
+                sub_district_etc_cost = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[7]/p[2]',
                 )
 
                 # 해당지역 평균 영업이익(원)
@@ -701,13 +767,6 @@ def search_commercial_district(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[2]/p[1]/span',
-                )
-
-                # 해당지역 평균 영업이익(%)
-                sub_district_avg_profit_percent = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="receipt1"]/div/div[2]/ul/li[4]/p[1]/span',
                 )
 
                 # 매출 비중 클릭
@@ -1003,35 +1062,33 @@ def search_commercial_district(
                     '//*[@id="s11"]/div[2]/div[2]/div/div[1]/ul/li[2]/button',
                 )
 
-                top5_menu_1 = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[1]/td[3]',
-                )
+                try:
+                    top5_menu_elements = []
 
-                top5_menu_2 = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[2]/td[3]',
-                )
+                    wait.until(
+                        EC.presence_of_element_located(
+                            (
+                                By.XPATH,
+                                '//*[@id="s11"]/div[2]/div[2]',
+                            )
+                        )
+                    )
 
-                top5_menu_3 = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[3]/td[3]',
-                )
-
-                top5_menu_4 = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[4]/td[3]',
-                )
-
-                top5_menu_5 = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[5]/td[3]',
-                )
+                    for i in range(5):
+                        try:
+                            element = wait.until(
+                                EC.presence_of_element_located(
+                                    (
+                                        By.XPATH,
+                                        f'//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[{i + 1}]/td[3]',
+                                    )
+                                )
+                            )
+                            top5_menu_elements.append(element.text)
+                        except:
+                            top5_menu_elements.append(None)
+                except:
+                    top5_menu_elements = [None] * 5
 
                 data = {
                     "location": {
@@ -1052,9 +1109,18 @@ def search_commercial_district(
                     },
                     "market_size": sub_district_market_size,
                     "average_sales": sub_district_total_size,
-                    "average_price": sub_district_average_price,
+                    "average_payment_cost": sub_district_avg_payment_cost,
                     "usage_count": sub_district_usage_count,
                     "average_profit": {
+                        "sales": sub_district_total_sales,
+                        "operating_cost": sub_district_operating_cost,
+                        "food": sub_district_food_cost,
+                        "employee": sub_district_employee_cost,
+                        "rental": sub_district_rental_cost,
+                        "tax": sub_district_tax_cost,
+                        "family_employee": sub_district_family_employee_cost,
+                        "ceo": sub_district_ceo_cost,
+                        "etc": sub_district_etc_cost,
                         "amount": sub_district_avg_profit_won,
                         "percent": sub_district_avg_profit_percent,
                     },
@@ -1075,14 +1141,36 @@ def search_commercial_district(
                         "age_groups": age_groups,
                         "male_percents": male_percents,
                         "female_percents": female_percents,
+                        "total_male_percent": total_male_percent,
+                        "total_female_percent": total_female_percent,
                         "most_visitor_age": most_visitor_age,
                     },
                     "top5_menus": {
-                        "top5_menu_1": top5_menu_1,
-                        "top5_menu_2": top5_menu_2,
-                        "top5_menu_3": top5_menu_3,
-                        "top5_menu_4": top5_menu_4,
-                        "top5_menu_5": top5_menu_5,
+                        "top5_menu_1": (
+                            top5_menu_elements[0]
+                            if len(top5_menu_elements) > 0
+                            else None
+                        ),
+                        "top5_menu_2": (
+                            top5_menu_elements[1]
+                            if len(top5_menu_elements) > 1
+                            else None
+                        ),
+                        "top5_menu_3": (
+                            top5_menu_elements[2]
+                            if len(top5_menu_elements) > 2
+                            else None
+                        ),
+                        "top5_menu_4": (
+                            top5_menu_elements[3]
+                            if len(top5_menu_elements) > 3
+                            else None
+                        ),
+                        "top5_menu_5": (
+                            top5_menu_elements[4]
+                            if len(top5_menu_elements) > 4
+                            else None
+                        ),
                     },
                 }
 
@@ -1113,5 +1201,39 @@ def search_commercial_district(
             print(f"Error closing driver: {str(quit_error)}")
 
 
+def execute_parallel_tasks():
+    start_time = time.time()
+    print(
+        f"Execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
+    )
+
+    with ThreadPoolExecutor(max_workers=12) as executor:
+
+        futures = [
+            # 0 ~ 1 함
+            executor.submit(get_district_count, 0, 2),
+            executor.submit(get_district_count, 2, 4),
+            executor.submit(get_district_count, 4, 6),
+            executor.submit(get_district_count, 6, 8),
+            executor.submit(get_district_count, 8, 10),
+            executor.submit(get_district_count, 10, 12),
+            executor.submit(get_district_count, 12, 14),
+            executor.submit(get_district_count, 14, 15),
+            executor.submit(get_district_count, 15, 16),
+            executor.submit(get_district_count, 16, 17),
+            # 16번까지 함
+        ]
+
+        for future in futures:
+            future.result()
+
+    end_time = time.time()
+    print(
+        f"Execution finished at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}"
+    )
+    print(f"Total execution time: {end_time - start_time} seconds")
+
+
 if __name__ == "__main__":
-    get_city_count()
+    execute_parallel_tasks()
+    print(f"상권분석 END")
