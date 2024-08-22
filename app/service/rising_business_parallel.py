@@ -3,6 +3,7 @@ import time
 
 from typing import List
 
+from httpcore import TimeoutException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -16,8 +17,9 @@ from selenium.common.exceptions import (
 
 from selenium.webdriver.common.alert import Alert
 
-from app.schemas.rising_business import RisingBusinessCreate, Location, BusinessDetail
-import app.crud.rising_business as rb
+from app.crud.region import get_or_create_region_id
+from app.crud.rising_business import insert_rising_business
+from app.schemas.rising_business import RisingBusiness
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -48,16 +50,19 @@ def setup_driver():
     return driver
 
 
+commercial_district_url = "https://m.nicebizmap.co.kr/analysis/analysisFree"
+
+
 def click_element(wait, by, value):
     try:
         element = wait.until(EC.element_to_be_clickable((by, value)))
         text = element.text
         element.click()
-        time.sleep(0.5)
+        time.sleep(0.7)
         return text
-    except Exception as e:
+    except TimeoutException:
         print(
-            f"Exception occurred: {e} for element located by {by} with value {value}. Skipping to next element."
+            f"TimeoutException occurred for element located by {by} with value {value}. Skipping to next element."
         )
         return None
 
@@ -68,9 +73,9 @@ def read_element(wait, by, value):
         text = element.text
         time.sleep(0.3)
         return text
-    except Exception as e:
+    except TimeoutException:
         print(
-            f"Exception occurred: {e} for element located by {by} with value {value}. Skipping to next element."
+            f"TimeoutException occurred for element located by {by} with value {value}. Skipping to next element."
         )
         return None
 
@@ -94,12 +99,11 @@ def handle_unexpected_alert(driver):
         return False
 
 
-def get_city_count(start_idx: int, end_idx: int):
+def get_city_count():
     driver = setup_driver()
-    print(f"Processing range {start_idx} to {end_idx}")
     try:
         driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 10)
         click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
         click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
 
@@ -109,91 +113,122 @@ def get_city_count(start_idx: int, end_idx: int):
             )
         )
         city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
+        print(f"시 갯수: {len(city_ul_li)}")
 
-        for city_idx in range(start_idx, end_idx):
-            get_district_count(city_idx)
+        get_district_count(len(city_ul_li))
 
-    except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
-def get_district_count(city_idx: int):
+def get_district_count(city_count):
     driver = setup_driver()
     try:
-        driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 20)
-        click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
-        click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
-        click_element(
-            wait,
-            By.XPATH,
-            f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-        )
+        for city_idx in range(city_count):
+            try:
+                print(f"idx: {city_idx}")
+                driver.get(commercial_district_url)
+                wait = WebDriverWait(driver, 10)
+                click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+                click_element(
+                    wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
+                )
+                city_text = click_element(
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                )
 
-        district_ul = wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
-            )
-        )
-        district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
-        print(f"구 갯수: {len(district_ul_li)}")
+                district_ul = wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul',
+                        )
+                    )
+                )
+                district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
+                print(f"구 갯수: {len(district_ul_li)}")
 
-        get_sub_district_count(city_idx, len(district_ul_li))
+                get_sub_district_count(city_idx, len(district_ul_li))
 
-    except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
+            except Exception as e:
+                print(f"Error processing city index {city_idx}: {str(e)}")
+                continue
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
 def get_sub_district_count(city_idx: int, district_count: int):
     driver = setup_driver()
     try:
         for district_idx in range(district_count):
-            # for district_idx in range(1):
-            driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
-            click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
-            click_element(
-                wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
-            )
-            city_text = click_element(
-                wait,
-                By.XPATH,
-                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-            )
-
-            district_ul = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
+            try:
+                print(f"idx: {district_idx}")
+                driver.get(commercial_district_url)
+                wait = WebDriverWait(driver, 10)
+                click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+                click_element(
+                    wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
                 )
-            )
-            district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
-
-            district_text = click_element(
-                wait,
-                By.XPATH,
-                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
-            )
-
-            sub_district_ul = wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
+                city_text = click_element(
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
-            )
-            sub_district_ul_li = sub_district_ul.find_elements(By.TAG_NAME, "li")
-            print(f"동 갯수: {len(sub_district_ul_li)}")
 
-            search_rising_businesses_top5(
-                city_idx, district_idx, len(sub_district_ul_li)
-            )
+                district_ul = wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul',
+                        )
+                    )
+                )
+                district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
+                print(f"구 갯수: {len(district_ul_li)}")
 
-    except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
+                district_text = click_element(
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                )
+
+                sub_district_ul = wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul',
+                        )
+                    )
+                )
+                sub_district_ul_li = sub_district_ul.find_elements(By.TAG_NAME, "li")
+                print(f"동 갯수: {len(sub_district_ul_li)}")
+
+                print(f"시/도: {city_text}, 시/군/구: {district_text}")
+
+                search_rising_businesses_top5(
+                    city_idx, district_idx, len(sub_district_ul_li)
+                )
+
+            except Exception as e:
+                print(f"Error processing district index {district_idx}: {str(e)}")
+                continue
+
     finally:
-        driver.quit()
+        try:
+            if driver:
+                driver.quit()
+        except Exception as quit_error:
+            print(f"Error closing driver: {str(quit_error)}")
 
 
 def search_rising_businesses_top5(
@@ -201,12 +236,12 @@ def search_rising_businesses_top5(
 ):
     driver = setup_driver()
     try:
-        data_list: List[RisingBusinessCreate] = []
+        data_list: List[RisingBusiness] = []
+
         for sub_district_idx in range(sub_district_count):
-            # for sub_district_idx in range(2):
             start_time = time.time()
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 10)
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
@@ -231,6 +266,12 @@ def search_rising_businesses_top5(
             )
 
             try:
+                region_id = get_or_create_region_id(
+                    city_text, district_text, sub_district_text
+                )
+
+                print(f"지역ID : {region_id}")
+
                 rising_ul = wait.until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="cardBoxTop5"]'))
                 )
@@ -238,46 +279,45 @@ def search_rising_businesses_top5(
                     By.CSS_SELECTOR, "#cardBoxTop5 > li"
                 )
 
-                rising_top5 = {}
                 for i, li in enumerate(rising_ul_li):
                     li_text = li.text.strip().split("\n")
                     if len(li_text) >= 2:
                         business_name = li_text[1]
-                        growth_rate = (
-                            convert_to_float(li_text[2]) if len(li_text) == 3 else None
+                        growth_rate = convert_to_float(li_text[2])
+
+                        data = RisingBusiness(
+                            REGION_ID=region_id,
+                            BUSINESS_NAME=business_name,
+                            GROWTH_RATE=growth_rate,
+                            SUB_DISTRICT_RANK=i + 1,
                         )
-                        rising_top5[f"business_{i + 1}"] = BusinessDetail(
-                            business_name=business_name,
-                            growth_rate=growth_rate,
-                        )
+
+                        data_list.append(data)
+                        print(data)
 
             except UnexpectedAlertPresentException:
                 handle_unexpected_alert(wait._driver)
-                rising_top5 = {}
+                data_list.append(
+                    RisingBusiness(
+                        REGION_ID=region_id,
+                        BUSINESS_NAME=None,
+                        GROWTH_RATE=None,
+                        SUB_DISTRICT_RANK=None,
+                    )
+                )
             except Exception as e:
-                print(f"Error while fetching top 5 businesses: {str(e)}")
-                rising_top5 = {}
-
-            data = RisingBusinessCreate(
-                location=Location(
-                    city=city_text,
-                    district=district_text,
-                    sub_district=sub_district_text,
-                ),
-                rising_top5=rising_top5,
-            )
-
-            data_list.append(data)
+                print(f"Loading Error : {str(e)}")
+                continue
 
             end_time = time.time()
             elapsed_time = end_time - start_time
-            print(f"Time taken : {elapsed_time}")
+            print(f"Time taken: {elapsed_time} seconds")
             print(
                 f"시/도: {city_text}, 시/군/구: {district_text}, 읍/면/동: {sub_district_text}"
             )
-        print(data_list)
-        rb.insert_rising_business(data_list)
 
+        print(data_list)
+        insert_rising_business(data_list)
     except Exception as e:
         print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
     finally:
