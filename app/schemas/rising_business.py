@@ -28,3 +28,16 @@ class RisingBusinessOutput(BaseModel):
     growth_rate: float
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+
+
+#######################################
+
+
+class RisingBusiness(BaseModel):
+    REGION_ID: int
+    BUSINESS_NAME: str
+    GROWTH_RATE: float
+    RANK: int
+
+    class Config:
+        orm_mode = True

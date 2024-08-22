@@ -169,3 +169,59 @@ class CommercialDistrictOutput(BaseModel):
     top_menu_5: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+
+########################
+
+class CommercialDistrict(BaseModel):
+    COMMERCIAL_DISTRICT_ID: int
+    REGION_ID: int
+    CATEGORY_ID: int
+    NATIONAL_DENSITY: float
+    CITY_DENSITY: float
+    DISTRICT_DENSITY: float
+    SUB_DISTRICT_DENSITY: float
+    MARKET_SIZE: int
+    AVERAGE_SALES: int
+    AVERAGE_PAYMENT: int
+    USAGE_COUNT: int
+    OPERATING_COST: int
+    FOOD_COST: int
+    EMPLOYEE_COST: int
+    RENTAL_COST: int
+    TAX_COST: int
+    FAMILY_EMPLOYEE_COST: int
+    CEO_COST: int
+    ETC_COST: int
+    AVERAGE_PROFIT: int
+    AVG_PROFIT_PER_MON: float
+    AVG_PROFIT_PER_TUES: float
+    AVG_PROFIT_PER_WED: float
+    AVG_PROFIT_PER_THU: float
+    AVG_PROFIT_PER_FRI: float
+    AVG_PROFIT_PER_SAT: float
+    AVG_PROFIT_PER_SUN: float
+    AVG_PROFIT_PER_06_09: float
+    AVG_PROFIT_PER_09_12: float
+    AVG_PROFIT_PER_12_15: float
+    AVG_PROFIT_PER_15_18: float
+    AVG_PROFIT_PER_18_21: float
+    AVG_PROFIT_PER_21_24: float
+    AVG_CLIENT_PER_M_20: float
+    AVG_CLIENT_PER_M_30: float
+    AVG_CLIENT_PER_M_40: float
+    AVG_CLIENT_PER_M_50: float
+    AVG_CLIENT_PER_M_60: float
+    AVG_CLIENT_PER_F_20: float
+    AVG_CLIENT_PER_F_30: float
+    AVG_CLIENT_PER_F_40: float
+    AVG_CLIENT_PER_F_50: float
+    AVG_CLIENT_PER_F_60: float
+    TOP_MENU_1: str
+    TOP_MENU_2: str
+    TOP_MENU_3: str
+    TOP_MENU_4: str
+    TOP_MENU_5: str
+
+    class Config:
+        orm_mode = True
