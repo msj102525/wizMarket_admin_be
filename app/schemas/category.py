@@ -7,4 +7,4 @@ class Category(BaseModel):
     DETAIL_CATEGORY: str
 
     class Config:
-        orm_mode = True
+        from_attributes  = True

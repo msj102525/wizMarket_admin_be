@@ -7,4 +7,4 @@ class Region(BaseModel):
     SUB_DISTRICT: str
 
     class Config:
-        orm_mode = True
+        from_attributes  = True

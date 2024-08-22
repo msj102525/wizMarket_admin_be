@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
+from app.crud.region import get_or_create_region_id
 from app.schemas.rising_business import RisingBusinessCreate, Location, BusinessDetail
 import app.crud.rising_business as rb
 from selenium.common.exceptions import (
@@ -120,8 +121,8 @@ def get_city_count():
 def get_district_count(city_count):
     driver = setup_driver()
     try:
-        # for city_idx in range(city_count):
-        for city_idx in range(1):
+        for city_idx in range(city_count):
+            # for city_idx in range(1):
             print(f"idx: {city_idx}")
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
@@ -132,8 +133,8 @@ def get_district_count(city_count):
             city_text = click_element(
                 wait,
                 By.XPATH,
-                # f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[9]/a', # 경기도
+                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                # f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[9]/a',  # 경기도
             )
 
             district_ul = wait.until(
@@ -158,7 +159,7 @@ def get_sub_district_count(city_idx, district_count):
     driver = setup_driver()
     try:
         for district_idx in range(district_count):
-        # for district_idx in range(1):
+            # for district_idx in range(1):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
             wait = WebDriverWait(driver, 10)
@@ -170,7 +171,7 @@ def get_sub_district_count(city_idx, district_count):
                 wait,
                 By.XPATH,
                 # f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[9]/a', # 경기도
+                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[9]/a',  # 경기도
             )
 
             district_ul = wait.until(
@@ -227,8 +228,8 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
             city_text = click_element(
                 wait,
                 By.XPATH,
-                # f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[9]/a',
+                f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                # f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[9]/a',
             )
 
             district_text = click_element(
@@ -244,6 +245,14 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            region_id = get_or_create_region_id(
+                city_text, district_text, sub_district_text
+            )
+
+            print(f"지역ID : {region_id}")
+
+            """
+            
             try:
                 rising_ul = wait.until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="cardBoxTop5"]'))
@@ -282,6 +291,7 @@ def search_rising_businesses_top5(city_idx, district_idx, sub_district_count):
             )
 
             data_list.append(data)
+            """
 
             end_time = time.time()
             elapsed_time = end_time - start_time

@@ -224,4 +224,4 @@ class CommercialDistrict(BaseModel):
     TOP_MENU_5: str
 
     class Config:
-        orm_mode = True
+        from_attributes  = True
