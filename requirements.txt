@@ -12,3 +12,5 @@ beautifulsoup4==4.12.3
 mysql-connector-python==9.0.0
 openpyxl==3.1.5
 tqdm==4.66.5
+aiomysql==0.2.0
+pandas==2.2.2

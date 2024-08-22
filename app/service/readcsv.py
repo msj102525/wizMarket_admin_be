@@ -41,19 +41,13 @@ def insert_data_to_db(connection, data):
         cursor.execute(sql, data)
         print(f"Inserted data: {data}")
 
-# 시스템 종료 함수
-def shutdown_system():
-    if platform.system() == "Windows":
-        os.system("shutdown /s /t 0")
-    else:
-        os.system("sudo shutdown -h now")
+
 
 # 모든 하위 폴더를 순회하며 파일 처리
 def process_csv_files():
     connection = get_db_connection()
     if not connection:
         print("Database connection could not be established. Exiting...")
-        shutdown_system()  # DB 연결이 안될 경우에도 시스템 종료
         return
     
     try:
@@ -82,7 +76,6 @@ def process_csv_files():
                         print(f"오류 발생 파일: {file_path}")
                         print(f"오류 메시지: {e}")
                         rollback(connection)
-                        shutdown_system()  # 오류 발생 시 시스템 종료
                         return  # 프로세스를 중단합니다.
         
         commit(connection)
@@ -91,7 +84,6 @@ def process_csv_files():
         rollback(connection)
     finally:
         close_connection(connection)
-        shutdown_system()  # 작업 완료 후 시스템 종료
 
 if __name__ == "__main__":
     process_csv_files()
