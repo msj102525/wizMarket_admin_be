@@ -1,14 +1,19 @@
 import pymysql
+import os
+from dotenv import load_dotenv
 from pymysql import OperationalError, InternalError, ProgrammingError, Error
-# 연결
+
+load_dotenv()
+
+
 def get_db_connection():
     connection = None
     try:
         connection = pymysql.connect(
-            host="localhost",
-            user="root",
-            password="1234",
-            database="test",
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_DATABASE"),
             autocommit=False,
         )
         print("Database connection established successfully.")
@@ -24,6 +29,7 @@ def get_db_connection():
         print(f"Unexpected error: {e}")
     return connection
 
+
 # DB 연결 종료
 def close_connection(connection):
     try:
@@ -32,6 +38,7 @@ def close_connection(connection):
             print("Database connection closed successfully.")
     except pymysql.MySQLError as e:
         print(f"Error closing connection: {e}")
+
 
 # 커서 종료
 def close_cursor(cursor):
@@ -42,6 +49,7 @@ def close_cursor(cursor):
     except pymysql.MySQLError as e:
         print(f"Error closing cursor: {e}")
 
+
 # 커밋
 def commit(connection):
     try:
@@ -50,6 +58,7 @@ def commit(connection):
             print("Transaction committed successfully.")
     except pymysql.MySQLError as e:
         print(f"Error committing transaction: {e}")
+
 
 # 롤백
 def rollback(connection):
