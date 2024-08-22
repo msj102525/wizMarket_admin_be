@@ -1,29 +1,28 @@
-import os
-import time
-
+from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool
 from typing import List
-
-from httpcore import TimeoutException
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import os
+
+from tqdm import tqdm
+from app.crud.region import get_or_create_region_id
+from app.crud.rising_business import insert_rising_business
+from app.schemas.rising_business import RisingBusiness, RisingBusinessInsert
+
 from selenium.common.exceptions import (
     UnexpectedAlertPresentException,
     NoAlertPresentException,
+    TimeoutException,
 )
-
 from selenium.webdriver.common.alert import Alert
 
-from app.crud.region import get_or_create_region_id
-from app.crud.rising_business import insert_rising_business
-from app.schemas.rising_business import RisingBusiness
-
-from concurrent.futures import ThreadPoolExecutor
-
-commercial_district_url = os.getenv("RISING_TOP5_URL")
+NICE_BIZ_MAP_URL = "https://m.nicebizmap.co.kr/analysis/analysisFree"
 
 
 def setup_driver():
@@ -50,15 +49,12 @@ def setup_driver():
     return driver
 
 
-commercial_district_url = "https://m.nicebizmap.co.kr/analysis/analysisFree"
-
-
 def click_element(wait, by, value):
     try:
         element = wait.until(EC.element_to_be_clickable((by, value)))
         text = element.text
         element.click()
-        time.sleep(0.7)
+        time.sleep(1.5)
         return text
     except TimeoutException:
         print(
@@ -99,44 +95,49 @@ def handle_unexpected_alert(driver):
         return False
 
 
-def get_city_count():
+# def get_city_count():
+#     driver = setup_driver()
+#     try:
+#         driver.get(NICE_BIZ_MAP_URL)
+#         wait = WebDriverWait(driver, 60)
+#         click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+#         click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
+
+#         city_ul = wait.until(
+#             EC.presence_of_element_located(
+#                 (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
+#             )
+#         )
+#         city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
+#         print(f"시 갯수: {len(city_ul_li)}")
+
+#         get_district_count(len(city_ul_li))
+
+#     finally:
+#         try:
+#             if driver:
+#                 driver.quit()
+#         except Exception as quit_error:
+#             print(f"Error closing driver: {str(quit_error)}")
+
+
+def get_district_count(start_idx: int, end_idx: int):
     driver = setup_driver()
     try:
-        driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 10)
-        click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
-        click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
-
-        city_ul = wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
-            )
-        )
-        city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
-        print(f"시 갯수: {len(city_ul_li)}")
-
-        get_district_count(len(city_ul_li))
-
-    finally:
-        try:
-            if driver:
-                driver.quit()
-        except Exception as quit_error:
-            print(f"Error closing driver: {str(quit_error)}")
-
-
-def get_district_count(city_count):
-    driver = setup_driver()
-    try:
-        for city_idx in range(city_count):
+        for city_idx in range(start_idx, end_idx):
             try:
                 print(f"idx: {city_idx}")
-                driver.get(commercial_district_url)
-                wait = WebDriverWait(driver, 10)
+                driver.get(NICE_BIZ_MAP_URL)
+                wait = WebDriverWait(driver, 60)
                 click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+
+                time.sleep(1.5)
+
                 click_element(
                     wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
                 )
+
+                time.sleep(1.5)
                 city_text = click_element(
                     wait,
                     By.XPATH,
@@ -154,8 +155,10 @@ def get_district_count(city_count):
                 district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
                 print(f"구 갯수: {len(district_ul_li)}")
 
-                get_sub_district_count(city_idx, len(district_ul_li))
+                get_sub_district_count(city_idx, len(district_ul_li), city_text)
 
+            except UnexpectedAlertPresentException:
+                handle_unexpected_alert(wait._driver)
             except Exception as e:
                 print(f"Error processing city index {city_idx}: {str(e)}")
                 continue
@@ -167,23 +170,31 @@ def get_district_count(city_count):
             print(f"Error closing driver: {str(quit_error)}")
 
 
-def get_sub_district_count(city_idx: int, district_count: int):
+def get_sub_district_count(city_idx: int, district_count: int, city_text_ck: str):
     driver = setup_driver()
     try:
-        for district_idx in range(district_count):
+        for district_idx in tqdm(range(district_count), f"{city_text_ck} : Progress"):
             try:
                 print(f"idx: {district_idx}")
-                driver.get(commercial_district_url)
-                wait = WebDriverWait(driver, 10)
+                driver.get(NICE_BIZ_MAP_URL)
+                wait = WebDriverWait(driver, 60)
                 click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+
+                time.sleep(1.5)
+
                 click_element(
                     wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
                 )
+
+                time.sleep(1.5)
+
                 city_text = click_element(
                     wait,
                     By.XPATH,
                     f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
+
+                time.sleep(1.5)
 
                 district_ul = wait.until(
                     EC.presence_of_element_located(
@@ -193,6 +204,7 @@ def get_sub_district_count(city_idx: int, district_count: int):
                         )
                     )
                 )
+
                 district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
                 print(f"구 갯수: {len(district_ul_li)}")
 
@@ -218,7 +230,8 @@ def get_sub_district_count(city_idx: int, district_count: int):
                 search_rising_businesses_top5(
                     city_idx, district_idx, len(sub_district_ul_li)
                 )
-
+            except UnexpectedAlertPresentException:
+                handle_unexpected_alert(wait._driver)
             except Exception as e:
                 print(f"Error processing district index {district_idx}: {str(e)}")
                 continue
@@ -240,12 +253,21 @@ def search_rising_businesses_top5(
 
         for sub_district_idx in range(sub_district_count):
             start_time = time.time()
-            driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            driver.get(NICE_BIZ_MAP_URL)
+
+            wait = WebDriverWait(driver, 60)
+
+            time.sleep(1.5)
+
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
+
+            time.sleep(1.5)
+
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
             )
+
+            time.sleep(1.5)
 
             city_text = click_element(
                 wait,
@@ -253,11 +275,15 @@ def search_rising_businesses_top5(
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(3)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
+
+            time.sleep(1.5)
 
             sub_district_text = click_element(
                 wait,
@@ -265,12 +291,12 @@ def search_rising_businesses_top5(
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            time.sleep(1.5)
+
             try:
                 region_id = get_or_create_region_id(
                     city_text, district_text, sub_district_text
                 )
-
-                print(f"지역ID : {region_id}")
 
                 rising_ul = wait.until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="cardBoxTop5"]'))
@@ -285,11 +311,11 @@ def search_rising_businesses_top5(
                         business_name = li_text[1]
                         growth_rate = convert_to_float(li_text[2])
 
-                        data = RisingBusiness(
-                            REGION_ID=region_id,
-                            BUSINESS_NAME=business_name,
-                            GROWTH_RATE=growth_rate,
-                            SUB_DISTRICT_RANK=i + 1,
+                        data = RisingBusinessInsert(
+                            region_id=region_id,
+                            business_name=business_name,
+                            growth_rate=growth_rate,
+                            sub_district_rank=i + 1,
                         )
 
                         data_list.append(data)
@@ -298,11 +324,11 @@ def search_rising_businesses_top5(
             except UnexpectedAlertPresentException:
                 handle_unexpected_alert(wait._driver)
                 data_list.append(
-                    RisingBusiness(
-                        REGION_ID=region_id,
-                        BUSINESS_NAME=None,
-                        GROWTH_RATE=None,
-                        SUB_DISTRICT_RANK=None,
+                    RisingBusinessInsert(
+                        region_id=region_id,
+                        business_name=None,
+                        growth_rate=None,
+                        sub_district_rank=None,
                     )
                 )
             except Exception as e:
@@ -319,12 +345,12 @@ def search_rising_businesses_top5(
         print(data_list)
         insert_rising_business(data_list)
     except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
+        print(f"Failed to fetch data from {NICE_BIZ_MAP_URL}: {str(e)}")
     finally:
         driver.quit()
 
 
-def execute_parallel_tasks():
+def execute_task_in_thread(start, end):
     start_time = time.time()
     print(
         f"Execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
@@ -333,22 +359,42 @@ def execute_parallel_tasks():
     with ThreadPoolExecutor(max_workers=12) as executor:
 
         futures = [
-            # 0 ~ 1 함
-            executor.submit(get_city_count, 0, 2),
-            executor.submit(get_city_count, 2, 4),
-            executor.submit(get_city_count, 4, 6),
-            executor.submit(get_city_count, 6, 8),
-            executor.submit(get_city_count, 8, 10),
-            executor.submit(get_city_count, 10, 12),
-            executor.submit(get_city_count, 12, 14),
-            executor.submit(get_city_count, 14, 15),
-            executor.submit(get_city_count, 15, 16),
-            executor.submit(get_city_count, 16, 17),
-            # 16번까지 함
+            executor.submit(get_district_count, start, end),
         ]
+        # 17번까지
 
         for future in futures:
             future.result()
+
+    end_time = time.time()
+    print(
+        f"Execution finished at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}"
+    )
+    print(f"Total execution time: {end_time - start_time} seconds")
+
+
+def execute_parallel_tasks():
+    start_time = time.time()
+    print(
+        f"Execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
+    )
+
+    ranges = [
+        (0, 2),
+        (2, 4),
+        (4, 6),
+        (6, 8),
+        (8, 10),
+        (10, 12),
+        (12, 14),
+        (14, 15),
+        (15, 16),
+        (16, 17),
+    ]
+
+    # 멀티프로세싱 사용
+    with Pool(processes=len(ranges)) as pool:
+        pool.starmap(execute_task_in_thread, ranges)
 
     end_time = time.time()
     print(

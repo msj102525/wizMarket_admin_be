@@ -1,5 +1,4 @@
-from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import List
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -10,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 from app.crud.region import get_or_create_region_id
 from app.crud.rising_business import insert_rising_business
-from app.schemas.rising_business import RisingBusiness
+from app.schemas.rising_business import RisingBusiness, RisingBusinessInsert
 
 from selenium.common.exceptions import (
     UnexpectedAlertPresentException,
@@ -18,6 +17,8 @@ from selenium.common.exceptions import (
     TimeoutException,
 )
 from selenium.webdriver.common.alert import Alert
+
+NICE_BIZ_MAP_URL = "https://m.nicebizmap.co.kr/analysis/analysisFree"
 
 
 def setup_driver():
@@ -42,9 +43,6 @@ def setup_driver():
     driver = webdriver.Chrome(service=service, options=options)
 
     return driver
-
-
-commercial_district_url = "https://m.nicebizmap.co.kr/analysis/analysisFree"
 
 
 def click_element(wait, by, value):
@@ -96,8 +94,8 @@ def handle_unexpected_alert(driver):
 def get_city_count():
     driver = setup_driver()
     try:
-        driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 10)
+        driver.get(NICE_BIZ_MAP_URL)
+        wait = WebDriverWait(driver, 30)
         click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
         click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
 
@@ -125,8 +123,8 @@ def get_district_count(city_count):
         for city_idx in range(city_count):
             try:
                 print(f"idx: {city_idx}")
-                driver.get(commercial_district_url)
-                wait = WebDriverWait(driver, 10)
+                driver.get(NICE_BIZ_MAP_URL)
+                wait = WebDriverWait(driver, 30)
                 click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
                 click_element(
                     wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
@@ -167,8 +165,8 @@ def get_sub_district_count(city_idx: int, district_count: int):
         for district_idx in range(district_count):
             try:
                 print(f"idx: {district_idx}")
-                driver.get(commercial_district_url)
-                wait = WebDriverWait(driver, 10)
+                driver.get(NICE_BIZ_MAP_URL)
+                wait = WebDriverWait(driver, 30)
                 click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
                 click_element(
                     wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
@@ -234,12 +232,14 @@ def search_rising_businesses_top5(
 
         for sub_district_idx in range(sub_district_count):
             start_time = time.time()
-            driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 10)
+            driver.get(NICE_BIZ_MAP_URL)
+            wait = WebDriverWait(driver, 30)
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
             )
+
+            time.sleep(1)
 
             city_text = click_element(
                 wait,
@@ -247,11 +247,15 @@ def search_rising_businesses_top5(
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(1)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
+
+            time.sleep(1)
 
             sub_district_text = click_element(
                 wait,
@@ -259,12 +263,14 @@ def search_rising_businesses_top5(
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            time.sleep(1)
+
             try:
                 region_id = get_or_create_region_id(
                     city_text, district_text, sub_district_text
                 )
 
-                print(f"지역ID : {region_id}")
+                print(region_id)
 
                 rising_ul = wait.until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="cardBoxTop5"]'))
@@ -279,11 +285,11 @@ def search_rising_businesses_top5(
                         business_name = li_text[1]
                         growth_rate = convert_to_float(li_text[2])
 
-                        data = RisingBusiness(
-                            REGION_ID=region_id,
-                            BUSINESS_NAME=business_name,
-                            GROWTH_RATE=growth_rate,
-                            SUB_DISTRICT_RANK=i + 1,
+                        data = RisingBusinessInsert(
+                            region_id=region_id,
+                            business_name=business_name,
+                            growth_rate=growth_rate,
+                            sub_district_rank=i + 1,
                         )
 
                         data_list.append(data)
@@ -292,11 +298,11 @@ def search_rising_businesses_top5(
             except UnexpectedAlertPresentException:
                 handle_unexpected_alert(wait._driver)
                 data_list.append(
-                    RisingBusiness(
-                        REGION_ID=region_id,
-                        BUSINESS_NAME=None,
-                        GROWTH_RATE=None,
-                        SUB_DISTRICT_RANK=None,
+                    RisingBusinessInsert(
+                        region_id=region_id,
+                        business_name=None,
+                        growth_rate=None,
+                        sub_district_rank=None,
                     )
                 )
             except Exception as e:
@@ -313,11 +319,11 @@ def search_rising_businesses_top5(
         print(data_list)
         insert_rising_business(data_list)
     except Exception as e:
-        print(f"Failed to fetch data from {commercial_district_url}: {str(e)}")
+        print(f"Failed to fetch data from {NICE_BIZ_MAP_URL}: {str(e)}")
     finally:
         driver.quit()
 
 
 if __name__ == "__main__":
-    get_city_count()
-    print("성공!")
+    # get_city_count()
+    search_rising_businesses_top5(7, 0, 2)

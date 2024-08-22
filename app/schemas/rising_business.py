@@ -4,10 +4,23 @@ from datetime import datetime
 
 
 class RisingBusiness(BaseModel):
-    REGION_ID: int
-    BUSINESS_NAME: Optional[str] = None
-    GROWTH_RATE: Optional[float] = None
-    SUB_DISTRICT_RANK: Optional[int] = None
+    rising_business_id: Optional[int]
+    region_id: int
+    business_name: Optional[str] = None
+    growth_rate: Optional[float] = None
+    sub_district_rank: Optional[int] = None
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class RisingBusinessInsert(BaseModel):
+    region_id: int
+    business_name: Optional[str] = None
+    growth_rate: Optional[float] = None
+    sub_district_rank: Optional[int] = None
 
     class Config:
         from_attributes = True

@@ -10,7 +10,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
-    UnexpectedAlertPresentException,
     NoAlertPresentException,
 )
 from selenium.webdriver.common.alert import Alert
