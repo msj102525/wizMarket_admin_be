@@ -2,7 +2,8 @@ import pymysql
 import pandas as pd
 from app.db.connect import get_db_connection, close_connection, close_cursor, commit, rollback
 from app.schemas.population import Population
-from app.crud.city import get_or_create_region_id
+from typing import List
+
 
 
 async def fetch_population_records(start_date: int, end_date: int, region_id: int):
@@ -48,109 +49,159 @@ async def fetch_population_by_year_month(year_month: int):
         close_connection(connection)
 
 
-async def insert_population_to_db(row, index):
-    connection = None
-    cursor = None
-
+async def insert_population_data(cursor, population_data: Population):
     try:
-        # DB 연결
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
-        # 시도명, 시군구명, 읍면동명 값 가져오기
-        city = row['시도명']
-        district = row['시군구명'].split()[0]
-        sub_district = row['읍면동명']
-
-        # '출장소'라는 단어가 sub_district에 포함된 경우, 패스 처리
-        if "출장소" in sub_district:
-            print(f"Skipping row due to '출장소' in sub_district: {sub_district}")
-            return  # 이 행을 건너뜀
-
-        # 매핑 딕셔너리 생성 (변경 전 값을 키로, 변경 후 값을 값으로)
-        sub_district_mapping = {
-            "도화2.3동": "도화2,3동",
-            "숭의1.3동": "숭의1,3동",
-            "용현1.4동": "용현1,4동",
-            "홍제제1동": "홍제1동",
-            "홍제제2동": "홍제2동",
-            "홍제제3동": "홍제3동",
-            "봉명2송정동": "봉명2.송정동",
-            "성화개신죽심동": "성화.개신.죽림동",
-            "용담명암산성동": "용담.명암.산성동",
-            "운천신봉동": "운천.신봉동",
-            "율량사천동": "율량.사천동",
-        }
-
-        # 매핑 딕셔너리를 이용해 값 변경
-        if sub_district in sub_district_mapping:
-            sub_district = sub_district_mapping[sub_district]
-
-        # region_id 조회 또는 생성
-        region_id = get_or_create_region_id(city, district, sub_district)
-
-        # 성별에 따라 컬럼 매핑
-        if index % 2 == 0:
-            # 짝수 인덱스 - 여성 데이터
-            gender = 'F'
-            to09 = row['to09F']
-            to1019 = row['to1019F']
-            to2029 = row['to2029F']
-            to3039 = row['to3039F']
-            to4049 = row['to4049F']
-            to5059 = row['to5059F']
-            to6069 = row['to6069F']
-            to7079 = row['to7079F']
-            to8089 = row['to8089F']
-            to9099 = row['to9099F']
-            over100 = row['over100F']
-            total = row['계']
-            maletotal = 0
-            femaletotal = row['여자']
-        else:
-            # 홀수 인덱스 - 남성 데이터
-            gender = 'M'
-            to09 = row['to09M']
-            to1019 = row['to1019M']
-            to2029 = row['to2029M']
-            to3039 = row['to3039M']
-            to4049 = row['to4049M']
-            to5059 = row['to5059M']
-            to6069 = row['to6069M']
-            to7079 = row['to7079M']
-            to8089 = row['to8089M']
-            to9099 = row['to9099M']
-            over100 = row['over100M']
-            total = row['계']
-            maletotal = row['남자']
-            femaletotal = 0
-
-        # 연월 정보가 포함된 값 예시 (예: 202308)
-        y_m = int(pd.to_datetime(row['기준연월']).strftime('%Y%m'))
-
-        # population 테이블에 데이터 삽입
         insert_query = """
-        INSERT INTO population 
-        (ID, GENDER, TO09, TO1019, TO2029, TO3039, TO4049, TO5059, TO6069, TO7079, TO8089, TO9099, OVER100, TOTAL, MALETOTAL, FEMALETOTAL, Y_M) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO population (
+            POP_ID, CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID, GENDER_ID, admin_code, reference_date,
+            province_name, district_name, subdistrict_name, total_population, male_population, female_population,
+            age_0, age_1, age_2, age_3, age_4, age_5, age_6, age_7, age_8, age_9,
+            age_10, age_11, age_12, age_13, age_14, age_15, age_16, age_17, age_18, age_19,
+            age_20, age_21, age_22, age_23, age_24, age_25, age_26, age_27, age_28, age_29,
+            age_30, age_31, age_32, age_33, age_34, age_35, age_36, age_37, age_38, age_39,
+            age_40, age_41, age_42, age_43, age_44, age_45, age_46, age_47, age_48, age_49,
+            age_50, age_51, age_52, age_53, age_54, age_55, age_56, age_57, age_58, age_59,
+            age_60, age_61, age_62, age_63, age_64, age_65, age_66, age_67, age_68, age_69,
+            age_70, age_71, age_72, age_73, age_74, age_75, age_76, age_77, age_78, age_79,
+            age_80, age_81, age_82, age_83, age_84, age_85, age_86, age_87, age_88, age_89,
+            age_90, age_91, age_92, age_93, age_94, age_95, age_96, age_97, age_98, age_99,
+            age_100, age_101, age_102, age_103, age_104, age_105, age_106, age_107, age_108, age_109,
+            age_110_over, created_at, updated_at
+        ) VALUES (
+            NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, NOW(), NOW()
+        )
         """
 
         cursor.execute(insert_query, (
-            region_id, gender, to09, to1019, to2029, to3039, to4049, to5059, to6069, to7079, to8089, to9099, over100,
-            total, maletotal, femaletotal, y_m
+            population_data.city_id,
+            population_data.district_id,
+            population_data.sub_district_id,
+            population_data.gender_id,
+            population_data.admin_code,
+            population_data.reference_date,
+            population_data.province_name,
+            population_data.district_name,
+            population_data.subdistrict_name,
+            population_data.total_population,
+            population_data.male_population,
+            population_data.female_population,
+            population_data.age_0,
+            population_data.age_1,
+            population_data.age_2,
+            population_data.age_3,
+            population_data.age_4,
+            population_data.age_5,
+            population_data.age_6,
+            population_data.age_7,
+            population_data.age_8,
+            population_data.age_9,
+            population_data.age_10,
+            population_data.age_11,
+            population_data.age_12,
+            population_data.age_13,
+            population_data.age_14,
+            population_data.age_15,
+            population_data.age_16,
+            population_data.age_17,
+            population_data.age_18,
+            population_data.age_19,
+            population_data.age_20,
+            population_data.age_21,
+            population_data.age_22,
+            population_data.age_23,
+            population_data.age_24,
+            population_data.age_25,
+            population_data.age_26,
+            population_data.age_27,
+            population_data.age_28,
+            population_data.age_29,
+            population_data.age_30,
+            population_data.age_31,
+            population_data.age_32,
+            population_data.age_33,
+            population_data.age_34,
+            population_data.age_35,
+            population_data.age_36,
+            population_data.age_37,
+            population_data.age_38,
+            population_data.age_39,
+            population_data.age_40,
+            population_data.age_41,
+            population_data.age_42,
+            population_data.age_43,
+            population_data.age_44,
+            population_data.age_45,
+            population_data.age_46,
+            population_data.age_47,
+            population_data.age_48,
+            population_data.age_49,
+            population_data.age_50,
+            population_data.age_51,
+            population_data.age_52,
+            population_data.age_53,
+            population_data.age_54,
+            population_data.age_55,
+            population_data.age_56,
+            population_data.age_57,
+            population_data.age_58,
+            population_data.age_59,
+            population_data.age_60,
+            population_data.age_61,
+            population_data.age_62,
+            population_data.age_63,
+            population_data.age_64,
+            population_data.age_65,
+            population_data.age_66,
+            population_data.age_67,
+            population_data.age_68,
+            population_data.age_69,
+            population_data.age_70,
+            population_data.age_71,
+            population_data.age_72,
+            population_data.age_73,
+            population_data.age_74,
+            population_data.age_75,
+            population_data.age_76,
+            population_data.age_77,
+            population_data.age_78,
+            population_data.age_79,
+            population_data.age_80,
+            population_data.age_81,
+            population_data.age_82,
+            population_data.age_83,
+            population_data.age_84,
+            population_data.age_85,
+            population_data.age_86,
+            population_data.age_87,
+            population_data.age_88,
+            population_data.age_89,
+            population_data.age_90,
+            population_data.age_91,
+            population_data.age_92,
+            population_data.age_93,
+            population_data.age_94,
+            population_data.age_95,
+            population_data.age_96,
+            population_data.age_97,
+            population_data.age_98,
+            population_data.age_99,
+            population_data.age_100,
+            population_data.age_101,
+            population_data.age_102,
+            population_data.age_103,
+            population_data.age_104,
+            population_data.age_105,
+            population_data.age_106,
+            population_data.age_107,
+            population_data.age_108,
+            population_data.age_109,
+            population_data.age_110_over,
         ))
 
-        # 변경 사항 커밋
-        connection.commit()
-
     except Exception as e:
-        print(f"An error occurred: {e}")
-        if connection:
-            connection.rollback()  # 문제가 발생하면 롤백
-
-    finally:
-        # 커서와 연결 종료
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
+        raise e  # 예외를 서비스 레이어로 전달
