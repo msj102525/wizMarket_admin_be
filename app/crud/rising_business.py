@@ -13,9 +13,7 @@ from app.db.connect import (
     rollback,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+
 
 # data_list = [
 #     RisingBusinessInsert(
