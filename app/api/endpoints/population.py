@@ -4,9 +4,6 @@ from app.db.connect import get_db_connection
 
 router = APIRouter()
 
-import logging
-logger = logging.getLogger(__name__)
-
 @router.post("/check_population")
 async def check_population(year_month: int = Body(..., embed=True)):
     try:
