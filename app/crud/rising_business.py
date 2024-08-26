@@ -83,12 +83,12 @@ def insert_rising_business(data_list: List[RisingBusinessInsert]):
             close_connection(connection)
 
 
-def select_all_rising_business_by_sub_district(
-    sub_district: str,
-) -> List[RisingBusiness]:
+def select_all_rising_business_by_region_id(region_id: int) -> List[RisingBusiness]:
     connection = get_db_connection()
     cursor = None
+    logger = logging.getLogger(__name__)
     results = []
+    print(f"region_id: {region_id}")
 
     try:
         if connection.open:
@@ -96,11 +96,11 @@ def select_all_rising_business_by_sub_district(
             select_query = """
                 SELECT *
                 FROM RISING_BUSINESS
-                WHERE SUB_DISTRICT LIKE %s;
+                WHERE REGION_ID = %s;
             """
-            cursor.execute(select_query, (sub_district))
+            logger.info(f"Executing query: {select_query % (region_id,)}")
+            cursor.execute(select_query, (region_id,))
             rows = cursor.fetchall()
-
             for row in rows:
                 print(row)
                 try:
@@ -117,7 +117,6 @@ def select_all_rising_business_by_sub_district(
                     )
                 except ValueError as ve:
                     print(f"Value Error: {ve}")
-
     except MySQLError as e:
         print(f"MySQL Error: {e}")
         rollback(connection)

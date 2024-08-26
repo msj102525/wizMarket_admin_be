@@ -181,10 +181,13 @@ class CommercialDistrict(BaseModel):
     CITY_DENSITY: float
     DISTRICT_DENSITY: float
     SUB_DISTRICT_DENSITY: float
+
     MARKET_SIZE: int
-    AVERAGE_SALES: int
+
     AVERAGE_PAYMENT: int
     USAGE_COUNT: int
+    
+    AVERAGE_SALES: int
     OPERATING_COST: int
     FOOD_COST: int
     EMPLOYEE_COST: int
@@ -194,19 +197,23 @@ class CommercialDistrict(BaseModel):
     CEO_COST: int
     ETC_COST: int
     AVERAGE_PROFIT: int
+
     AVG_PROFIT_PER_MON: float
-    AVG_PROFIT_PER_TUES: float
+    AVG_PROFIT_PER_TUE: float
     AVG_PROFIT_PER_WED: float
     AVG_PROFIT_PER_THU: float
     AVG_PROFIT_PER_FRI: float
     AVG_PROFIT_PER_SAT: float
     AVG_PROFIT_PER_SUN: float
+
     AVG_PROFIT_PER_06_09: float
     AVG_PROFIT_PER_09_12: float
     AVG_PROFIT_PER_12_15: float
     AVG_PROFIT_PER_15_18: float
     AVG_PROFIT_PER_18_21: float
     AVG_PROFIT_PER_21_24: float
+    AVG_PROFIT_PER_24_06: float
+    
     AVG_CLIENT_PER_M_20: float
     AVG_CLIENT_PER_M_30: float
     AVG_CLIENT_PER_M_40: float

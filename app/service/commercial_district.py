@@ -548,6 +548,8 @@ def search_commercial_district(
                 f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 2}]/ul/li[{detail_category_idx + 1}]/button',
             )
 
+            ###########################
+
             if detail_category_text:
 
                 detail_category_text = detail_category_text.replace(
@@ -599,28 +601,28 @@ def search_commercial_district(
                 )
 
                 # 전국 해당 업종수 밀집도 데이터
-                all_detail_category_count = read_element(
+                national_density = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[2]',
                 )
 
-                # 해당 시, 해당 업종수 밀집도 데이터
-                city_detail_category_count = read_element(
+                # 해당 시/도, 해당 업종수 밀집도 데이터
+                city_density = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[3]',
                 )
 
-                # 해당 구, 해당 업종수 밀집도 데이터
-                district_detail_category_count = read_element(
+                # 해당 시/군/구, 해당 업종수 밀집도 데이터
+                district_density = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[4]',
                 )
 
-                # 해당 지역, 해당 업종수 밀집도 데이터
-                sub_district_detail_category_count = read_element(
+                # 해당 읍/면/동, 해당 업종수 밀집도 데이터
+                sub_district_density = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[5]',
@@ -634,24 +636,10 @@ def search_commercial_district(
                 )
 
                 # 해당지역 업종 총 시장규모(원) 제일 최신
-                sub_district_market_size = read_element(
+                market_size = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s3"]/div[2]/div[2]/div[2]/table/tbody/tr/td[7]',
-                )
-
-                # 매출규모 클릭
-                click_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="report1"]/div/div[3]/div/ul/li[4]/a',
-                )
-
-                # 해당지역 업종 점포당 매출규모(원)
-                sub_district_total_size = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="s4"]/div[2]/div[3]/div[2]/table/tbody/tr/td[7]',
                 )
 
                 # 결제단가 클릭
@@ -662,14 +650,14 @@ def search_commercial_district(
                 )
 
                 # 해당지역 업종 결제단가(원)
-                sub_district_avg_payment_cost = read_element(
+                average_payment = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s6"]/div[2]/div[2]/div[2]/table/tbody/tr[2]/td[7]',
                 )
 
                 # 해당지역 업종 이용건수(건)
-                sub_district_usage_count = read_element(
+                usage_count = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s6"]/div[2]/div[2]/div[2]/table/tbody/tr[1]/td[7]',
@@ -682,78 +670,71 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[3]/div/ul/li[7]/a',
                 )
 
-                # # 해당지역 평균매출(원)
-                # sub_district_total_sales = read_element(
-                #     wait,
-                #     By.XPATH,
-                #     '//*[@id="receipt1"]/div/div[2]/ul/li[1]/p[2]/b',
-                # )
-
-                # 해당지역 평균 영업비용(%)
-                # sub_district_avg_profit_percent = read_element(
-                #     wait,
-                #     By.XPATH,
-                #     '//*[@id="receipt1"]/div/div[2]/ul/li[2]/p[1]/span',
-                # )
+                # 해당지역 업종 점포당 매출규모(원)
+                average_sales = read_element(
+                    wait,
+                    By.XPATH,
+                    '//*[@id="receipt1"]/div/div[2]/ul/li[1]/p[2]/b',
+                )
 
                 # 해당지역 영업비용(원)
-                sub_district_operating_cost = read_element(
+                operating_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[2]/p[2]/b',
                 )
 
                 # 식재료비(원)
-                sub_district_food_cost = read_element(
+                food_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[1]/p[2]',
                 )
 
                 # 고용인 인건비(원)
-                sub_district_employee_cost = read_element(
+                employee_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[2]/p[2]',
                 )
 
                 # 임차료(원)
-                sub_district_rental_cost = read_element(
+                rental_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[3]/p[2]',
                 )
 
                 # 세금(원)
-                sub_district_tax_cost = read_element(
+                tax_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[4]/p[2]',
                 )
 
                 # 가족 종사자 인건비(원)
-                sub_district_family_employee_cost = read_element(
+                family_employee_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[5]/p[2]',
                 )
 
                 # 대표자 인건비(원)
-                sub_district_ceo_cost = read_element(
+                ceo_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[6]/p[2]',
                 )
 
                 # 기타 인건비(원)
-                sub_district_etc_cost = read_element(
+                etc_cost = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[7]/p[2]',
                 )
 
                 # 해당지역 평균 영업이익(원)
-                sub_district_avg_profit_won = read_element(
+                average_profit = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="receipt1"]/div/div[2]/ul/li[4]/p[2]/b',
@@ -767,148 +748,102 @@ def search_commercial_district(
                 )
 
                 # 해당지역 업종 매출 요일별 (월요일 %)
-                sub_district_avg_profit_percent_mon = read_element(
+                avg_profit_per_mon = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[2]',
                 )
 
                 # 해당지역 업종 매출 요일별 (화요일 %)
-                sub_district_avg_profit_percent_tues = read_element(
+                avg_profit_per_tue = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[3]',
                 )
 
                 # 해당지역 업종 매출 요일별 (수요일 %)
-                sub_district_avg_profit_percent_wed = read_element(
+                avg_profit_per_wed = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[4]',
                 )
 
                 # 해당지역 업종 매출 요일별 (목요일 %)
-                sub_district_avg_profit_percent_thurs = read_element(
+                avg_profit_per_thu = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[5]',
                 )
 
                 # 해당지역 업종 매출 요일별 (금요일 %)
-                sub_district_avg_profit_percent_fri = read_element(
+                avg_profit_per_fri = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[6]',
                 )
 
                 # 해당지역 업종 매출 요일별 (토요일 %)
-                sub_district_avg_profit_percent_sat = read_element(
+                avg_profit_per_sat = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[7]',
                 )
 
                 # 해당지역 업종 매출 요일별 (일요일 %)
-                sub_district_avg_profit_percen_sun = read_element(
+                avg_profit_per_sun = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[1]/tbody/tr/td[8]',
                 )
 
-                sub_district_avg_profit_percents = {
-                    "Monday": sub_district_avg_profit_percent_mon,
-                    "Tuesday": sub_district_avg_profit_percent_tues,
-                    "Wednesday": sub_district_avg_profit_percent_wed,
-                    "Thursday": sub_district_avg_profit_percent_thurs,
-                    "Friday": sub_district_avg_profit_percent_fri,
-                    "Saturday": sub_district_avg_profit_percent_sat,
-                    "Sunday": sub_district_avg_profit_percen_sun,
-                }
-
-                # # 가장 높은 매출 비율을 가진 요일을 찾음
-                # sub_district_avg_profit_percent_most_day = max(
-                #     sub_district_avg_profit_percents,
-                #     key=sub_district_avg_profit_percents.get,
-                # )
-
-                # sub_district_avg_profit_percent_most_day_value = (
-                #     sub_district_avg_profit_percents[
-                #         sub_district_avg_profit_percent_most_day
-                #     ]
-                # )
-
                 # 해당지역 업종 매출 시간별 (06 ~ 09  %)
-                sub_district_avg_profit_percent_06_09 = read_element(
+                avg_profit_per_06_09 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[2]',
                 )
 
                 # 해당지역 업종 매출 시간별 (09 ~ 12  %)
-                sub_district_avg_profit_percent_09_12 = read_element(
+                avg_profit_per_09_12 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[3]',
                 )
 
                 # 해당지역 업종 매출 시간별 (12 ~ 15  %)
-                sub_district_avg_profit_percent_12_15 = read_element(
+                avg_profit_per_12_15 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[4]',
                 )
 
                 # 해당지역 업종 매출 시간별 (15 ~ 18  %)
-                sub_district_avg_profit_percent_15_18 = read_element(
+                avg_profit_per_15_18 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[5]',
                 )
 
                 # 해당지역 업종 매출 시간별 (18 ~ 21  %)
-                sub_district_avg_profit_percent_18_21 = read_element(
+                avg_profit_per_18_21 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[6]',
                 )
 
                 # 해당지역 업종 매출 시간별 (21 ~ 24  %)
-                sub_district_avg_profit_percent_21_24 = read_element(
+                avg_profit_per_21_24 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[7]',
                 )
 
                 # 해당지역 업종 매출 시간별 (24 ~ 06  %)
-                sub_district_avg_profit_percen_24_06 = read_element(
+                avg_profit_per_24_26 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[8]',
                 )
-
-                # 시간대별 매출 비율을 딕셔너리에 저장
-                sub_district_avg_profit_percents_by_time = {
-                    "06_09": sub_district_avg_profit_percent_06_09,
-                    "09_12": sub_district_avg_profit_percent_09_12,
-                    "12_15": sub_district_avg_profit_percent_12_15,
-                    "15_18": sub_district_avg_profit_percent_15_18,
-                    "18_21": sub_district_avg_profit_percent_18_21,
-                    "21_24": sub_district_avg_profit_percent_21_24,
-                    "24_06": sub_district_avg_profit_percen_24_06,
-                }
-
-                # # 가장 높은 매출 비율을 가진 시간대를 찾음
-                # sub_district_avg_profit_percent_most_time = max(
-                #     sub_district_avg_profit_percents_by_time,
-                #     key=sub_district_avg_profit_percents_by_time.get,
-                # )
-
-                # # 가장 높은 매출 비율의 값을 저장
-                # sub_district_avg_profit_percent_most_time_value = (
-                #     sub_district_avg_profit_percents_by_time[
-                #         sub_district_avg_profit_percent_most_time
-                #     ]
-                # )
 
                 # 고객 비중 클릭
                 click_element(
@@ -918,108 +853,74 @@ def search_commercial_district(
                 )
 
                 # 남 20대
-                sub_district_avg_client_percent_m_20 = read_element(
+                avg_client_per_M_20 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[2]',
                 )
 
                 # 남 30대
-                sub_district_avg_client_percent_m_30 = read_element(
+                avg_client_per_M_30 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[3]',
                 )
 
                 # 남 40대
-                sub_district_avg_client_percent_m_40 = read_element(
+                avg_client_per_M_40 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[4]',
                 )
 
                 # 남 50대
-                sub_district_avg_client_percent_m_50 = read_element(
+                avg_client_per_M_50 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[5]',
                 )
 
                 # 남 60대 이상
-                sub_district_avg_client_percent_m_60 = read_element(
+                avg_client_per_M_60 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[6]',
                 )
 
                 # 여 20대
-                sub_district_avg_client_percent_f_20 = read_element(
+                avg_client_per_F_20 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[2]',
                 )
 
                 # 여 30대
-                sub_district_avg_client_percent_f_30 = read_element(
+                avg_client_per_F_30 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[3]',
                 )
 
                 # 여 40대
-                sub_district_avg_client_percent_f_40 = read_element(
+                avg_client_per_F_40 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[4]',
                 )
 
                 # 여 50대
-                sub_district_avg_client_percent_f_50 = read_element(
+                avg_client_per_F_50 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[5]',
                 )
 
                 # 여 60대 이상
-                sub_district_avg_client_percent_f_60 = read_element(
+                avg_client_per_F_60 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[6]',
                 )
-
-                # 남성 비중 리스트
-                male_percents = [
-                    convert_to_float(sub_district_avg_client_percent_m_20),
-                    convert_to_float(sub_district_avg_client_percent_m_30),
-                    convert_to_float(sub_district_avg_client_percent_m_40),
-                    convert_to_float(sub_district_avg_client_percent_m_50),
-                    convert_to_float(sub_district_avg_client_percent_m_60),
-                ]
-
-                # 여성 비중 리스트
-                female_percents = [
-                    convert_to_float(sub_district_avg_client_percent_f_20),
-                    convert_to_float(sub_district_avg_client_percent_f_30),
-                    convert_to_float(sub_district_avg_client_percent_f_40),
-                    convert_to_float(sub_district_avg_client_percent_f_50),
-                    convert_to_float(sub_district_avg_client_percent_f_60),
-                ]
-
-                total_male_percent = sum(male_percents)
-                total_female_percent = sum(female_percents)
-
-                if total_male_percent > total_female_percent:
-                    dominant_gender = "남성"
-                    dominant_gender_percent = total_male_percent
-                else:
-                    dominant_gender = "여성"
-                    dominant_gender_percent = total_female_percent
-
-                age_groups = ["20대", "30대", "40대", "50대", "60대"]
-                total_percents = [m + f for m, f in zip(male_percents, female_percents)]
-
-                max_age_percent = max(total_percents)
-                dominant_age_group = age_groups[total_percents.index(max_age_percent)]
 
                 # 고객 비중 클릭
                 click_element(
@@ -1079,6 +980,8 @@ def search_commercial_district(
                             top5_menu_elements.append(None)
                 except:
                     top5_menu_elements = [None] * 5
+
+                data = {}
 
                 data = {
                     "location": {

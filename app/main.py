@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -7,10 +8,19 @@ from app.api.endpoints import testchrome
 from app.api.endpoints import getmonthpop
 from app.api.endpoints import movepop
 from app.api.endpoints import population
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 app = FastAPI()
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 # CORS 설정 추가
 app.add_middleware(
@@ -21,7 +31,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print(os.getenv("ALLOWED_ORIGINS", ""))
+# .env CORS URL 확인
+# print(os.getenv("ALLOWED_ORIGINS", ""))
 
 
 @app.get("/")

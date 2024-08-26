@@ -1,3 +1,4 @@
+import logging
 import pymysql
 import pandas as pd
 import os
@@ -11,7 +12,7 @@ from app.db.connect import (
 )
 
 
-def get_or_create_region_id(city: str, district: str, sub_district: str):
+def get_or_create_city_id(city: str):
     connection = get_db_connection()
     cursor = None
     try:
@@ -19,20 +20,21 @@ def get_or_create_region_id(city: str, district: str, sub_district: str):
             cursor = connection.cursor()
 
             select_sql = """
-                SELECT REGION_ID FROM REGION 
-                WHERE CITY = %s AND DISTRICT = %s AND SUB_DISTRICT = %s
+                SELECT CITY_ID FROM CITY 
+                WHERE CITY_NAME = %s 
             """
-            cursor.execute(select_sql, (city, district, sub_district))
+            cursor.execute(select_sql, (city,))
             result = cursor.fetchone()
 
             if result:
                 return result[0]
             else:
                 insert_sql = """
-                    INSERT INTO REGION (CITY, DISTRICT, SUB_DISTRICT)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO CITY (CITY_NAME)
+                    VALUES (%s)
+                    ;
                 """
-                cursor.execute(insert_sql, (city, district, sub_district))
+                cursor.execute(insert_sql, (city))
                 region_id = cursor.lastrowid
 
                 commit(connection)
@@ -47,6 +49,89 @@ def get_or_create_region_id(city: str, district: str, sub_district: str):
         close_connection(connection)
 
 
+def get_or_create_distirct_id(city_id: int, distirct: str):
+    connection = get_db_connection()
+    cursor = None
+    try:
+        if connection.open:
+            cursor = connection.cursor()
+
+            select_sql = """
+                SELECT DISTRICT_ID FROM DISTRICT
+                WHERE CITY_ID = %s AND DISTRICT_NAME = %s
+                ;
+            """
+            cursor.execute(select_sql, (city_id, distirct))
+            result = cursor.fetchone()
+
+            if result:
+                return result[0]
+            else:
+                insert_sql = """
+                    INSERT INTO DISTRICT (CITY_ID, DISTRICT_NAME)
+                    VALUES (%s, %s)
+                    ;
+                """
+                cursor.execute(
+                    insert_sql,
+                    (
+                        city_id,
+                        distirct,
+                    ),
+                )
+                region_id = cursor.lastrowid
+
+                commit(connection)
+                return region_id
+
+    except pymysql.MySQLError as e:
+        print(f"Database query failed: {e}")
+        rollback(connection)
+
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
+# def get_or_create_sub_distirct_id(city_id: int, distirct_id: int, sub_district: str):
+#     connection = get_db_connection()
+#     cursor = None
+#     try:
+#         if connection.open:
+#             cursor = connection.cursor()
+
+#             select_sql = """
+#                 SELECT DISTRICT_ID FROM DISTRICT
+#                 WHERE CITY_ID = %s AND DISTRICT_NAME = %s
+#                 ;
+#             """
+#             cursor.execute(select_sql, (city_id, distirct_id))
+#             result = cursor.fetchone()
+
+#             if result:
+#                 return result[0]
+#             else:
+#                 insert_sql = """
+#                     INSERT INTO DISTRICT (CITY_ID, DISTRICT_NAME)
+#                     VALUES (%s, %s)
+#                     ;
+#                 """
+#                 cursor.execute(insert_sql, (distirct_id,))
+#                 region_id = cursor.lastrowid
+
+#                 commit(connection)
+#                 return region_id
+
+#     except pymysql.MySQLError as e:
+#         print(f"Database query failed: {e}")
+#         rollback(connection)
+
+#     finally:
+#         close_cursor(cursor)
+#         close_connection(connection)
+
+
+############################
 def insert_data_from_excel():
     load_dotenv()
 
@@ -99,17 +184,21 @@ def insert_data_from_excel():
 def select_region_id_by_city_sub_district(city: str, sub_district: str):
     connection = get_db_connection()
     cursor = None
+    logger = logging.getLogger(__name__)
 
     try:
         if connection.open:
             cursor = connection.cursor()
             select_query = """
-                SELECT *
-                FROM RISING_BUSINESS
+                SELECT REGION_ID
+                FROM REGION
                 WHERE CITY LIKE %s AND SUB_DISTRICT LIKE %s;
             """
-            cursor.execute(select_query, (f"%{city}%", f"%{sub_district}%"))
+            values = (f"%{city}%", f"%{sub_district}%")
+            cursor.execute(select_query, values)
             result = cursor.fetchone()
+
+            logger.info(f"Executing query: {cursor.mogrify(select_query, values)}")
 
     except pymysql.MySQLError as e:
         print(f"MySQL Error: {e}")
