@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from app.crud.region import select_region_id_by_city_sub_district
+from app.crud.city import select_region_id_by_city_sub_district
 from app.crud.rising_business import select_all_rising_business_by_region_id
 from app.schemas.rising_business import RisingBusiness
 

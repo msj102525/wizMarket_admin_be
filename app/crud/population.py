@@ -2,7 +2,7 @@ import pymysql
 import pandas as pd
 from app.db.connect import get_db_connection, close_connection, close_cursor, commit, rollback
 from app.schemas.population import Population
-from app.crud.region import get_or_create_region_id
+from app.crud.city import get_or_create_region_id
 
 
 async def fetch_population_records(start_date: int, end_date: int, region_id: int):

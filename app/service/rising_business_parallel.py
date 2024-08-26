@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 
 from tqdm import tqdm
-from app.crud.region import get_or_create_region_id
+from app.crud.city import get_or_create_region_id
 from app.crud.rising_business import insert_rising_business
 from app.schemas.rising_business import RisingBusiness, RisingBusinessInsert
 

@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from app.crud.population import fetch_population_records, fetch_population_by_year_month, insert_population_to_db
-from app.crud.region import get_or_create_region_id
+from app.crud.city import get_or_create_region_id
 import asyncio
 from dotenv import load_dotenv
 

@@ -1,0 +1,78 @@
+import logging
+import pymysql
+import pandas as pd
+import os
+from app.schemas.city import City
+from dotenv import load_dotenv
+from app.db.connect import (
+    get_db_connection,
+    close_connection,
+    close_cursor,
+    commit,
+    rollback,
+)
+
+def get_or_create_city(city_data: City) -> City:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # 먼저 해당 도시가 존재하는지 확인
+        select_query = "SELECT city_id, city_name FROM city WHERE city_name = %s"
+        cursor.execute(select_query, (city_data.name,))
+        result = cursor.fetchone()
+
+        if result:
+            # 존재하면 해당 city_id와 name 반환
+            return City(city_id=result[0], name=result[1])
+        else:
+            # 존재하지 않으면 새로 삽입 후 city_id 반환
+            insert_query = "INSERT INTO city (city_name) VALUES (%s)"
+            cursor.execute(insert_query, (city_data.name,))
+            connection.commit()
+
+            # 새로 삽입된 row의 ID를 포함한 City 스키마를 반환
+            return City(city_id=cursor.lastrowid, name=city_data.name)
+    except Exception as e:
+        connection.rollback()
+        raise e
+    finally:
+        cursor.close()
+        connection.close()
+
+
+
+def select_region_id_by_city_sub_district(city: str, sub_district: str):
+    connection = get_db_connection()
+    cursor = None
+    logger = logging.getLogger(__name__)
+
+    try:
+        if connection.open:
+            cursor = connection.cursor()
+            select_query = """
+                SELECT REGION_ID
+                FROM REGION
+                WHERE CITY LIKE %s AND SUB_DISTRICT LIKE %s;
+            """
+            values = (f"%{city}%", f"%{sub_district}%")
+            cursor.execute(select_query, values)
+            result = cursor.fetchone()
+
+            logger.info(f"Executing query: {cursor.mogrify(select_query, values)}")
+
+    except pymysql.MySQLError as e:
+        print(f"MySQL Error: {e}")
+        rollback(connection)
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+        rollback(connection)
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return result
+
+
