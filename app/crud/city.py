@@ -12,6 +12,7 @@ from app.db.connect import (
     rollback,
 )
 
+
 def get_or_create_city(city_data: City) -> City:
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -41,38 +42,33 @@ def get_or_create_city(city_data: City) -> City:
         connection.close()
 
 
-
-def select_region_id_by_city_sub_district(city: str, sub_district: str):
+def get_or_create_city_id(city_name: str) -> int:
     connection = get_db_connection()
-    cursor = None
+    cursor = connection.cursor()
     logger = logging.getLogger(__name__)
 
     try:
-        if connection.open:
-            cursor = connection.cursor()
-            select_query = """
-                SELECT REGION_ID
-                FROM REGION
-                WHERE CITY LIKE %s AND SUB_DISTRICT LIKE %s;
-            """
-            values = (f"%{city}%", f"%{sub_district}%")
-            cursor.execute(select_query, values)
-            result = cursor.fetchone()
+        select_query = "SELECT city_id FROM city WHERE city_name = %s"
+        cursor.execute(select_query, (city_name,))
+        result = cursor.fetchone()
 
-            logger.info(f"Executing query: {cursor.mogrify(select_query, values)}")
+        # logger.info(f"Executing query: {select_query % (city_name)}")
 
-    except pymysql.MySQLError as e:
-        print(f"MySQL Error: {e}")
-        rollback(connection)
+        if result:
+            return result
+        else:
+            insert_query = "INSERT INTO city (city_name) VALUES (%s)"
+            cursor.execute(insert_query, (city_name))
+            commit()
+
+            return cursor.lastrowid
     except Exception as e:
-        print(f"Unexpected Error: {e}")
         rollback(connection)
+        raise e
     finally:
-        if cursor:
-            close_cursor(cursor)
-        if connection:
-            close_connection(connection)
-
-    return result
+        close_cursor(cursor)
+        close_connection(connection)
 
 
+# if __name__ == "__main__":
+#     print(get_or_create_city_id("충청북도"))
