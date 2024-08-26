@@ -1,10 +1,10 @@
 import pandas as pd
 from app.crud.population import fetch_population_records, fetch_population_by_year_month, insert_population_to_db
-from app.crud.region import get_or_create_region_id
+from app.crud.region import get_or_create_city_id
 import asyncio
 
 async def get_population_data(start_date: int, end_date: int, city: str, district: str, sub_district: str):
-    region_id = get_or_create_region_id(city, district, sub_district)
+    region_id = get_or_create_city_id(city, district, sub_district)
     if not region_id:
         return None
     return await fetch_population_records(start_date, end_date, region_id)
