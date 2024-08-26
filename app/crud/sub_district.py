@@ -96,7 +96,7 @@ def get_or_create_sub_district_id(
         # )
 
         if result:
-            return result
+            return cursor.lastrowid
         else:
             insert_query = """
             INSERT INTO sub_district (sub_district_name, district_id, city_id)

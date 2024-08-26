@@ -59,7 +59,7 @@ def get_or_create_district_id(city_id: int, district_name: str) -> int:
         # logger.info(f"Executing query: {select_query % (district_name, city_id)}")
 
         if result:
-            return result
+            return cursor.lastrowid
         else:
             insert_query = (
                 "INSERT INTO district (district_name, city_id) VALUES (%s, %s)"

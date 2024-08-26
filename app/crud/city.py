@@ -55,7 +55,7 @@ def get_or_create_city_id(city_name: str) -> int:
         # logger.info(f"Executing query: {select_query % (city_name)}")
 
         if result:
-            return result
+            return cursor.lastrowid
         else:
             insert_query = "INSERT INTO city (city_name) VALUES (%s)"
             cursor.execute(insert_query, (city_name))
