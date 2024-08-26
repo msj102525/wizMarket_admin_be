@@ -1,3 +1,4 @@
+import re
 import time
 import os
 from typing import Dict, List
@@ -14,7 +15,14 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.alert import Alert
 from tqdm import tqdm
 
+from app.crud.biz_detail_category import get_or_create_biz_detail_category_id
+from app.crud.biz_main_category import get_or_create_biz_main_category_id
+from app.crud.biz_sub_category import get_or_create_biz_sub_category_id
+from app.crud.city import get_or_create_city_id
 from app.crud.commercial_district import insert_commercial_district
+from app.crud.district import get_or_create_district_id
+from app.crud.sub_district import get_or_create_sub_district_id
+from app.schemas.commercial_district import CommercialDistrictInsert
 
 commercial_district_url = "https://m.nicebizmap.co.kr/analysis/analysisFree"
 
@@ -48,7 +56,7 @@ def click_element(wait, by, value):
         element = wait.until(EC.element_to_be_clickable((by, value)))
         text = element.text
         element.click()
-        time.sleep(1)
+        time.sleep(0.7)
         return text
     except Exception as e:
         print(
@@ -70,12 +78,21 @@ def read_element(wait, by, value):
         return None
 
 
-def convert_to_float(percent_str):
-    try:
-        clean_str = percent_str.replace("%", "").replace(",", "").strip()
-        return float(clean_str)
-    except ValueError:
-        return 0.0
+def convert_to_int_float(value):
+    if isinstance(value, str):
+        value = re.sub(r"[^\d.]+", "", value)
+        return float(value) if "." in value else int(value)
+    return value
+
+
+def clean_data(int_str):
+    def clean_value(value):
+        if isinstance(value, str):
+            value = re.sub(r"[^\d.]+", "", value)
+            return float(value) if value else None
+        return value
+
+    return {key: clean_value(value) for key, value in int_str.items()}
 
 
 def handle_unexpected_alert(driver):
@@ -93,13 +110,17 @@ def get_city_count():
     driver = setup_driver()
     try:
         driver.get(commercial_district_url)
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 40)
         driver.implicitly_wait(10)
+
+        time.sleep(2)
 
         # 분석 지역
         click_element(
             wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
         )
+
+        time.sleep(2)
 
         city_ul = wait.until(
             EC.presence_of_element_located(
@@ -128,12 +149,15 @@ def get_district_count(city_count):
             print(f"idx: {city_idx}")
 
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 40)
+
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
+            time.sleep(2)
 
             city_text = click_element(
                 wait,
@@ -170,18 +194,24 @@ def get_sub_district_count(city_idx, district_count):
         for district_idx in tqdm(range(district_count), "시/군/구 Progress"):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 40)
+
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
 
+            time.sleep(2)
+
             city_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
+
+            time.sleep(2)
 
             district_text = click_element(
                 wait,
@@ -220,12 +250,16 @@ def get_main_category(city_idx, district_idx, sub_district_count):
         for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 40)
+
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
+
+            time.sleep(2)
 
             city_text = click_element(
                 wait,
@@ -233,17 +267,23 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             sub_district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
+
+            time.sleep(2)
 
             print(
                 f"시/도 : {city_text}, 시/군/구 : {district_text}, 읍/면/동 : {sub_district_text}"
@@ -271,12 +311,16 @@ def get_main_category(city_idx, district_idx, sub_district_count):
         for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 40)
+
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
+
+            time.sleep(2)
 
             city_text = click_element(
                 wait,
@@ -284,11 +328,15 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
+
+            time.sleep(2)
 
             sub_district_text = click_element(
                 wait,
@@ -338,12 +386,16 @@ def get_sub_category(
         for main_category_idx in range(main_category_count):
             print(f"idx: {district_idx}")
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 40)
+
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
+
+            time.sleep(2)
 
             city_text = click_element(
                 wait,
@@ -351,11 +403,15 @@ def get_sub_category(
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
+
+            time.sleep(2)
 
             sub_district_text = click_element(
                 wait,
@@ -363,13 +419,13 @@ def get_sub_category(
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             main_category_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
             )
-
-            print(main_category_text)
 
             sub_category_li = wait.until(
                 EC.presence_of_element_located(
@@ -414,12 +470,16 @@ def get_detail_category(
     try:
         for sub_category_idx in range(0, sub_category_count * 2, 2):
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 40)
+
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
+
+            time.sleep(2)
 
             city_text = click_element(
                 wait,
@@ -427,11 +487,15 @@ def get_detail_category(
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
+
+            time.sleep(2)
 
             sub_district_text = click_element(
                 wait,
@@ -439,11 +503,15 @@ def get_detail_category(
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             main_category_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
             )
+
+            time.sleep(2)
 
             sub_category_text = click_element(
                 wait,
@@ -503,14 +571,16 @@ def search_commercial_district(
             )
 
             driver.get(commercial_district_url)
-            wait = WebDriverWait(driver, 30)
+            wait = WebDriverWait(driver, 40)
 
-            print(detail_category_idx)
+            time.sleep(2)
 
             # 분석 지역
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
             )
+
+            time.sleep(2)
 
             city_text = click_element(
                 wait,
@@ -518,11 +588,15 @@ def search_commercial_district(
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
+
+            time.sleep(2)
 
             sub_district_text = click_element(
                 wait,
@@ -530,11 +604,15 @@ def search_commercial_district(
                 f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
 
+            time.sleep(2)
+
             main_category_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
             )
+
+            time.sleep(2)
 
             sub_category_text = click_element(
                 wait,
@@ -542,21 +620,49 @@ def search_commercial_district(
                 f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]/button',
             )
 
+            time.sleep(2)
+
             detail_category_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 2}]/ul/li[{detail_category_idx + 1}]/button',
             )
 
+            time.sleep(2)
+
+            try:
+                city_id = get_or_create_city_id(city_text)
+                if city_id:
+                    district_id = get_or_create_district_id(city_id, district_text)
+                    if city_id & district_id:
+                        sub_district_id = get_or_create_sub_district_id(
+                            city_id, district_id, sub_district_text
+                        )
+            except Exception as e:
+                print(f"시 구 동 조회 오류 : {e}")
+
             ###########################
+
+            try:
+                main_category_id = get_or_create_biz_main_category_id(
+                    main_category_text
+                )
+                if main_category_id:
+                    sub_category_id = get_or_create_biz_sub_category_id(
+                        main_category_id, sub_category_text
+                    )
+                    if main_category_id & sub_category_id:
+                        detail_category_id = get_or_create_biz_detail_category_id(
+                            sub_category_id, detail_category_text
+                        )
+            except Exception as e:
+                print(f"시 구 동 조회 오류 : {e}")
 
             if detail_category_text:
 
                 detail_category_text = detail_category_text.replace(
                     "(확장 분석)", ""
                 ).strip()
-
-                print(detail_category_text)
 
                 #########################################
 
@@ -575,6 +681,8 @@ def search_commercial_district(
                     )
                 )
 
+                time.sleep(2)
+
                 # 분석 텍스트 보기 없애기
                 click_element(
                     wait,
@@ -582,7 +690,7 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[2]/label',
                 )
 
-                time.sleep(1)
+                time.sleep(2)
 
                 # 표 전제보기
                 click_element(
@@ -591,7 +699,7 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[1]/label',
                 )
 
-                time.sleep(0.5)
+                time.sleep(2)
 
                 # 밀집도 클릭
                 click_element(
@@ -600,12 +708,16 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[3]/div/ul/li[2]/a',
                 )
 
+                time.sleep(1.5)
+
                 # 전국 해당 업종수 밀집도 데이터
                 national_density = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[2]',
                 )
+
+                time.sleep(1.5)
 
                 # 해당 시/도, 해당 업종수 밀집도 데이터
                 city_density = read_element(
@@ -635,6 +747,8 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[3]/div/ul/li[3]/a',
                 )
 
+                time.sleep(1.5)
+
                 # 해당지역 업종 총 시장규모(원) 제일 최신
                 market_size = read_element(
                     wait,
@@ -648,6 +762,8 @@ def search_commercial_district(
                     By.XPATH,
                     '//*[@id="report1"]/div/div[3]/div/ul/li[6]/a',
                 )
+
+                time.sleep(1.5)
 
                 # 해당지역 업종 결제단가(원)
                 average_payment = read_element(
@@ -669,6 +785,8 @@ def search_commercial_district(
                     By.XPATH,
                     '//*[@id="report1"]/div/div[3]/div/ul/li[7]/a',
                 )
+
+                time.sleep(1.5)
 
                 # 해당지역 업종 점포당 매출규모(원)
                 average_sales = read_element(
@@ -746,6 +864,8 @@ def search_commercial_district(
                     By.XPATH,
                     '//*[@id="report1"]/div/div[3]/div/ul/li[8]/a',
                 )
+
+                time.sleep(1.5)
 
                 # 해당지역 업종 매출 요일별 (월요일 %)
                 avg_profit_per_mon = read_element(
@@ -839,7 +959,7 @@ def search_commercial_district(
                 )
 
                 # 해당지역 업종 매출 시간별 (24 ~ 06  %)
-                avg_profit_per_24_26 = read_element(
+                avg_profit_per_24_06 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s8"]/div[2]/div[2]/div[2]/table[2]/tbody/tr[2]/td[8]',
@@ -852,89 +972,76 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[3]/div/ul/li[9]/a',
                 )
 
+                time.sleep(1.5)
+
                 # 남 20대
-                avg_client_per_M_20 = read_element(
+                avg_client_per_m_20 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[2]',
                 )
 
                 # 남 30대
-                avg_client_per_M_30 = read_element(
+                avg_client_per_m_30 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[3]',
                 )
 
                 # 남 40대
-                avg_client_per_M_40 = read_element(
+                avg_client_per_m_40 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[4]',
                 )
 
                 # 남 50대
-                avg_client_per_M_50 = read_element(
+                avg_client_per_m_50 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[5]',
                 )
 
                 # 남 60대 이상
-                avg_client_per_M_60 = read_element(
+                avg_client_per_m_60 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[1]/td[6]',
                 )
 
                 # 여 20대
-                avg_client_per_F_20 = read_element(
+                avg_client_per_f_20 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[2]',
                 )
 
                 # 여 30대
-                avg_client_per_F_30 = read_element(
+                avg_client_per_f_30 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[3]',
                 )
 
                 # 여 40대
-                avg_client_per_F_40 = read_element(
+                avg_client_per_f_40 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[4]',
                 )
 
                 # 여 50대
-                avg_client_per_F_50 = read_element(
+                avg_client_per_f_50 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[5]',
                 )
 
                 # 여 60대 이상
-                avg_client_per_F_60 = read_element(
+                avg_client_per_f_60 = read_element(
                     wait,
                     By.XPATH,
                     '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[6]',
-                )
-
-                # 고객 비중 클릭
-                click_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="report1"]/div/div[3]/div/ul/li[10]/a',
-                )
-
-                # 가장 많은 연령대의 유동인구
-
-                most_visitor_age = read_element(
-                    wait,
-                    By.XPATH,
-                    '//*[@id="s10"]/div[1]/p',
                 )
 
                 # 주요 메뉴/뜨는 메뉴 클릭
@@ -944,7 +1051,7 @@ def search_commercial_district(
                     '//*[@id="report1"]/div/div[3]/div/ul/li[11]/a',
                 )
 
-                time.sleep(0.2)
+                time.sleep(1.5)
 
                 # 뜨는 메뉴 클릭
                 click_element(
@@ -952,6 +1059,8 @@ def search_commercial_district(
                     By.XPATH,
                     '//*[@id="s11"]/div[2]/div[2]/div/div[1]/ul/li[2]/button',
                 )
+
+                time.sleep(1.5)
 
                 try:
                     top5_menu_elements = []
@@ -981,93 +1090,77 @@ def search_commercial_district(
                 except:
                     top5_menu_elements = [None] * 5
 
-                data = {}
+                top_menu_1 = top5_menu_elements[0]
+                top_menu_2 = top5_menu_elements[1]
+                top_menu_3 = top5_menu_elements[2]
+                top_menu_4 = top5_menu_elements[3]
+                top_menu_5 = top5_menu_elements[4]
 
-                data = {
-                    "location": {
-                        "city": city_text,
-                        "district": district_text,
-                        "sub_district": sub_district_text,
-                    },
-                    "category": {
-                        "main": main_category_text,
-                        "sub": sub_category_text,
-                        "detail": detail_category_text,
-                    },
-                    "density": {
-                        "national": all_detail_category_count,
-                        "city": city_detail_category_count,
-                        "district": district_detail_category_count,
-                        "sub_district": sub_district_detail_category_count,
-                    },
-                    "market_size": sub_district_market_size,
-                    "average_sales": sub_district_total_size,
-                    "average_payment_cost": sub_district_avg_payment_cost,
-                    "usage_count": sub_district_usage_count,
-                    "average_profit": {
-                        # "sales": sub_district_total_sales,
-                        # "percent": sub_district_avg_profit_percent,
-                        "operating_cost": sub_district_operating_cost,
-                        "food": sub_district_food_cost,
-                        "employee": sub_district_employee_cost,
-                        "rental": sub_district_rental_cost,
-                        "tax": sub_district_tax_cost,
-                        "family_employee": sub_district_family_employee_cost,
-                        "ceo": sub_district_ceo_cost,
-                        "etc": sub_district_etc_cost,
-                        "amount": sub_district_avg_profit_won,
-                    },
-                    "sales_by_day": {
-                        # "most_profitable_day": sub_district_avg_profit_percent_most_day,
-                        # "percent": sub_district_avg_profit_percent_most_day_value,
-                        "details": sub_district_avg_profit_percents,
-                    },
-                    "sales_by_time": {
-                        # "most_profitable_time": sub_district_avg_profit_percent_most_time,
-                        # "percent": sub_district_avg_profit_percent_most_time_value,
-                        "details": sub_district_avg_profit_percents_by_time,
-                    },
-                    "client_demographics": {
-                        "dominant_gender": dominant_gender,
-                        "dominant_gender_percent": dominant_gender_percent,
-                        "dominant_age_group": dominant_age_group,
-                        "age_groups": age_groups,
-                        "male_percents": male_percents,
-                        "female_percents": female_percents,
-                        "total_male_percent": total_male_percent,
-                        "total_female_percent": total_female_percent,
-                        "most_visitor_age": most_visitor_age,
-                    },
-                    "top5_menus": {
-                        "top5_menu_1": (
-                            top5_menu_elements[0]
-                            if len(top5_menu_elements) > 0
-                            else None
-                        ),
-                        "top5_menu_2": (
-                            top5_menu_elements[1]
-                            if len(top5_menu_elements) > 1
-                            else None
-                        ),
-                        "top5_menu_3": (
-                            top5_menu_elements[2]
-                            if len(top5_menu_elements) > 2
-                            else None
-                        ),
-                        "top5_menu_4": (
-                            top5_menu_elements[3]
-                            if len(top5_menu_elements) > 3
-                            else None
-                        ),
-                        "top5_menu_5": (
-                            top5_menu_elements[4]
-                            if len(top5_menu_elements) > 4
-                            else None
-                        ),
-                    },
+                data: CommercialDistrictInsert = {
+                    "city_id": city_id,
+                    "district_id": district_id,
+                    "sub_district_id": sub_district_id,
+                    ###
+                    "biz_main_category_id": main_category_id,
+                    "biz_sub_category_id": sub_category_id,
+                    "biz_detail_category_id": detail_category_id,
+                    ###
+                    "national_density": convert_to_int_float(national_density),
+                    "city_density": convert_to_int_float(city_density),
+                    "district_density": convert_to_int_float(district_density),
+                    "sub_district_density": convert_to_int_float(sub_district_density),
+                    ###
+                    "market_size": convert_to_int_float(market_size),
+                    ###
+                    "average_payment": convert_to_int_float(average_payment),
+                    "usage_count": convert_to_int_float(usage_count),
+                    ###
+                    "average_sales": convert_to_int_float(average_sales),
+                    "operating_cost": convert_to_int_float(operating_cost),
+                    "food_cost": convert_to_int_float(food_cost),
+                    "employee_cost": convert_to_int_float(employee_cost),
+                    "rental_cost": convert_to_int_float(rental_cost),
+                    "tax_cost": convert_to_int_float(tax_cost),
+                    "family_employee_cost": convert_to_int_float(family_employee_cost),
+                    "ceo_cost": convert_to_int_float(ceo_cost),
+                    "etc_cost": convert_to_int_float(etc_cost),
+                    "average_profit": convert_to_int_float(average_profit),
+                    ###
+                    "avg_profit_per_mon": convert_to_int_float(avg_profit_per_mon),
+                    "avg_profit_per_tue": convert_to_int_float(avg_profit_per_tue),
+                    "avg_profit_per_wed": convert_to_int_float(avg_profit_per_wed),
+                    "avg_profit_per_thu": convert_to_int_float(avg_profit_per_thu),
+                    "avg_profit_per_fri": convert_to_int_float(avg_profit_per_fri),
+                    "avg_profit_per_sat": convert_to_int_float(avg_profit_per_sat),
+                    "avg_profit_per_sun": convert_to_int_float(avg_profit_per_sun),
+                    ###
+                    "avg_profit_per_06_09": convert_to_int_float(avg_profit_per_06_09),
+                    "avg_profit_per_09_12": convert_to_int_float(avg_profit_per_09_12),
+                    "avg_profit_per_12_15": convert_to_int_float(avg_profit_per_12_15),
+                    "avg_profit_per_15_18": convert_to_int_float(avg_profit_per_15_18),
+                    "avg_profit_per_18_21": convert_to_int_float(avg_profit_per_18_21),
+                    "avg_profit_per_21_24": convert_to_int_float(avg_profit_per_21_24),
+                    "avg_profit_per_24_06": convert_to_int_float(avg_profit_per_24_06),
+                    ###
+                    "avg_client_per_m_20": convert_to_int_float(avg_client_per_m_20),
+                    "avg_client_per_m_30": convert_to_int_float(avg_client_per_m_30),
+                    "avg_client_per_m_40": convert_to_int_float(avg_client_per_m_40),
+                    "avg_client_per_m_50": convert_to_int_float(avg_client_per_m_50),
+                    "avg_client_per_m_60": convert_to_int_float(avg_client_per_m_60),
+                    "avg_client_per_f_20": convert_to_int_float(avg_client_per_f_20),
+                    "avg_client_per_f_30": convert_to_int_float(avg_client_per_f_30),
+                    "avg_client_per_f_40": convert_to_int_float(avg_client_per_f_40),
+                    "avg_client_per_f_50": convert_to_int_float(avg_client_per_f_50),
+                    "avg_client_per_f_60": convert_to_int_float(avg_client_per_f_60),
+                    ###
+                    "top_menu_1": top_menu_1,
+                    "top_menu_2": top_menu_2,
+                    "top_menu_3": top_menu_3,
+                    "top_menu_4": top_menu_4,
+                    "top_menu_5": top_menu_5,
                 }
 
-                # print(data)
+                print(data)
 
                 insert_commercial_district(data)
 

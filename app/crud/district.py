@@ -50,19 +50,17 @@ def get_or_create_district_id(city_id: int, district_name: str) -> int:
     logger = logging.getLogger(__name__)
 
     try:
-        select_query = (
-            "SELECT district_id FROM district WHERE district_name = %s AND city_id = %s"
-        )
+        select_query = "SELECT district_id FROM district WHERE district_name = %s AND city_id = %s;"
         cursor.execute(select_query, (district_name, city_id))
         result = cursor.fetchone()
 
         # logger.info(f"Executing query: {select_query % (district_name, city_id)}")
 
         if result:
-            return cursor.lastrowid
+            return result[0]
         else:
             insert_query = (
-                "INSERT INTO district (district_name, city_id) VALUES (%s, %s)"
+                "INSERT INTO district (district_name, city_id) VALUES (%s, %s);"
             )
             cursor.execute(insert_query, (district_name, city_id))
             commit(connection)
@@ -70,7 +68,7 @@ def get_or_create_district_id(city_id: int, district_name: str) -> int:
             return cursor.lastrowid
     except Exception as e:
         rollback(connection)
-        raise e
+        print(f"get_or_create_district_id:{e}")
     finally:
         close_cursor(cursor)
         close_connection(connection)

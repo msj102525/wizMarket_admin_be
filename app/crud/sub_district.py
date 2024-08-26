@@ -80,6 +80,7 @@ def get_or_create_sub_district_id(
         SELECT sub_district_id
         FROM sub_district
         WHERE sub_district_name = %s AND district_id = %s AND city_id = %s
+        ;
         """
         cursor.execute(
             select_query,
@@ -96,11 +97,12 @@ def get_or_create_sub_district_id(
         # )
 
         if result:
-            return cursor.lastrowid
+            return result[0]
         else:
             insert_query = """
             INSERT INTO sub_district (sub_district_name, district_id, city_id)
             VALUES (%s, %s, %s)
+            ;
             """
             cursor.execute(
                 insert_query,
@@ -114,7 +116,7 @@ def get_or_create_sub_district_id(
             return cursor.lastrowid
     except Exception as e:
         rollback(connection)
-        raise e
+        print(f"get_or_create_sub_district_id:{e}")
     finally:
         close_cursor(cursor)
         close_connection(connection)

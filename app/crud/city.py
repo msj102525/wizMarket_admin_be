@@ -48,23 +48,23 @@ def get_or_create_city_id(city_name: str) -> int:
     logger = logging.getLogger(__name__)
 
     try:
-        select_query = "SELECT city_id FROM city WHERE city_name = %s"
+        select_query = "SELECT city_id FROM city WHERE city_name = %s;"
         cursor.execute(select_query, (city_name,))
         result = cursor.fetchone()
 
         # logger.info(f"Executing query: {select_query % (city_name)}")
 
         if result:
-            return cursor.lastrowid
+            return result[0]
         else:
-            insert_query = "INSERT INTO city (city_name) VALUES (%s)"
+            insert_query = "INSERT INTO city (city_name) VALUES (%s);"
             cursor.execute(insert_query, (city_name))
             commit()
 
             return cursor.lastrowid
     except Exception as e:
         rollback(connection)
-        raise e
+        print(f"get_or_create_city_id:{e}")
     finally:
         close_cursor(cursor)
         close_connection(connection)
