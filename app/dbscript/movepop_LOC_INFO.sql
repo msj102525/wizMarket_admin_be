@@ -1,3 +1,5 @@
+-- 기존 movepopdata 테이블 복사 후 지역 코드 매핑 sql
+
 CREATE TABLE semin.movepopdata LIKE test.movepopdata;
 INSERT INTO semin.movepopdata SELECT * FROM test.movepopdata;
 
@@ -50,7 +52,18 @@ WHERE LENGTH(yearmonth) = 6;
 ALTER TABLE movepopdata DROP COLUMN yearmonth;
 ALTER TABLE movepopdata CHANGE COLUMN temp_yearmonth yearmonth DATE;
 
--- 9. 컬럼 이름 및 자료형 변경, LOC_INFO_ID 기본 키 추가
+-- 쉼표 제거 후 컬럼을 INT로 변환하는 작업
+UPDATE movepopdata 
+SET 
+    person = REPLACE(person, ',', ''),
+    price = REPLACE(price, ',', ''),
+    wrcppl = REPLACE(wrcppl, ',', ''),
+    earn = REPLACE(earn, ',', ''),
+    cnsmp = REPLACE(cnsmp, ',', ''),
+    hhCnt = REPLACE(hhCnt, ',', ''),
+    rsdppl = REPLACE(rsdppl, ',', '');
+
+-- 컬럼 타입 변경 및 추가 작업
 ALTER TABLE movepopdata
 CHANGE COLUMN `person` `MOVE_POP` INT,
 CHANGE COLUMN `price` `SALES` INT,
@@ -61,4 +74,4 @@ CHANGE COLUMN `hhCnt` `HOUSE` INT,
 CHANGE COLUMN `rsdppl` `RESIDENT` INT,
 ADD COLUMN `LOC_INFO_ID` INT AUTO_INCREMENT PRIMARY KEY;
 
-ALTER TABLE movepopdata RENAME TO LOC_INFO;
+ALTER TABLE movepopdata RENAME TO TEMP_LOC_INFO;
