@@ -1248,6 +1248,9 @@ def search_commercial_district(
                     f"Error processing {city_text}, {district_text}, {sub_district_text}, {main_category_text}, {sub_category_text} : index {detail_category_idx}. {str(e)}"
                 )
                 continue
+            finally:
+                if driver:
+                    driver.quit()
 
     except Exception as e:
         print(
