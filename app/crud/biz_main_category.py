@@ -40,5 +40,5 @@ def get_or_create_biz_main_category_id(biz_main_category_name: str) -> int:
         close_connection(connection)
 
 
-# if __name__ == "__main__":
-#     print(get_or_create_biz_main_category_id("음식2"))
+if __name__ == "__main__":
+    print(get_or_create_biz_main_category_id("음식"))

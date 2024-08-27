@@ -1,7 +1,4 @@
 import logging
-import pandas as pd
-from app.schemas.city import City
-from dotenv import load_dotenv
 from app.db.connect import (
     get_db_connection,
     close_connection,
@@ -32,7 +29,10 @@ def get_or_create_biz_detail_category_id(
         result = cursor.fetchone()
 
         logger.info(
-            f"Executing query: {select_query % (biz_sub_category_id, biz_detail_category_name)}"
+            "Executing query: %s with parameters: (%s, %s)",
+            select_query,
+            biz_sub_category_id,
+            biz_detail_category_name,
         )
 
         if result:
@@ -52,11 +52,13 @@ def get_or_create_biz_detail_category_id(
             return cursor.lastrowid
     except Exception as e:
         rollback(connection)
-        print(f"get_or_create_biz_detail_category_id: {e}")
+        logger.error(
+            "Error in get_or_create_biz_detail_category_id: %s", e, exc_info=True
+        )
     finally:
         close_cursor(cursor)
         close_connection(connection)
 
 
-# if __name__ == "__main__":
-#     print(get_or_create_biz_detail_category_id(1, "호프/맥주"))
+if __name__ == "__main__":
+    print(get_or_create_biz_detail_category_id(1, "호프/맥주"))

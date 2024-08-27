@@ -34,16 +34,8 @@ def setup_driver():
 
     options = Options()
     options.add_argument("--start-fullscreen")
-
-    prefs = {
-        "download.default_directory": os.path.join(
-            os.path.dirname(__file__), "downloads"
-        ),
-        "download.prompt_for_download": False,
-        "download.directory_upgrade": True,
-        "safebrowsing.enabled": True,
-    }
-    options.add_experimental_option("prefs", prefs)
+    options.add_argument("--no-sandbox")  # 샌드박스 비활성화
+    options.add_argument("--disable-dev-shm-usage")  # 리소스 절약
 
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=options)

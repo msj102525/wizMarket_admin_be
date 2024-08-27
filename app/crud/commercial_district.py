@@ -46,7 +46,7 @@ def insert_commercial_district(data: CommercialDistrictInsert):
 
         cursor.execute(insert_query, data)
         commit(connection)
-        logger.info("Data inserted successfully into commercial_district table.")
+        logger.info("Executing query: %s with data: %s", insert_query, data)
 
     except pymysql.MySQLError as e:
         rollback(connection)
