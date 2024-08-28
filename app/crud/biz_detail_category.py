@@ -60,5 +60,26 @@ def get_or_create_biz_detail_category_id(
         close_connection(connection)
 
 
-if __name__ == "__main__":
-    print(get_or_create_biz_detail_category_id(1, "호프/맥주"))
+def get_detail_category_name_by_detial_category_id(detail_category_id: int) -> str:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        select_query = "SELECT biz_detail_category_name FROM biz_detail_category WHERE biz_detail_category_id = %s;"
+        cursor.execute(select_query, (detail_category_id,))
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return ""
+    except Exception as e:
+        rollback(connection)
+        print(f"get_detail_category_name:{e}")
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
+# if __name__ == "__main__":
+#     print(get_or_create_biz_detail_category_id(1, "호프/맥주"))

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Body
-from app.service.population import get_population_data, insert_population_data, check_population_exists
+from app.service.population import insert_population_data, check_population_exists
 from app.db.connect import get_db_connection
 
 router = APIRouter()
+
 
 @router.post("/check_population")
 async def check_population(year_month: int = Body(..., embed=True)):
@@ -13,16 +14,19 @@ async def check_population(year_month: int = Body(..., embed=True)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/get_population")
 async def get_population(
     start_date: int = Body(...),
     end_date: int = Body(...),
     city: str = Body(...),
     district: str = Body(...),
-    sub_district: str = Body(...)
+    sub_district: str = Body(...),
 ):
     try:
-        data = await get_population_data(start_date, end_date, city, district, sub_district)
+        data = await get_population_data(
+            start_date, end_date, city, district, sub_district
+        )
         if not data:
             raise HTTPException(status_code=404, detail="No data found")
         print(data)
@@ -45,6 +49,7 @@ async def get_regions():
             cursor.close()
         if connection:
             connection.close()
+
 
 @router.post("/insert_population")
 async def insert_population():

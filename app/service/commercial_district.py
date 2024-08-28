@@ -1,8 +1,9 @@
 import re
 import time
 import os
-from typing import Dict, List
+from typing import List
 
+from fastapi import HTTPException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -19,10 +20,17 @@ from app.crud.biz_detail_category import get_or_create_biz_detail_category_id
 from app.crud.biz_main_category import get_or_create_biz_main_category_id
 from app.crud.biz_sub_category import get_or_create_biz_sub_category_id
 from app.crud.city import get_or_create_city_id
-from app.crud.commercial_district import insert_commercial_district
-from app.crud.district import get_or_create_district_id
-from app.crud.sub_district import get_or_create_sub_district_id
-from app.schemas.commercial_district import CommercialDistrictInsert
+from app.crud.commercial_district import (
+    insert_commercial_district,
+    select_all_commercial_district_by_sub_district_id,
+)
+from app.crud.district import get_district_id, get_or_create_district_id
+from app.crud.sub_district import get_or_create_sub_district_id, get_sub_district_id_by
+from app.schemas.commercial_district import (
+    CommercialDistrict,
+    CommercialDistrictInsert,
+    CommercialDistrictOutput,
+)
 
 commercial_district_url = "https://m.nicebizmap.co.kr/analysis/analysisFree"
 
@@ -1183,3 +1191,21 @@ def search_commercial_district(
 
 if __name__ == "__main__":
     get_city_count()
+
+
+def get_all_commercial_district_by_sub_district_id(
+    city: str, district: str, sub_district: str
+) -> List[CommercialDistrictOutput]:
+    city_id = get_or_create_city_id(city)
+    if city_id <= 0:
+        raise HTTPException(status_code=404, detail="City not found")
+
+    district_id = get_district_id(city_id, district)
+    if district_id <= 0:
+        raise HTTPException(status_code=404, detail="District not found")
+
+    sub_district_id = get_sub_district_id_by(city_id, district_id, sub_district)
+    if sub_district_id <= 0:
+        raise HTTPException(status_code=404, detail="Sub-district not found")
+    else:
+        return select_all_commercial_district_by_sub_district_id(sub_district_id)

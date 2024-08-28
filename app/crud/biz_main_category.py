@@ -40,5 +40,26 @@ def get_or_create_biz_main_category_id(biz_main_category_name: str) -> int:
         close_connection(connection)
 
 
+def get_main_category_name_by_main_category_id(main_category_id: int) -> str:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        select_query = "SELECT biz_main_category_name FROM biz_main_category WHERE biz_main_category_id = %s;"
+        cursor.execute(select_query, (main_category_id,))
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return ""
+    except Exception as e:
+        rollback(connection)
+        print(f"get_main_category_name:{e}")
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
 if __name__ == "__main__":
     print(get_or_create_biz_main_category_id("음식"))

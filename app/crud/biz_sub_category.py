@@ -54,5 +54,26 @@ def get_or_create_biz_sub_category_id(
         close_connection(connection)
 
 
+def get_sub_category_name_by_sub_category_id(sub_category_id: int) -> str:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        select_query = "SELECT biz_sub_category_name FROM biz_sub_category WHERE biz_sub_category_id = %s;"
+        cursor.execute(select_query, (sub_category_id,))
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return ""
+    except Exception as e:
+        rollback(connection)
+        print(f"get_sub_category_name:{e}")
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
 # if __name__ == "__main__":
 #     print(get_or_create_biz_sub_category_id(1, "간이주점"))

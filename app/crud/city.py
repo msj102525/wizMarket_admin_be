@@ -70,5 +70,47 @@ def get_or_create_city_id(city_name: str) -> int:
         close_connection(connection)
 
 
+def get_city_id(city_name: str) -> int:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        select_query = "SELECT city_id FROM city WHERE city_name = %s;"
+        cursor.execute(select_query, (city_name,))
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return 0
+    except Exception as e:
+        rollback(connection)
+        print(f"get_city_id:{e}")
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
+def get_city_name_by_city_id(city_id: int) -> str:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        select_query = "SELECT city_name FROM city WHERE city_id = %s;"
+        cursor.execute(select_query, (city_id,))
+        result = cursor.fetchone()
+
+        if result:
+            return result[0]
+        else:
+            return ""
+    except Exception as e:
+        rollback(connection)
+        print(f"get_city_name:{e}")
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
 # if __name__ == "__main__":
 #     print(get_or_create_city_id("충청북도"))
