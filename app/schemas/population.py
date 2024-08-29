@@ -132,3 +132,10 @@ class Population(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class PopulationRequest(BaseModel):
+    city_name: str
+    district_name: str
+    sub_district_name: str
