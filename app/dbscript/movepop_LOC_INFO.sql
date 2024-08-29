@@ -1,77 +1,28 @@
--- 기존 movepopdata 테이블 복사 후 지역 코드 매핑 sql
+-- 기존 데이터 LOC_INFO 로 복사
 
-CREATE TABLE semin.movepopdata LIKE test.movepopdata;
-INSERT INTO semin.movepopdata SELECT * FROM test.movepopdata;
-
--- 1. city_id, district_id, sub_district_id 컬럼 추가
-ALTER TABLE movepopdata
-ADD COLUMN city_id INT,
-ADD COLUMN district_id INT,
-ADD COLUMN sub_district_id INT;
-
--- 2. 외래 키 제약 조건 추가
-ALTER TABLE movepopdata
-ADD CONSTRAINT fk_city_id FOREIGN KEY (city_id) REFERENCES city(city_id),
-ADD CONSTRAINT fk_district_id FOREIGN KEY (district_id) REFERENCES district(district_id),
-ADD CONSTRAINT fk_sub_district_id FOREIGN KEY (sub_district_id) REFERENCES sub_district(sub_district_id);
-
--- 3. keyword 기반으로 city_id, district_id, sub_district_id 값 설정
-UPDATE movepopdata m
-JOIN city c ON m.keyword LIKE CONCAT('%', c.city_name, '%')
-JOIN district d ON m.keyword LIKE CONCAT('%', d.district_name, '%')
-JOIN sub_district s ON m.keyword LIKE CONCAT('%', s.sub_district_name, '%')
-SET 
-    m.city_id = c.city_id,
-    m.district_id = d.district_id,
-    m.sub_district_id = s.sub_district_id;
-
--- 4. person, price, wrcppl, earn, cnsmp, hhCnt, rsdppl 컬럼의 단위 제거
-UPDATE movepopdata
-SET 
-    person = REPLACE(person, ' 명', ''),
-    price = REPLACE(REPLACE(price, ' 만원', ''), ',', ''),
-    wrcppl = REPLACE(wrcppl, ' 명', ''),
-    earn = REPLACE(REPLACE(earn, ' 만원', ''), ',', ''),
-    cnsmp = REPLACE(REPLACE(cnsmp, ' 만원', ''), ',', ''),
-    hhCnt = REPLACE(hhCnt, ' 세대', ''),
-    rsdppl = REPLACE(rsdppl, ' 명', '');
-
--- 5. 기존 기본 키 제거 (이전에 정의된 PRIMARY KEY 컬럼 제거)
-ALTER TABLE movepopdata
-DROP PRIMARY KEY;
-
--- 6. temp_yearmonth라는 임시 컬럼 생성
-ALTER TABLE movepopdata ADD COLUMN temp_yearmonth VARCHAR(10);
-
--- 7. temp_yearmonth 컬럼에 yearmonth 데이터를 변환하여 저장합니다.
-UPDATE movepopdata
-SET temp_yearmonth = CONCAT(SUBSTRING(yearmonth, 1, 4), '-', SUBSTRING(yearmonth, 5, 2), '-01')
-WHERE LENGTH(yearmonth) = 6;
-
--- 8. yearmonth 컬럼을 삭제하고 temp_yearmonth 컬럼을 사용하여 대체합니다.
-ALTER TABLE movepopdata DROP COLUMN yearmonth;
-ALTER TABLE movepopdata CHANGE COLUMN temp_yearmonth yearmonth DATE;
-
--- 쉼표 제거 후 컬럼을 INT로 변환하는 작업
-UPDATE movepopdata 
-SET 
-    person = REPLACE(person, ',', ''),
-    price = REPLACE(price, ',', ''),
-    wrcppl = REPLACE(wrcppl, ',', ''),
-    earn = REPLACE(earn, ',', ''),
-    cnsmp = REPLACE(cnsmp, ',', ''),
-    hhCnt = REPLACE(hhCnt, ',', ''),
-    rsdppl = REPLACE(rsdppl, ',', '');
-
--- 컬럼 타입 변경 및 추가 작업
-ALTER TABLE movepopdata
-CHANGE COLUMN `person` `MOVE_POP` INT,
-CHANGE COLUMN `price` `SALES` INT,
-CHANGE COLUMN `wrcppl` `WORK_POP` INT,
-CHANGE COLUMN `earn` `INCOME` INT,
-CHANGE COLUMN `cnsmp` `SPEND` INT,
-CHANGE COLUMN `hhCnt` `HOUSE` INT,
-CHANGE COLUMN `rsdppl` `RESIDENT` INT,
-ADD COLUMN `LOC_INFO_ID` INT AUTO_INCREMENT PRIMARY KEY;
-
-ALTER TABLE movepopdata RENAME TO TEMP_LOC_INFO;
+INSERT INTO semin.LOC_INFO (
+    CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID, SHOP, MOVE_POP, SALES, WORK_POP, INCOME, SPEND, HOUSE, RESIDENT, Y_M, CREATED_AT, UPDATED_AT
+)
+SELECT
+    c.CITY_ID,
+    d.DISTRICT_ID,
+    sd.SUB_DISTRICT_ID,
+    CAST(REPLACE(mp.business, ',', '') AS UNSIGNED) AS SHOP,
+    CAST(REPLACE(mp.person, ',', '') AS UNSIGNED) AS MOVE_POP,
+    CAST(REPLACE(REPLACE(mp.price, '만원', ''), ',', '') AS UNSIGNED) * 10000 AS SALES,
+    CAST(REPLACE(REPLACE(mp.wrcppl, '명', ''), ',', '') AS UNSIGNED) AS WORK_POP,
+    CAST(REPLACE(REPLACE(mp.earn, '만원', ''), ',', '') AS UNSIGNED) * 10000 AS INCOME,
+    CAST(REPLACE(REPLACE(mp.cnsmp, '만원', ''), ',', '') AS UNSIGNED) * 10000 AS SPEND,
+    CAST(REPLACE(mp.hhCnt, ',', '') AS UNSIGNED) AS HOUSE,
+    CAST(REPLACE(REPLACE(mp.rsdppl, '명', ''), ',', '') AS UNSIGNED) AS RESIDENT,
+    STR_TO_DATE(CONCAT(mp.yearmonth, '01'), '%Y%m%d') AS Y_M,
+    NOW() AS CREATED_AT,
+    NOW() AS UPDATED_AT
+FROM
+    test.movepopdata mp
+JOIN
+    semin.CITY c ON SUBSTRING_INDEX(SUBSTRING_INDEX(mp.keyword, ' ', 1), ' ', -1) = c.CITY_NAME
+JOIN
+    semin.DISTRICT d ON SUBSTRING_INDEX(SUBSTRING_INDEX(mp.keyword, ' ', 2), ' ', -1) = d.DISTRICT_NAME AND d.CITY_ID = c.CITY_ID
+JOIN
+    semin.SUB_DISTRICT sd ON SUBSTRING_INDEX(mp.keyword, ' ', -1) = sd.SUB_DISTRICT_NAME AND sd.DISTRICT_ID = d.DISTRICT_ID AND sd.CITY_ID = c.CITY_ID;

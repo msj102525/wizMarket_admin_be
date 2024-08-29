@@ -1,3 +1,5 @@
+# 지역별 매장 정보 csv 파일 인서트 처리
+
 import os
 import pandas as pd
 import pymysql
