@@ -9,7 +9,7 @@ from app.service.commercial_district import (
 router = APIRouter()
 
 
-@router.get("/", response_model=List[CommercialDistrictOutput])
+@router.get("", response_model=List[CommercialDistrictOutput])
 def get_commercial_district(city: str, district: str, sub_district: str):
     print(f"city: {city}, district: {district}, sub_d: {sub_district}")
     try:

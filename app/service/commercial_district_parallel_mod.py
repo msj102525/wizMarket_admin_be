@@ -123,18 +123,18 @@ def get_sub_district_count(start_idx: int, end_idx: int):
                 # 서울
                 city_idx = 0
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 # 분석 지역
                 click_element(
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 city_text = click_element(
                     wait,
@@ -142,7 +142,7 @@ def get_sub_district_count(start_idx: int, end_idx: int):
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 district_text = click_element(
                     wait,
@@ -195,7 +195,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
@@ -204,7 +204,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 city_text = click_element(
                     wait,
@@ -212,7 +212,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 district_text = click_element(
                     wait,
@@ -220,7 +220,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_district_text = click_element(
                     wait,
@@ -228,7 +228,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 main_category_ul_1 = wait.until(
                     EC.presence_of_element_located(
@@ -272,7 +272,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
@@ -281,7 +281,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 city_text = click_element(
                     wait,
@@ -289,7 +289,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 district_text = click_element(
                     wait,
@@ -297,7 +297,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_district_text = click_element(
                     wait,
@@ -363,7 +363,7 @@ def get_sub_category(
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
@@ -372,7 +372,7 @@ def get_sub_category(
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 city_text = click_element(
                     wait,
@@ -380,7 +380,7 @@ def get_sub_category(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 district_text = click_element(
                     wait,
@@ -388,7 +388,7 @@ def get_sub_category(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_district_text = click_element(
                     wait,
@@ -396,7 +396,7 @@ def get_sub_category(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 main_category_text = click_element(
                     wait,
@@ -463,7 +463,7 @@ def get_detail_category(
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
@@ -472,7 +472,7 @@ def get_detail_category(
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 city_text = click_element(
                     wait,
@@ -480,7 +480,7 @@ def get_detail_category(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 district_text = click_element(
                     wait,
@@ -488,7 +488,7 @@ def get_detail_category(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_district_text = click_element(
                     wait,
@@ -496,7 +496,7 @@ def get_detail_category(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 main_category_text = click_element(
                     wait,
@@ -504,7 +504,7 @@ def get_detail_category(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_category_text = click_element(
                     wait,
@@ -574,10 +574,10 @@ def search_commercial_district(
                 )
 
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
+                wait = WebDriverWait(driver, 40)
                 driver.implicitly_wait(10)
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
@@ -586,7 +586,7 @@ def search_commercial_district(
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 city_text = click_element(
                     wait,
@@ -594,7 +594,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 district_text = click_element(
                     wait,
@@ -602,7 +602,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_district_text = click_element(
                     wait,
@@ -610,7 +610,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 main_category_text = click_element(
                     wait,
@@ -618,7 +618,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 sub_category_text = click_element(
                     wait,
@@ -626,7 +626,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]/button',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 detail_category_text = click_element(
                     wait,
@@ -634,7 +634,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 2}]/ul/li[{detail_category_idx + 1}]/button',
                 )
 
-                time.sleep(2.5)
+                time.sleep(3)
 
                 try:
                     city_id = get_or_create_city_id(city_text)
@@ -681,7 +681,7 @@ def search_commercial_district(
                     # 상권분석 보기
                     click_element(wait, By.XPATH, '//*[@id="pcBasicReport"]')
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # '//*[@id="report1"]' 요소가 나타날 때까지 기다리기
                     wait.until(
@@ -693,7 +693,7 @@ def search_commercial_district(
                         )
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 분석 텍스트 보기 없애기
                     click_element(
@@ -702,7 +702,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[2]/label',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 표 전제보기
                     click_element(
@@ -711,7 +711,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[1]/label',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 밀집도 클릭
                     click_element(
@@ -720,7 +720,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[2]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 전국 해당 업종수 밀집도 데이터
                     national_density = read_element(
@@ -729,7 +729,7 @@ def search_commercial_district(
                         '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[2]',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 해당 시/도, 해당 업종수 밀집도 데이터
                     city_density = read_element(
@@ -759,7 +759,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[3]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 해당지역 업종 총 시장규모(원) 제일 최신
                     market_size = read_element(
@@ -775,7 +775,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[6]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 해당지역 업종 결제단가(원)
                     average_payment = read_element(
@@ -798,7 +798,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[7]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 해당지역 업종 점포당 매출규모(원)
                     average_sales = read_element(
@@ -877,7 +877,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[8]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 해당지역 업종 매출 요일별 (월요일 %)
                     avg_profit_per_mon = read_element(
@@ -984,7 +984,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[9]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 남 20대
                     avg_client_per_m_20 = read_element(
@@ -1063,7 +1063,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[3]/div/ul/li[11]/a',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     # 뜨는 메뉴 클릭
                     click_element(
@@ -1072,7 +1072,7 @@ def search_commercial_district(
                         '//*[@id="s11"]/div[2]/div[2]/div/div[1]/ul/li[2]/button',
                     )
 
-                    time.sleep(2.5)
+                    time.sleep(3)
 
                     try:
                         top5_menu_elements = []

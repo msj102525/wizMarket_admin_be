@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-from app.api.endpoints import hello, rising_business, commercial_district
+from app.api.endpoints import cai_info, hello, rising_business, commercial_district
 # from app.api.endpoints import testchrome
 from app.api.endpoints import movepop
 from app.api.endpoints import population
@@ -34,6 +34,7 @@ app.include_router(population.router, prefix="/population")
 app.include_router(movepop.router)
 app.include_router(commercial_district.router, prefix="/commercial")
 # app.include_router(rising_business.router, prefix="/rising")
+app.include_router(cai_info.router, prefix="/cai")
 
 if __name__ == "__main__":
     import uvicorn
