@@ -201,11 +201,11 @@ class CommercialDistrictOutput(BaseModel):
     avg_client_per_f_50: Optional[float] = None
     avg_client_per_f_60: Optional[float] = None
 
-    top_menu_1: str = None
-    top_menu_2: str = None
-    top_menu_3: str = None
-    top_menu_4: str = None
-    top_menu_5: str = None
+    top_menu_1: Optional[str] = None
+    top_menu_2: Optional[str] = None
+    top_menu_3: Optional[str] = None
+    top_menu_4: Optional[str] = None
+    top_menu_5: Optional[str] = None
 
     created_at: datetime
     updated_at: datetime

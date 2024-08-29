@@ -1257,7 +1257,6 @@ def execute_task_in_thread(start, end):
         ]
         for future in futures:
             future.result()
-    # get_sub_district_count(start, end)
 
 
 def execute_parallel_tasks():

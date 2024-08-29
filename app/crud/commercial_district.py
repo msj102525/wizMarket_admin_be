@@ -213,6 +213,8 @@ def select_all_commercial_district_by_sub_district_id(
     except pymysql.MySQLError as e:
         rollback(connection)
         logger.error(f"Error fetching data: {e}")
+    except Exception as e:
+        print(e)
     finally:
         close_cursor(cursor)
         close_connection(connection)
