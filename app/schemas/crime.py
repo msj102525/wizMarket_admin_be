@@ -14,7 +14,7 @@ class Crime(BaseModel):
     LEGAL_ENTITY: Optional[int]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CrimeRequest(BaseModel):
     city_name: str

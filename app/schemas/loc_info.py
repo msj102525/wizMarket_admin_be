@@ -20,7 +20,7 @@ class LocationInfo(BaseModel):
     y_m: Optional[date] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class LocationRequest(BaseModel):
     city_name: str
