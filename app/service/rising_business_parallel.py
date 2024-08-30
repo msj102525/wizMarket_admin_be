@@ -11,8 +11,13 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 
 from tqdm import tqdm
-from app.crud.city import get_or_create_region_id
+from app.crud.biz_detail_category import (
+    get_biz_categories_id_by_biz_detail_category_name,
+)
+from app.crud.city import get_or_create_city_id
+from app.crud.district import get_or_create_district_id
 from app.crud.rising_business import insert_rising_business
+from app.crud.sub_district import get_or_create_sub_district_id
 from app.schemas.rising_business import RisingBusiness, RisingBusinessInsert
 
 from selenium.common.exceptions import (
@@ -93,32 +98,6 @@ def handle_unexpected_alert(driver):
         return True
     except NoAlertPresentException:
         return False
-
-
-# def get_city_count():
-#     driver = setup_driver()
-#     try:
-#         driver.get(NICE_BIZ_MAP_URL)
-#         wait = WebDriverWait(driver, 60)
-#         click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
-#         click_element(wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a')
-
-#         city_ul = wait.until(
-#             EC.presence_of_element_located(
-#                 (By.XPATH, '//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul')
-#             )
-#         )
-#         city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
-#         print(f"시 갯수: {len(city_ul_li)}")
-
-#         get_district_count(len(city_ul_li))
-
-#     finally:
-#         try:
-#             if driver:
-#                 driver.quit()
-#         except Exception as quit_error:
-#             print(f"Error closing driver: {str(quit_error)}")
 
 
 def get_district_count(start_idx: int, end_idx: int):
@@ -248,56 +227,58 @@ def search_rising_businesses_top5(
     city_idx: int, district_idx: int, sub_district_count: int
 ):
     driver = setup_driver()
-    try:
-        data_list: List[RisingBusiness] = []
+    data_list: List[RisingBusiness] = []
 
+    try:
         for sub_district_idx in range(sub_district_count):
             start_time = time.time()
             driver.get(NICE_BIZ_MAP_URL)
-
             wait = WebDriverWait(driver, 60)
-
             time.sleep(1.5)
 
+            # Click on the relevant elements to navigate
             click_element(wait, By.XPATH, "/html/body/div[5]/div[2]/ul/li[5]/a")
-
             time.sleep(1.5)
-
             click_element(
                 wait, By.XPATH, '//*[@id="pc_sheet04"]/div/div[2]/div[2]/ul/li/a'
             )
-
             time.sleep(1.5)
 
+            # Get text for city, district, and sub-district
             city_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
             )
-
             time.sleep(3)
-
             district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
             )
-
             time.sleep(1.5)
-
             sub_district_text = click_element(
                 wait,
                 By.XPATH,
                 f'//*[@id="rising"]/div[2]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
             )
-
             time.sleep(1.5)
 
             try:
-                region_id = get_or_create_region_id(
-                    city_text, district_text, sub_district_text
-                )
+                # 시/구/동 ID 조회 및 생성
+                city_id = get_or_create_city_id(city_text)
+                if city_id:
+                    district_id = get_or_create_district_id(city_id, district_text)
+                    if district_id:
+                        sub_district_id = get_or_create_sub_district_id(
+                            city_id, district_id, sub_district_text
+                        )
 
+            except Exception as e:
+                print(f"시 구 동 조회 오류 : {e}")
+
+            # 상승 중인 사업 정보 추출
+            try:
                 rising_ul = wait.until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="cardBoxTop5"]'))
                 )
@@ -307,28 +288,53 @@ def search_rising_businesses_top5(
 
                 for i, li in enumerate(rising_ul_li):
                     li_text = li.text.strip().split("\n")
+
                     if len(li_text) >= 2:
-                        business_name = li_text[1]
-                        growth_rate = convert_to_float(li_text[2])
+                        try:
+                            # 카테고리 ID 조회
+                            category_result = (
+                                get_biz_categories_id_by_biz_detail_category_name(
+                                    li_text
+                                )
+                            )
+                            if category_result is None:
+                                print("Failed to get or create detail category ID")
+                                continue
 
-                        data = RisingBusinessInsert(
-                            region_id=region_id,
-                            business_name=business_name,
-                            growth_rate=growth_rate,
-                            sub_district_rank=i + 1,
-                        )
+                            # 데이터 준비 및 추가
+                            business_name = li_text[1]
+                            growth_rate = convert_to_float(li_text[2])
 
-                        data_list.append(data)
-                        print(data)
+                            data = RisingBusinessInsert(
+                                city_id=city_id,
+                                district_id=district_id,
+                                sub_district_id=sub_district_id,
+                                biz_main_category_id=category_result[0],
+                                biz_sub_category_id=category_result[1],
+                                biz_detail_category_id=category_result[2],
+                                growth_rate=growth_rate,
+                                rank=i + 1,
+                            )
+
+                            data_list.append(data)
+                            print(data)
+
+                        except Exception as e:
+                            print(f"카테고리 조회 오류 : {e}")
+                            continue
 
             except UnexpectedAlertPresentException:
                 handle_unexpected_alert(wait._driver)
                 data_list.append(
                     RisingBusinessInsert(
-                        region_id=region_id,
-                        business_name=None,
+                        city_id=city_id,
+                        district_id=district_id,
+                        sub_district_id=sub_district_id,
+                        biz_main_category_id=None,
+                        biz_sub_category_id=None,
+                        biz_detail_category_id=None,
                         growth_rate=None,
-                        sub_district_rank=None,
+                        rank=None,
                     )
                 )
             except Exception as e:
@@ -344,6 +350,7 @@ def search_rising_businesses_top5(
 
         print(data_list)
         insert_rising_business(data_list)
+
     except Exception as e:
         print(f"Failed to fetch data from {NICE_BIZ_MAP_URL}: {str(e)}")
     finally:
