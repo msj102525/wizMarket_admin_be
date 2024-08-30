@@ -32,18 +32,24 @@ def fetch_sub_districts_for_district(district_name: str) -> List[str]:
     return get_sub_districts_by_district_id(district_id) 
 
 
-
-
-def fetch_population(city_name: str, district_name: str, sub_district_name: str) -> Population:
+# 월별 인구 조회
+def fetch_population(city_name: str, district_name: str, sub_district_name: str, start_year_month: str) -> Population:
     ids = get_ids_by_names(city_name, district_name, sub_district_name)
     if ids is None:
         raise ValueError(f"Could not find matching records for the given names: {city_name}, {district_name}, {sub_district_name}")
     
-    population_data = get_population_data(ids['city_id'], ids['district_id'], ids['sub_district_id'])
+    # 시작년월과 끝년월을 get_population_data 함수에 전달
+    population_data = get_population_data(
+        ids['city_id'], 
+        ids['district_id'], 
+        ids['sub_district_id'], 
+        start_year_month
+    )
     if population_data is None:
         raise ValueError(f"No population data found for the given IDs: {ids}")
     
     return population_data
+
 
 
 

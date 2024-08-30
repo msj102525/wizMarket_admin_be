@@ -126,22 +126,29 @@ def get_ids_by_names(city_name: str, district_name: str, sub_district_name: str)
             connection.close()
 
 
-def get_population_data(city_id: int, district_id: int, sub_district_id: int) -> tuple:
+def get_population_data(city_id: int, district_id: int, sub_district_id: int, start_year_month: str) -> list:
     connection = get_db_connection()
     cursor = None
     try:
-        cursor = connection.cursor()  # 기본 cursor 사용 (dictionary 형태가 아닌 튜플로 반환)
+        cursor = connection.cursor()
         query = """
-            SELECT *
-            FROM population
-            WHERE city_id = %s AND district_id = %s AND sub_district_id = %s
-        """
-        cursor.execute(query, (city_id, district_id, sub_district_id))
-        population = cursor.fetchmany(2)   # 튜플 형태로 반환됨
-
+                SELECT *
+                FROM population
+                WHERE city_id = %s 
+                  AND district_id = %s 
+                  AND sub_district_id = %s 
+                  AND reference_date = %s
+                """
+        cursor.execute(query, (city_id, district_id, sub_district_id, start_year_month))
+        
+        
+        population = cursor.fetchall()
+        
         if population:
             population_list = list(population)
             return population_list
+        else:
+            return []
     finally:
         if cursor:
             cursor.close()

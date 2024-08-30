@@ -47,7 +47,7 @@ async def get_sub_districts(district_request: DistrictRequest):
 @router.post("/get_population")
 async def get_population(data: PopulationRequest):
     try:
-        population_data = fetch_population(data.city_name, data.district_name, data.sub_district_name)
+        population_data = fetch_population(data.city_name, data.district_name, data.sub_district_name, data.start_year_month)
         return population_data
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

@@ -1,6 +1,26 @@
 from app.db.connect import commit
 import pandas as pd
 
+
+
+# crud.py
+def get_crime_by_city_id(cursor, city_id: int):
+    query = """
+    SELECT * FROM crime
+    WHERE CITY_ID = %s
+    """
+    cursor.execute(query, (city_id,))
+    rows = cursor.fetchall()
+    
+    # 튜플을 딕셔너리로 변환
+    columns = ["CRIME_ID", "CITY_ID", "QUARTER", "CRIME_MAJOR_CATEGORY", "CRIME_MINOR_CATEGORY",
+               "INCIDENT_COUNT", "ARREST_COUNT", "INCIDENT_TO_ARREST_RATIO", "ARREST_PERSONNEL", "LEGAL_ENTITY"]
+    result = [dict(zip(columns, row)) for row in rows]
+    
+    return result
+
+
+
 def insert_crime_data(connection, df, city_id, quarter):
     # "-" 값을 0으로 변환하고, NaN 값을 0으로 변환
     df.replace('-', 0, inplace=True)

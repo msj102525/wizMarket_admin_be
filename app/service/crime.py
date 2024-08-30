@@ -1,8 +1,39 @@
 import pandas as pd
 import os
 from dotenv import load_dotenv
-from app.db.connect import get_db_connection, close_connection
+from app.db.connect import *
 from app.crud.crime import insert_crime_data
+from app.schemas.crime import CrimeRequest
+from app.crud.population import get_city_id_by_name
+from app.crud.crime import get_crime_by_city_id
+
+
+def fetch_crime_data(crime_request: CrimeRequest):
+    connection = get_db_connection()
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        
+        # 기존에 작성된 get_city_id_by_name 함수 사용
+        city_id = get_city_id_by_name(crime_request.city_name)
+        if not city_id:
+            return None
+
+        # CRUD 레이어 호출
+        crime_data = get_crime_by_city_id(cursor, city_id)
+        connection.commit()
+        return crime_data
+    except Exception as e:
+        connection.rollback()
+        raise e
+    finally:
+        if cursor:
+            cursor.close()
+        close_connection(connection)
+
+
+
+# csv 파일 인서트 
 
 CITY_MAPPING = {
     "강원": 1,
@@ -91,5 +122,5 @@ def process_crime_data():
     finally:
         close_connection(connection)
 
-if __name__ == "__main__":
-    process_crime_data()
+# if __name__ == "__main__":
+#     process_crime_data()

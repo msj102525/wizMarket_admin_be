@@ -139,3 +139,4 @@ class PopulationRequest(BaseModel):
     city_name: str
     district_name: str
     sub_district_name: str
+    start_year_month: str  # YYYY-MM-DD 형식의 문자열
