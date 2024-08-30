@@ -14,13 +14,13 @@ from app.db.connect import (
 def get_or_create_biz_main_category_id(biz_main_category_name: str) -> int:
     connection = get_db_connection()
     cursor = connection.cursor()
-    logger = logging.getLogger(__name__)
+    # logger = logging.getLogger(__name__)
 
     try:
         select_query = "SELECT biz_main_category_id FROM biz_main_category WHERE biz_main_category_name = %s;"
         cursor.execute(select_query, (biz_main_category_name,))
         result = cursor.fetchone()
-        logger.info(f"Executing query: {select_query % (biz_main_category_name)}")
+        # logger.info(f"Executing query: {select_query % (biz_main_category_name)}")
 
         if result:
             return result[0]

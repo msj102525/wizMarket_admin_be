@@ -29,10 +29,7 @@ def get_or_create_biz_detail_category_id(
         result = cursor.fetchone()
 
         logger.info(
-            "Executing query: %s with parameters: (%s, %s)",
-            select_query,
-            biz_sub_category_id,
-            biz_detail_category_name,
+            f"Executing query: {select_query % (biz_sub_category_id,biz_detail_category_name )}"
         )
 
         if result:
@@ -81,5 +78,5 @@ def get_detail_category_name_by_detial_category_id(detail_category_id: int) -> s
         close_connection(connection)
 
 
-# if __name__ == "__main__":
-#     print(get_or_create_biz_detail_category_id(1, "호프/맥주"))
+if __name__ == "__main__":
+    print(get_or_create_biz_detail_category_id(2, "막창구이"))
