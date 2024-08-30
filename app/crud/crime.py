@@ -1,15 +1,13 @@
 from app.db.connect import commit
 import pandas as pd
 
-
-
-# crud.py
-def get_crime_by_city_id(cursor, city_id: int):
+# 조회
+def get_crime_by_city_id(cursor, city_id: int, quarter: str):
     query = """
     SELECT * FROM crime
-    WHERE CITY_ID = %s
+    WHERE CITY_ID = %s AND QUARTER = %s
     """
-    cursor.execute(query, (city_id,))
+    cursor.execute(query, (city_id, quarter))
     rows = cursor.fetchall()
     
     # 튜플을 딕셔너리로 변환

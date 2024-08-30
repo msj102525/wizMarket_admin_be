@@ -18,3 +18,4 @@ class Crime(BaseModel):
 
 class CrimeRequest(BaseModel):
     city_name: str
+    start_year_month: str
