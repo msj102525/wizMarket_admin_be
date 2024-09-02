@@ -25,6 +25,12 @@ DROP TABLE IF EXISTS `DISTRICT`;
 
 DROP TABLE IF EXISTS `CITY`;
 
+DROP TABLE IF EXISTS `LOC_STORE`;
+
+DROP TABLE IF EXISTS `CRIME`;
+
+DROP TABLE IF EXISTS `CLASSIFICATION`;
+
 -- 테이블 생성
 CREATE TABLE
     `CITY` (
@@ -194,7 +200,7 @@ CREATE TABLE `LOC_STORE` (
 	`LOC_STORE_ID`	INT	NOT NULL	COMMENT 'PK_LCID',
 	`CITY_ID`	INT	NOT NULL	COMMENT 'FK_CID',
 	`DISTRICT_ID`	INT NULL	COMMENT 'FK_DID',
-	`SUBDISTRICT_ID`	INT NULL	COMMENT 'FK_SDID',
+	`SUB_DISTRICT_ID`	INT NULL	COMMENT 'FK_SDID',
     `StoreBusinessNumber` VARCHAR(100) NULL COMMENT '상가업소번호',
 	`store_name`	VARCHAR(255)	NULL	COMMENT '상호명',
 	`branch_name`	VARCHAR(255)	NULL	COMMENT '지점명',
@@ -206,34 +212,34 @@ CREATE TABLE `LOC_STORE` (
 	`small_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종소분류명',
 	`industry_code`	VARCHAR(10)	NULL	COMMENT '표준산업분류코드',
 	`industry_name`	VARCHAR(100)	NULL	COMMENT '표준산업분류명',
-	`province_code`	integer	NULL	COMMENT '시도코드',
+	`province_code`	VARCHAR(10)	NULL	COMMENT '시도코드',
 	`province_name`	VARCHAR(100)	NULL	COMMENT '시도명',
-	`district_code`	integer	NULL	COMMENT '시군구코드',
+	`district_code`	VARCHAR(10)	NULL	COMMENT '시군구코드',
 	`district_name`	VARCHAR(100)	NULL	COMMENT '시군구명',
-	`administrative_dong_code`	integer	NULL	COMMENT '행정동코드',
+	`administrative_dong_code`	VARCHAR(20)	NULL	COMMENT '행정동코드',
 	`administrative_dong_name`	VARCHAR(100)	NULL	COMMENT '행정동명',
-	`legal_dong_code`	integer	NULL	COMMENT '법정동코드',
+	`legal_dong_code`	VARCHAR(20)	NULL	COMMENT '법정동코드',
 	`legal_dong_name`	VARCHAR(100)	NULL	COMMENT '법정동명',
-	`lot_number_code`	integer	NULL	COMMENT '지번코드',
+	`lot_number_code`	VARCHAR(30)	NULL	COMMENT '지번코드',
 	`land_category_code`	VARCHAR(10)	NULL	COMMENT '대지구분코드',
 	`land_category_name`	VARCHAR(100)	NULL	COMMENT '대지구분명',
-	`lot_main_number`	integer	NULL	COMMENT '지번본번지',
-	`lot_sub_number`	integer	NULL	COMMENT '지번부번지',
+	`lot_main_number`	VARCHAR(10)	NULL	COMMENT '지번본번지',
+	`lot_sub_number`	VARCHAR(10)	NULL	COMMENT '지번부번지',
 	`lot_address`	VARCHAR(255)	NULL	COMMENT '지번주소',
-	`road_name_code`	integer	NULL	COMMENT '도로명코드',
+	`road_name_code`	VARCHAR(20)	NULL	COMMENT '도로명코드',
 	`road_name`	VARCHAR(255)	NULL	COMMENT '도로명',
-	`building_main_number`	integer	NULL	COMMENT '건물본번지',
-	`building_sub_number`	integer	NULL	COMMENT '건물부번지',
+	`building_main_number`	VARCHAR(30)	NULL	COMMENT '건물본번지',
+	`building_sub_number`	VARCHAR(30)	NULL	COMMENT '건물부번지',
 	`building_management_number`	VARCHAR(100)	NULL	COMMENT '건물관리번호',
 	`building_name`	VARCHAR(255)	NULL	COMMENT '건물명',
 	`road_name_address`	VARCHAR(255)	NULL	COMMENT '도로명주소',
-	`old_postal_code`	integer	NULL	COMMENT '구우편번호',
-	`new_postal_code`	integer	NULL	COMMENT '신우편번호',
+	`old_postal_code`	VARCHAR(10)	NULL	COMMENT '구우편번호',
+	`new_postal_code`	VARCHAR(10)	NULL	COMMENT '신우편번호',
 	`dong_info`	VARCHAR(100)	NULL	COMMENT '동정보',
 	`floor_info`	VARCHAR(50)	NULL	COMMENT '층정보',
 	`unit_info`	VARCHAR(50)	NULL	COMMENT '호정보',
-	`longitude`	DECIMAL(18, 15)	NULL	COMMENT '경도',
-	`latitude`	DECIMAL(18, 15)	NULL	COMMENT '위도',
+	`longitude`	VARCHAR(30)	NULL	COMMENT '경도',
+	`latitude`	VARCHAR(30)	NULL	COMMENT '위도',
 	`Y_Q`	VARCHAR(30)	NULL	COMMENT '기준 년 분기',
 	`CREATED_AT`	DATETIME	NULL	COMMENT '생성일자',
 	`UPDATED_AT`	DATETIME	NULL	COMMENT '수정일자',
@@ -398,7 +404,7 @@ CREATE TABLE CRIME (
     INCIDENT_TO_ARREST_RATIO DECIMAL(5,2) NOT NULL COMMENT '발생 건수 대비 검거 건수의 비율',
     ARREST_PERSONNEL INT NOT NULL COMMENT '검거에 관여한 인원 수',
     LEGAL_ENTITY INT NOT NULL COMMENT '관련된 법인체의 수',
-    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
+    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`)
 );
 
 

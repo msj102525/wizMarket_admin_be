@@ -14,7 +14,7 @@ load_dotenv()
 root_path = os.getenv('ROOT_PATH')
 
 # root_dir 경로 설정
-root_dir = os.path.join(root_path, 'app', 'data', 'locStoreData')
+root_dir = r'C:\Users\jyes_semin\Desktop\locStoreData'
 
 # 1. 필요한 데이터를 미리 로드합니다.
 connection = get_db_connection()
@@ -143,16 +143,22 @@ def process_csv_files():
                                 'Y_Q': year_quarter
                             }
 
-                            # 데이터 삽입
-                            try:
-                                insert_data_to_loc_store(connection, data_to_insert)
-                            except Exception as insert_error:
-                                print(f"데이터 삽입 오류: {insert_error}")
-                                rollback(connection)
-                                continue
+                            # 인서트할 데이터를 출력하고 자료형도 함께 출력
+                            print("인서트할 데이터:")
+                            for key, value in data_to_insert.items():
+                                print(f"{key}: {value} (자료형: {type(value)})")
+                            print("-" * 80)  # 구분선
 
-                        # 파일 처리 후 커밋
-                        commit(connection)
+                        #     # 데이터 삽입
+                        #     try:
+                        #         insert_data_to_loc_store(connection, data_to_insert)
+                        #     except Exception as insert_error:
+                        #         print(f"데이터 삽입 오류: {insert_error}")
+                        #         rollback(connection)
+                        #         continue
+
+                        # # 파일 처리 후 커밋
+                        # commit(connection)
 
                     except Exception as e:
                         print(f"오류 발생 파일: {file_path}")
