@@ -188,13 +188,13 @@ def load_all_cities(connection):
     with connection.cursor(pymysql.cursors.DictCursor) as cursor:
         cursor.execute("SELECT city_id, city_name FROM city")
         result = cursor.fetchall()
-        return {row['city_name']: City(city_id=row['city_id'], name=row['city_name']) for row in result}
+        return {row['city_name']: City(city_id=row['city_id'], city_name=row['city_name']) for row in result}
 
 def load_all_districts(connection):
     with connection.cursor(pymysql.cursors.DictCursor) as cursor:
         cursor.execute("SELECT district_id, city_id, district_name FROM district")
         result = cursor.fetchall()
-        return {(row['city_id'], row['district_name']): District(district_id=row['district_id'], city_id=row['city_id'], name=row['district_name']) for row in result}
+        return {(row['city_id'], row['district_name']): District(district_id=row['district_id'], city_id=row['city_id'], district_name=row['district_name']) for row in result}
 
 def load_all_sub_districts(connection):
     with connection.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -210,11 +210,11 @@ def load_all_sub_districts(connection):
                 sub_district_id=row['sub_district_id'], 
                 district_id=row['district_id'], 
                 city_id=row['city_id'],  # city_id 추가
-                name=row['sub_district_name']
+                sub_district_name=row['sub_district_name']
             ) 
             for row in result
         }
     
 
-# if __name__ == "__main__":
-#     load_and_insert_population_data()
+if __name__ == "__main__":
+    load_and_insert_population_data()

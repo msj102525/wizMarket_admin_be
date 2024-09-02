@@ -190,6 +190,61 @@ CREATE TABLE
         FOREIGN KEY (`BIZ_DETAIL_CATEGORY_ID`) REFERENCES `BIZ_DETAIL_CATEGORY` (`BIZ_DETAIL_CATEGORY_ID`)
     );
 
+
+CREATE TABLE `LOC_STORE` (
+	`LOC_STORE_ID`	INT	NOT NULL	COMMENT 'PK_LCID',
+	`CITY_ID`	INT	NOT NULL	COMMENT 'FK_CID',
+	`DISTRICT_ID`	INT NULL	COMMENT 'FK_DID',
+	`SUBDISTRICT_ID`	INT NULL	COMMENT 'FK_SDID',
+    `StoreBusinessNumber` VARCHAR(100) NULL COMMENT '상가업소번호',
+	`store_name`	VARCHAR(255)	NULL	COMMENT '상호명',
+	`branch_name`	VARCHAR(255)	NULL	COMMENT '지점명',
+	`large_category_code`	VARCHAR(10)	NULL	COMMENT '상권업종대분류코드',
+	`large_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종대분류명',
+	`medium_category_code`	VARCHAR(10)	NULL	COMMENT '상권업종중분류코드',
+	`medium_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종중분류명',
+	`small_category_code`	VARCHAR(10)	NULL	COMMENT '상권업종소분류코드',
+	`small_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종소분류명',
+	`industry_code`	VARCHAR(10)	NULL	COMMENT '표준산업분류코드',
+	`industry_name`	VARCHAR(100)	NULL	COMMENT '표준산업분류명',
+	`province_code`	integer	NULL	COMMENT '시도코드',
+	`province_name`	VARCHAR(100)	NULL	COMMENT '시도명',
+	`district_code`	integer	NULL	COMMENT '시군구코드',
+	`district_name`	VARCHAR(100)	NULL	COMMENT '시군구명',
+	`administrative_dong_code`	integer	NULL	COMMENT '행정동코드',
+	`administrative_dong_name`	VARCHAR(100)	NULL	COMMENT '행정동명',
+	`legal_dong_code`	integer	NULL	COMMENT '법정동코드',
+	`legal_dong_name`	VARCHAR(100)	NULL	COMMENT '법정동명',
+	`lot_number_code`	integer	NULL	COMMENT '지번코드',
+	`land_category_code`	VARCHAR(10)	NULL	COMMENT '대지구분코드',
+	`land_category_name`	VARCHAR(100)	NULL	COMMENT '대지구분명',
+	`lot_main_number`	integer	NULL	COMMENT '지번본번지',
+	`lot_sub_number`	integer	NULL	COMMENT '지번부번지',
+	`lot_address`	VARCHAR(255)	NULL	COMMENT '지번주소',
+	`road_name_code`	integer	NULL	COMMENT '도로명코드',
+	`road_name`	VARCHAR(255)	NULL	COMMENT '도로명',
+	`building_main_number`	integer	NULL	COMMENT '건물본번지',
+	`building_sub_number`	integer	NULL	COMMENT '건물부번지',
+	`building_management_number`	VARCHAR(100)	NULL	COMMENT '건물관리번호',
+	`building_name`	VARCHAR(255)	NULL	COMMENT '건물명',
+	`road_name_address`	VARCHAR(255)	NULL	COMMENT '도로명주소',
+	`old_postal_code`	integer	NULL	COMMENT '구우편번호',
+	`new_postal_code`	integer	NULL	COMMENT '신우편번호',
+	`dong_info`	VARCHAR(100)	NULL	COMMENT '동정보',
+	`floor_info`	VARCHAR(50)	NULL	COMMENT '층정보',
+	`unit_info`	VARCHAR(50)	NULL	COMMENT '호정보',
+	`longitude`	DECIMAL(18, 15)	NULL	COMMENT '경도',
+	`latitude`	DECIMAL(18, 15)	NULL	COMMENT '위도',
+	`Y_Q`	VARCHAR(30)	NULL	COMMENT '기준 년 분기',
+	`CREATED_AT`	DATETIME	NULL	COMMENT '생성일자',
+	`UPDATED_AT`	DATETIME	NULL	COMMENT '수정일자',
+    PRIMARY KEY (`LOC_STORE_ID`),
+    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
+    FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
+    FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`)
+);
+
+
 CREATE TABLE gender (
     gender_id INT PRIMARY KEY,
     gender_name VARCHAR(10) NOT NULL
@@ -347,6 +402,20 @@ CREATE TABLE CRIME (
     FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
 );
 
+
+CREATE TABLE CLASSIFICATION (
+    CLASSIFICATION_ID INT AUTO_INCREMENT PRIMARY KEY,
+    MAIN_CATEGORY_CODE CHAR(1),
+    MAIN_CATEGORY_NAME VARCHAR(100),
+    SUB_CATEGORY_CODE CHAR(2),
+    SUB_CATEGORY_NAME VARCHAR(100),
+    DETAIL_CATEGORY_CODE CHAR(3),
+    DETAIL_CATEGORY_NAME VARCHAR(100),
+    SUB_DETAIL_CATEGORY_CODE CHAR(4),
+    SUB_DETAIL_CATEGORY_NAME VARCHAR(100),
+    SUB_SUB_DETAIL_CATEGORY_CODE CHAR(5),
+    SUB_SUB_DETAIL_CATEGORY_NAME VARCHAR(100)
+);
 
 -- 외래 키 제약 조건을 다시 활성화
 SET
