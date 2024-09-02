@@ -14,7 +14,7 @@ class RisingBusiness(BaseModel):
     biz_detail_category_id: int
 
     growth_rate: float
-    rank: int
+    sub_district_rank: int
 
     created_at: datetime
     updated_at: datetime
@@ -33,7 +33,26 @@ class RisingBusinessInsert(BaseModel):
     biz_detail_category_id: int
 
     growth_rate: float
-    rank: int
+    sub_district_rank: int
+
+    class Config:
+        from_attributes = True
+
+
+class RisingBusinessOutput(BaseModel):
+    city_name: str
+    district_name: str
+    sub_district_name: str
+
+    biz_main_category_name: str
+    biz_sub_category_name: str
+    biz_detail_category_name: str
+
+    growth_rate: Optional[float] = None
+    sub_district_rank: Optional[int] = None
+
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

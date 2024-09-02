@@ -1340,7 +1340,7 @@ if __name__ == "__main__":
     get_main_category(0, 0, 22)
 
 
-def get_all_commercial_district_by_sub_district_id(
+def get_all_commercial_district_by_region_name(
     city: str, district: str, sub_district: str
 ) -> List[CommercialDistrictOutput]:
     city_id = get_or_create_city_id(city)

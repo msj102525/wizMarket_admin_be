@@ -629,3 +629,4 @@ def search_commercial_district(
 
 if __name__ == "__main__":
     get_main_category(0, 0, 1)
+    print("카테고리 크롤링 종료")

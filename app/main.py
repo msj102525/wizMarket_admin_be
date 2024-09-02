@@ -33,7 +33,7 @@ app.include_router(population.router, prefix="/population")
 app.include_router(loc_info.router, prefix="/loc_info")
 app.include_router(crime.router, prefix="/crime")
 app.include_router(commercial_district.router, prefix="/commercial")
-# app.include_router(rising_business.router, prefix="/rising")
+app.include_router(rising_business.router, prefix="/rising")
 app.include_router(cai_info.router, prefix="/cai")
 
 if __name__ == "__main__":

@@ -1,23 +1,17 @@
-# from fastapi import APIRouter, HTTPException
-# from typing import List
-# from app.crud.city import select_region_id_by_city_sub_district
-# from app.crud.rising_business import select_all_rising_business_by_region_id
-# from app.schemas.rising_business import RisingBusiness
+from fastapi import APIRouter, HTTPException
+from typing import List
+from app.schemas.rising_business import RisingBusinessOutput
+from app.service.rising_business import get_all_rising_business_by_region_name
 
 
-# router = APIRouter()
+router = APIRouter()
 
 
-# @router.get("/", response_model=List[RisingBusiness])
-# def get_commercial_district(city: str, sub_district: str):
-#     print(city, sub_district)
-#     try:
-#         region_id = select_region_id_by_city_sub_district(city, sub_district)
-#         if region_id:
-#             print(region_id)
-#             return select_all_rising_business_by_region_id(region_id)
-#         else:
-#             raise HTTPException(status_code=404, detail="No data found")
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+@router.get("", response_model=List[RisingBusinessOutput])
+def get_rising_business(city: str, district: str, sub_district: str):
+    print(f"city: {city}, district: {district}, sub_d: {sub_district}")
+    try:
+        results = get_all_rising_business_by_region_name(city, district, sub_district)
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
