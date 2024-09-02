@@ -187,15 +187,12 @@ def get_sub_district_count(start_idx: int, end_idx: int):
             print(f"Error closing driver: {str(quit_error)}")
 
 
-# def get_main_category(city_idx, district_idx, sub_district_count):
-def get_main_category(start_idx: int, end_idx: int):
+# def get_main_category(start_idx: int, end_idx: int):
+def get_main_category(city_idx, district_idx, sub_district_count):
     driver = setup_driver()
-    city_idx = 0  # 서울
-    district_idx = 0  # 강남구
     try:
-        # for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
         for sub_district_idx in tqdm(
-            range(start_idx, end_idx), f"{start_idx}: 읍/면/동 Progress"
+            range(sub_district_count), f"{district_idx}: 읍/면/동 Progress"
         ):
             try:
                 # print(f"idx: {district_idx}")
@@ -272,20 +269,14 @@ def get_main_category(start_idx: int, end_idx: int):
                 driver.quit()
                 driver = setup_driver()
 
-        # for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
         for sub_district_idx in tqdm(
-            range(start_idx, end_idx), f"{start_idx}: 읍/면/동 Progress"
+            range(sub_district_count), f"{district_idx}: 읍/면/동 Progress"
         ):
             try:
-
                 print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2)
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
                 # 분석 지역
                 click_element(
@@ -328,7 +319,6 @@ def get_main_category(start_idx: int, end_idx: int):
                 main_category_ul_2_li = main_category_ul_2.find_elements(
                     By.TAG_NAME, "li"
                 )
-                # print(f"대분류2 갯수 : {len(main_category_ul_2_li)}")
 
                 m_c_ul = 3
 
@@ -369,14 +359,9 @@ def get_sub_category(
     try:
         for main_category_idx in range(main_category_count):
             try:
-                # print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2)
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
                 # 분석 지역
                 click_element(
@@ -1266,8 +1251,8 @@ def search_commercial_district(
 def execute_task_in_thread(start, end):
     with ThreadPoolExecutor(max_workers=12) as executor:
         futures = [
-            # executor.submit(get_sub_district_count, start, end),
-            executor.submit(get_main_category, start, end),
+            executor.submit(get_sub_district_count, start, end),
+            # executor.submit(get_main_category, start, end),
         ]
         for future in futures:
             future.result()
@@ -1286,7 +1271,8 @@ def execute_parallel_tasks():
         (9, 12),
         (12, 15),
         (15, 18),
-        (18, 22),
+        (18, 21),
+        (21, 25),
     ]
 
     with Pool(processes=len(ranges)) as pool:
@@ -1302,3 +1288,9 @@ def execute_parallel_tasks():
 if __name__ == "__main__":
     execute_parallel_tasks()
     print(f"상권분석 END")
+
+    # 컴퓨터 종료 명령어 (운영체제에 따라 다름)
+    if os.name == "nt":  # Windows
+        os.system("shutdown /s /t 1")
+    else:  # Unix-based (Linux, macOS)
+        os.system("shutdown -h now")

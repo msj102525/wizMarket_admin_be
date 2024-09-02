@@ -110,241 +110,84 @@ def handle_unexpected_alert(driver):
         return False
 
 
-def get_city_count():
-    driver = setup_driver()
-    try:
-        driver.get(BIZ_MAP_URL)
-        wait = WebDriverWait(driver, 40)
-        driver.implicitly_wait(10)
-
-        time.sleep(2)
-
-        # 분석 지역
-        click_element(
-            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
-        )
-
-        time.sleep(2)
-
-        city_ul = wait.until(
-            EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul')
-            )
-        )
-        city_ul_li = city_ul.find_elements(By.TAG_NAME, "li")
-        print(f"시/도 갯수: {len(city_ul_li)}")
-
-        get_district_count(len(city_ul_li))
-    except Exception as e:
-        print(f"Exception occurred: {e}.")
-        return None
-    finally:
-        try:
-            if driver:
-                driver.quit()
-        except Exception as quit_error:
-            print(f"Error closing driver: {str(quit_error)}")
-
-
-def get_district_count(city_count):
-    driver = setup_driver()
-    try:
-        for city_idx in tqdm(range(city_count), desc="시/도 Progress"):
-            print(f"idx: {city_idx}")
-
-            driver.get(BIZ_MAP_URL)
-            wait = WebDriverWait(driver, 40)
-
-            time.sleep(2)
-
-            # 분석 지역
-            click_element(
-                wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
-            )
-            time.sleep(2)
-
-            city_text = click_element(
-                wait,
-                By.XPATH,
-                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-            )
-
-            district_ul = wait.until(
-                EC.presence_of_element_located(
-                    (
-                        By.XPATH,
-                        '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul',
-                    )
-                )
-            )
-            district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
-            print(f"시/군/구 갯수: {len(district_ul_li)}")
-
-            get_sub_district_count(city_idx, len(district_ul_li))
-    except Exception as e:
-        print(f"Exception occurred: {e}.")
-        return None
-    finally:
-        try:
-            if driver:
-                driver.quit()
-        except Exception as quit_error:
-            print(f"Error closing driver: {str(quit_error)}")
-
-
-def get_sub_district_count(city_idx, district_count):
-    driver = setup_driver()
-    try:
-        for district_idx in tqdm(
-            range(district_count), f"{district_idx} : 시/군/구 Progress"
-        ):
-            try:
-
-                print(f"idx: {district_idx}")
-                driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
-                driver.implicitly_wait(10)
-
-                # time.sleep(3)
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
-
-                time.sleep(3)
-
-                # 분석 지역
-                click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
-                )
-
-                time.sleep(3)
-
-                city_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-                )
-
-                time.sleep(3)
-
-                district_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
-                )
-
-                sub_district_ul = wait.until(
-                    EC.presence_of_element_located(
-                        (
-                            By.XPATH,
-                            '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul',
-                        )
-                    )
-                )
-                sub_district_ul_li = sub_district_ul.find_elements(By.TAG_NAME, "li")
-                # print(f"읍/면/동 갯수: {len(sub_district_ul_li)}")
-
-                # print(f"시/도 : {city_text}, 시/군/구 : {district_text}")
-
-                get_main_category(city_idx, district_idx, len(sub_district_ul_li))
-            except UnexpectedAlertPresentException:
-                handle_unexpected_alert(wait._driver)
-            except Exception as e:
-                print(f"Error processing district_idx {district_idx}: {str(e)}")
-                continue
-            finally:
-                driver.quit()
-                driver = setup_driver()
-    except Exception as e:
-        print(
-            f"Exception occurred get_sub_district_count(), district_idx {district_idx}: {e}."
-        )
-        return None
-    finally:
-        try:
-            if driver:
-                driver.quit()
-        except Exception as quit_error:
-            print(f"Error closing driver: {str(quit_error)}")
-
-
 def get_main_category(city_idx, district_idx, sub_district_count):
     driver = setup_driver()
     try:
-        for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
-            try:
-                # print(f"idx: {district_idx}")
-                driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
-                driver.implicitly_wait(10)
+        # for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
+        #     try:
+        #         # print(f"idx: {district_idx}")
+        #         driver.get(BIZ_MAP_URL)
+        #         wait = WebDriverWait(driver, 60)
+        #         driver.implicitly_wait(10)
 
-                # time.sleep(3)
+        #         # time.sleep(3)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+        #         # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
-                # 분석 지역
-                click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
-                )
+        #         # 분석 지역
+        #         click_element(
+        #             wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(3)
 
-                city_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-                )
+        #         city_text = click_element(
+        #             wait,
+        #             By.XPATH,
+        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(3)
 
-                district_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
-                )
+        #         district_text = click_element(
+        #             wait,
+        #             By.XPATH,
+        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(3)
 
-                sub_district_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
-                )
+        #         sub_district_text = click_element(
+        #             wait,
+        #             By.XPATH,
+        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(3)
 
-                main_category_ul_1 = wait.until(
-                    EC.presence_of_element_located(
-                        (
-                            By.XPATH,
-                            '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
-                        )
-                    )
-                )
+        #         main_category_ul_1 = wait.until(
+        #             EC.presence_of_element_located(
+        #                 (
+        #                     By.XPATH,
+        #                     '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
+        #                 )
+        #             )
+        #         )
 
-                main_category_ul_1_li = main_category_ul_1.find_elements(
-                    By.TAG_NAME, "li"
-                )
-                # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
+        #         main_category_ul_1_li = main_category_ul_1.find_elements(
+        #             By.TAG_NAME, "li"
+        #         )
+        #         # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
 
-                m_c_ul = 1
+        #         m_c_ul = 1
 
-                get_sub_category(
-                    city_idx,
-                    district_idx,
-                    sub_district_idx,
-                    len(main_category_ul_1_li),
-                    m_c_ul,
-                )
-            except UnexpectedAlertPresentException:
-                handle_unexpected_alert(wait._driver)
-            except Exception as e:
-                print(
-                    f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
-                )
-                continue
-            finally:
-                driver.quit()
-                driver = setup_driver()
+        #         get_sub_category(
+        #             city_idx,
+        #             district_idx,
+        #             sub_district_idx,
+        #             len(main_category_ul_1_li),
+        #             m_c_ul,
+        #         )
+        #     except UnexpectedAlertPresentException:
+        #         handle_unexpected_alert(wait._driver)
+        #     except Exception as e:
+        #         print(
+        #             f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
+        #         )
+        #         continue
+        #     finally:
+        #         driver.quit()
+        #         driver = setup_driver()
 
         for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
             try:
@@ -785,5 +628,4 @@ def search_commercial_district(
 
 
 if __name__ == "__main__":
-    # get_city_count()
-    get_main_category(0, 0, 22)
+    get_main_category(0, 0, 1)
