@@ -121,7 +121,7 @@ def get_city_count():
 
         # 분석 지역
         click_element(
-            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
         )
 
         time.sleep(2)
@@ -159,14 +159,14 @@ def get_district_count(city_count):
 
             # 분석 지역
             click_element(
-                wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
             )
             time.sleep(2)
 
             city_text = click_element(
                 wait,
                 By.XPATH,
-                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
             )
 
             district_ul = wait.until(
@@ -202,34 +202,34 @@ def get_sub_district_count(city_idx, district_count):
 
                 print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
+                wait = WebDriverWait(driver, 30)
                 driver.implicitly_wait(10)
 
-                # time.sleep(3)
+                # time.sleep(2)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
-                time.sleep(3)
+                time.sleep(2)
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 city_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
                 )
 
                 sub_district_ul = wait.until(
@@ -270,120 +270,120 @@ def get_sub_district_count(city_idx, district_count):
 def get_main_category(city_idx, district_idx, sub_district_count):
     driver = setup_driver()
     try:
-        for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
-            try:
-                # print(f"idx: {district_idx}")
-                driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
-                driver.implicitly_wait(10)
+        # for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
+        #     try:
+        #         # print(f"idx: {district_idx}")
+        #         driver.get(BIZ_MAP_URL)
+        #         wait = WebDriverWait(driver, 30)
+        #         driver.implicitly_wait(10)
 
-                # time.sleep(3)
+        #         # time.sleep(2)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+        #         # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
-                # 분석 지역
-                click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
-                )
+        #         # 분석 지역
+        #         click_element(
+        #             wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(2)
 
-                city_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-                )
+        #         city_text = click_element(
+        #             wait,
+        #             By.XPATH,
+        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(2)
 
-                district_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
-                )
+        #         district_text = click_element(
+        #             wait,
+        #             By.XPATH,
+        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(2)
 
-                sub_district_text = click_element(
-                    wait,
-                    By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
-                )
+        #         sub_district_text = click_element(
+        #             wait,
+        #             By.XPATH,
+        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
+        #         )
 
-                time.sleep(3)
+        #         time.sleep(2)
 
-                main_category_ul_1 = wait.until(
-                    EC.presence_of_element_located(
-                        (
-                            By.XPATH,
-                            '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
-                        )
-                    )
-                )
+        #         main_category_ul_1 = wait.until(
+        #             EC.presence_of_element_located(
+        #                 (
+        #                     By.XPATH,
+        #                     '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
+        #                 )
+        #             )
+        #         )
 
-                main_category_ul_1_li = main_category_ul_1.find_elements(
-                    By.TAG_NAME, "li"
-                )
-                # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
+        #         main_category_ul_1_li = main_category_ul_1.find_elements(
+        #             By.TAG_NAME, "li"
+        #         )
+        #         # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
 
-                m_c_ul = 1
+        #         m_c_ul = 1
 
-                get_sub_category(
-                    city_idx,
-                    district_idx,
-                    sub_district_idx,
-                    len(main_category_ul_1_li),
-                    m_c_ul,
-                )
-            except UnexpectedAlertPresentException:
-                handle_unexpected_alert(wait._driver)
-            except Exception as e:
-                print(
-                    f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
-                )
-                continue
-            finally:
-                driver.quit()
-                driver = setup_driver()
+        #         get_sub_category(
+        #             city_idx,
+        #             district_idx,
+        #             sub_district_idx,
+        #             len(main_category_ul_1_li),
+        #             m_c_ul,
+        #         )
+        #     except UnexpectedAlertPresentException:
+        #         handle_unexpected_alert(wait._driver)
+        #     except Exception as e:
+        #         print(
+        #             f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
+        #         )
+        #         continue
+        #     finally:
+        #         driver.quit()
+        #         driver = setup_driver()
 
         for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
             try:
                 print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
+                wait = WebDriverWait(driver, 30)
                 driver.implicitly_wait(10)
 
-                # time.sleep(3)
+                # time.sleep(2)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 city_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 sub_district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
                 )
 
                 main_category_ul_2 = wait.until(
@@ -441,43 +441,43 @@ def get_sub_category(
             try:
                 # print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
+                wait = WebDriverWait(driver, 30)
                 driver.implicitly_wait(10)
 
-                # time.sleep(3)
+                # time.sleep(2)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 city_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 sub_district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 main_category_text = click_element(
                     wait,
@@ -541,43 +541,43 @@ def get_detail_category(
         for sub_category_idx in range(0, sub_category_count * 2, 2):
             try:
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 60)
+                wait = WebDriverWait(driver, 30)
                 driver.implicitly_wait(10)
 
-                # time.sleep(3)
+                # time.sleep(2)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 city_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 sub_district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 main_category_text = click_element(
                     wait,
@@ -585,7 +585,7 @@ def get_detail_category(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 sub_category_text = click_element(
                     wait,
@@ -655,43 +655,43 @@ def search_commercial_district(
                 )
 
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 40)
+                wait = WebDriverWait(driver, 10)
                 driver.implicitly_wait(10)
 
-                # time.sleep(3)
+                # time.sleep(2)
 
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 city_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 sub_district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 main_category_text = click_element(
                     wait,
@@ -699,7 +699,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 sub_category_text = click_element(
                     wait,
@@ -707,7 +707,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 detail_category_text = click_element(
                     wait,
@@ -715,7 +715,7 @@ def search_commercial_district(
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 2}]/ul/li[{detail_category_idx + 1}]',
                 )
 
-                time.sleep(3)
+                time.sleep(2)
 
                 try:
                     city_id = get_or_create_city_id(city_text)
@@ -755,7 +755,6 @@ def search_commercial_district(
                     )
                     if detail_category_id is None:
                         print("Failed to get or create detail category ID")
-                        continue
 
                 except Exception as e:
                     print(f"카테고리 조회 오류 : {e}")
@@ -764,7 +763,7 @@ def search_commercial_district(
                 if detail_category_text:
                     print(detail_category_text)
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # '//*[@id="report1"]' 요소가 나타날 때까지 기다리기
                     try:
@@ -779,6 +778,9 @@ def search_commercial_district(
                     except TimeoutException:
                         print(f"Element not found: //*[@id='report1'] 없거나 안뜸")
                         continue
+                    finally:
+                        if driver:
+                            driver.quit()
 
                     # 분석 텍스트 보기 없애기
                     click_element(
@@ -787,7 +789,7 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[2]/label',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 표 전제보기
                     click_element(
@@ -796,16 +798,16 @@ def search_commercial_district(
                         '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[1]/label',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 밀집도 클릭
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[2]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[2]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 전국 해당 업종수 밀집도 데이터
                     national_density = read_element(
@@ -814,7 +816,7 @@ def search_commercial_district(
                         '//*[@id="s2"]/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[2]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 해당 시/도, 해당 업종수 밀집도 데이터
                     city_density = read_element(
@@ -841,10 +843,10 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[3]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[3]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 해당지역 업종 총 시장규모(원) 제일 최신
                     market_size = read_element(
@@ -857,10 +859,10 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[6]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[6]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 해당지역 업종 결제단가(원)
                     average_payment = read_element(
@@ -880,10 +882,10 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[7]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[7]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 해당지역 업종 점포당 매출규모(원)
                     average_sales = read_element(
@@ -959,10 +961,10 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[8]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[8]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 해당지역 업종 매출 요일별 (월요일 %)
                     avg_profit_per_mon = read_element(
@@ -1066,10 +1068,10 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[9]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[9]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 남 20대
                     avg_client_per_m_20 = read_element(
@@ -1145,10 +1147,10 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[11]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[11]',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # 뜨는 메뉴 클릭
                     click_element(
@@ -1157,7 +1159,7 @@ def search_commercial_district(
                         '//*[@id="s11"]/div[2]/div[2]/div/div[1]/ul/li[2]/button',
                     )
 
-                    time.sleep(3)
+                    time.sleep(2)
 
                     try:
                         top5_menu_elements = []
@@ -1311,7 +1313,7 @@ def search_commercial_district(
                     print(
                         f"NO DATA : {city_text}, {district_text}, {sub_district_text}, {main_category_text}, {sub_category_text} : index {detail_category_idx}."
                     )
-                    continue
+                    # continue
             except UnexpectedAlertPresentException:
                 handle_unexpected_alert(wait._driver)
             except Exception as e:
@@ -1340,7 +1342,7 @@ if __name__ == "__main__":
     get_main_category(0, 0, 22)
 
 
-def get_all_commercial_district_by_region_name(
+def get_all_commercial_district_by_sub_district_id(
     city: str, district: str, sub_district: str
 ) -> List[CommercialDistrictOutput]:
     city_id = get_or_create_city_id(city)

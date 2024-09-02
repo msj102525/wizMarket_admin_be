@@ -187,18 +187,22 @@ def get_sub_district_count(start_idx: int, end_idx: int):
             print(f"Error closing driver: {str(quit_error)}")
 
 
+# def get_main_category(start_idx: int, end_idx: int):
 def get_main_category(city_idx, district_idx, sub_district_count):
     driver = setup_driver()
-    city_idx = 0  # 서울
-    district_idx = 0  # 강남구
     try:
-        for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
-
+        for sub_district_idx in tqdm(
+            range(sub_district_count), f"{district_idx}: 읍/면/동 Progress"
+        ):
             try:
                 # print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
+
+                # time.sleep(2)
+
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
                 # 분석 지역
                 click_element(
@@ -265,7 +269,9 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                 driver.quit()
                 driver = setup_driver()
 
-        for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
+        for sub_district_idx in tqdm(
+            range(sub_district_count), f"{district_idx}: 읍/면/동 Progress"
+        ):
             try:
                 print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
@@ -353,14 +359,9 @@ def get_sub_category(
     try:
         for main_category_idx in range(main_category_count):
             try:
-                # print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2)
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
 
                 # 분석 지역
                 click_element(
@@ -458,6 +459,10 @@ def get_detail_category(
                 wait = WebDriverWait(driver, 60)
                 driver.implicitly_wait(10)
 
+                # time.sleep(2)
+
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]/a')
+
                 # 분석 지역
                 click_element(
                     wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
@@ -502,17 +507,17 @@ def get_detail_category(
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]',
                 )
-
+                # print(f"중분류 : {sub_category_text}")
                 detail_category_ul = wait.until(
                     EC.presence_of_element_located(
                         (By.CSS_SELECTOR, "#basicReport ul.cate3")
                     )
                 )
-
                 detail_category_ul_li_button = detail_category_ul.find_elements(
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 2}]/ul/li',
                 )
+                # print(f"소분류 갯수 : {len(detail_category_ul_li_button)}")
 
                 search_commercial_district(
                     city_idx,
@@ -634,7 +639,7 @@ def search_commercial_district(
                 except Exception as e:
                     print(f"시 구 동 조회 오류 : {e}")
 
-                #########################################################
+                ###########################
 
                 try:
                     main_category_id = get_or_create_biz_main_category_id(
@@ -1247,6 +1252,7 @@ def execute_task_in_thread(start, end):
     with ThreadPoolExecutor(max_workers=12) as executor:
         futures = [
             executor.submit(get_sub_district_count, start, end),
+            # executor.submit(get_main_category, start, end),
         ]
         for future in futures:
             future.result()
@@ -1265,7 +1271,8 @@ def execute_parallel_tasks():
         (9, 12),
         (12, 15),
         (15, 18),
-        (18, 22),
+        (18, 21),
+        (21, 25),
     ]
 
     with Pool(processes=len(ranges)) as pool:
@@ -1281,3 +1288,9 @@ def execute_parallel_tasks():
 if __name__ == "__main__":
     execute_parallel_tasks()
     print(f"상권분석 END")
+
+    # 컴퓨터 종료 명령어 (운영체제에 따라 다름)
+    if os.name == "nt":  # Windows
+        os.system("shutdown /s /t 1")
+    else:  # Unix-based (Linux, macOS)
+        os.system("shutdown -h now")

@@ -570,12 +570,16 @@ def search_commercial_district(
                 )
 
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 30)
+                wait = WebDriverWait(driver, 10)
                 driver.implicitly_wait(10)
+
+                # time.sleep(2)
+
+                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a'
+                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
                 )
 
                 time.sleep(2)
@@ -583,7 +587,7 @@ def search_commercial_district(
                 city_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
                 )
 
                 time.sleep(2)
@@ -591,7 +595,7 @@ def search_commercial_district(
                 district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
                 )
 
                 time.sleep(2)
@@ -599,7 +603,7 @@ def search_commercial_district(
                 sub_district_text = click_element(
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
                 )
 
                 time.sleep(2)
@@ -666,7 +670,6 @@ def search_commercial_district(
                     )
                     if detail_category_id is None:
                         print("Failed to get or create detail category ID")
-                        continue
 
                 except Exception as e:
                     print(f"카테고리 조회 오류 : {e}")
@@ -690,8 +693,9 @@ def search_commercial_district(
                     except TimeoutException:
                         print(f"Element not found: //*[@id='report1'] 없거나 안뜸")
                         continue
-
-                    time.sleep(2)
+                    finally:
+                        if driver:
+                            driver.quit()
 
                     # 분석 텍스트 보기 없애기
                     click_element(
@@ -715,7 +719,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[2]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[2]',
                     )
 
                     time.sleep(2)
@@ -754,7 +758,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[3]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[3]',
                     )
 
                     time.sleep(2)
@@ -770,7 +774,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[6]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[6]',
                     )
 
                     time.sleep(2)
@@ -793,7 +797,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[7]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[7]',
                     )
 
                     time.sleep(2)
@@ -872,7 +876,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[8]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[8]',
                     )
 
                     time.sleep(2)
@@ -979,7 +983,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[9]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[9]',
                     )
 
                     time.sleep(2)
@@ -1058,7 +1062,7 @@ def search_commercial_district(
                     click_element(
                         wait,
                         By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[11]/a',
+                        '//*[@id="report1"]/div/div[3]/div/ul/li[11]',
                     )
 
                     time.sleep(2)
@@ -1224,7 +1228,7 @@ def search_commercial_district(
                     print(
                         f"NO DATA : {city_text}, {district_text}, {sub_district_text}, {main_category_text}, {sub_category_text} : index {detail_category_idx}."
                     )
-                    continue
+                    # continue
             except UnexpectedAlertPresentException:
                 handle_unexpected_alert(wait._driver)
             except Exception as e:
@@ -1249,7 +1253,7 @@ def search_commercial_district(
 
 
 def execute_task_in_thread(start, end):
-    with ThreadPoolExecutor(max_workers=12) as executor:
+    with ThreadPoolExecutor(max_workers=16) as executor:
         futures = [
             executor.submit(get_sub_district_count, start, end),
             # executor.submit(get_main_category, start, end),
@@ -1264,16 +1268,7 @@ def execute_parallel_tasks():
         f"Total execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
     )
 
-    ranges = [
-        (0, 3),
-        (3, 6),
-        (6, 9),
-        (9, 12),
-        (12, 15),
-        (15, 18),
-        (18, 21),
-        (21, 25),
-    ]
+    ranges = [(0, 5), (5, 10), (10, 15), (15, 20), (20, 25)]
 
     with Pool(processes=len(ranges)) as pool:
         pool.starmap(execute_task_in_thread, ranges)
