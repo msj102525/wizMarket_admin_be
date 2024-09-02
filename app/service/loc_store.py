@@ -97,7 +97,7 @@ def process_csv_files():
                             sub_district = sub_districts.get((district.district_id, sub_district_name)) if district else None
 
                             # 인서트할 데이터 준비
-                            data_to_insert = {
+                            data = {
                                 'CITY_ID': city.city_id,
                                 'DISTRICT_ID': district.district_id if district else None,
                                 'SUB_DISTRICT_ID': sub_district.sub_district_id if sub_district else None,
@@ -143,22 +143,23 @@ def process_csv_files():
                                 'Y_Q': year_quarter
                             }
 
-                            # 인서트할 데이터를 출력하고 자료형도 함께 출력
-                            print("인서트할 데이터:")
-                            for key, value in data_to_insert.items():
-                                print(f"{key}: {value} (자료형: {type(value)})")
-                            print("-" * 80)  # 구분선
+                            # # 인서트할 데이터를 출력하고 자료형도 함께 출력
+                            # print("인서트할 데이터:")
+                            # print("인서트할 데이터 (총 항목 수: {}):".format(len(data)))
+                            # for key, value in data.items():
+                            #     print(f"{key}: {value} (자료형: {type(value)})")
+                            # print("-" * 80)  # 구분선
 
-                        #     # 데이터 삽입
-                        #     try:
-                        #         insert_data_to_loc_store(connection, data_to_insert)
-                        #     except Exception as insert_error:
-                        #         print(f"데이터 삽입 오류: {insert_error}")
-                        #         rollback(connection)
-                        #         continue
+                            # 데이터 삽입
+                            try:
+                                insert_data_to_loc_store(connection, data)
+                            except Exception as insert_error:
+                                print(f"데이터 삽입 오류: {insert_error}")
+                                rollback(connection)
+                                continue
 
-                        # # 파일 처리 후 커밋
-                        # commit(connection)
+                        # 파일 처리 후 커밋
+                        commit(connection)
 
                     except Exception as e:
                         print(f"오류 발생 파일: {file_path}")

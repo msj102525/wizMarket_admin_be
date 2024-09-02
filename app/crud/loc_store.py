@@ -5,7 +5,7 @@ def insert_data_to_loc_store(connection, data):
     try:
         with connection.cursor() as cursor:
             sql = """
-            INSERT INTO loc_store (
+            INSERT INTO temp (
                 CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID,  
                 StoreBusinessNumber, store_name, branch_name,
                 large_category_code, large_category_name,
@@ -39,19 +39,13 @@ def insert_data_to_loc_store(connection, data):
                 %s, %s, %s, 
                 %s, %s, %s, 
                 %s, %s, %s, 
+                %s, %s, %s, 
                 NOW(), NOW()
             )
             """
 
             # 디버깅을 위해 각 항목을 개별적으로 테스트
             try:
-                print("Inserting CITY_ID:", data['CITY_ID'])
-                print("Inserting DISTRICT_ID:", data['DISTRICT_ID'])
-                print("Inserting SUB_DISTRICT_ID:", data['SUB_DISTRICT_ID'])
-                print("Inserting StoreBusinessNumber:", data['StoreBusinessNumber'])
-                # 필요한 모든 항목을 하나씩 출력
-                # 생략된 나머지 항목들에 대해 동일하게 처리
-
                 cursor.execute(sql, (
                     data['CITY_ID'],
                     data['DISTRICT_ID'],
