@@ -74,112 +74,117 @@ def load_and_insert_population_data():
     try:
         files = [f for f in os.listdir(csv_directory) if f.endswith(".csv")]
         if files:
-            # 파일 목록을 정렬하여 가장 마지막 파일을 선택
-            last_file = sorted(files)[-1]
-            file_path = os.path.join(csv_directory, last_file)
+            # 전체 파일을 처리
+            for file_name in sorted(files):
+                file_path = os.path.join(csv_directory, file_name)
 
-            # 선택된 마지막 파일만 읽어서 처리
-            df = pd.read_csv(file_path, encoding='euc-kr')
+                df = pd.read_csv(file_path, encoding='euc-kr')
 
-            df = df.fillna('세종특별자치시')
-            df = df.replace({'': '세종특별자치시', ' ': '세종특별자치시'})
+                df = df.fillna('세종특별자치시')
+                df = df.replace({'': '세종특별자치시', ' ': '세종특별자치시'})
 
-            for index, row in df.iterrows():
-                try:
-                    city_name = row['시도명']
-                    district_name = row['시군구명']
-                    sub_district_name = row['읍면동명']
+                for index, row in df.iterrows():
+                    try:
+                        city_name = row['시도명']
+                        district_name = row['시군구명']
+                        sub_district_name = row['읍면동명']
 
-                    # sub_district_name에 '출장소'라는 단어가 포함된 경우, 건너뛰기
-                    if '출장소' in sub_district_name:
+                        # sub_district_name에 '출장소'라는 단어가 포함된 경우, 건너뛰기
+                        if '출장소' in sub_district_name:
+                            continue
+
+                        # sub_district_name에서 '제'를 제거
+                        if isinstance(sub_district_name, str):
+                            sub_district_name = re.sub(r'제(\d)', r'\1', sub_district_name)
+                                
+                        # 특정 패턴의 동명 매핑 작업
+                        mappings = {
+                            '숭의1.3동': '숭의1,3동',
+                            '용현1.4동': '용현1,4동',
+                            '도화2.3동': '도화2,3동',
+                            '봉명2송정동': '봉명2.송정동',
+                            '성화개신죽림동': '성화.개신.죽림동',
+                            '용담명암산성동': '용담.명암.산성동',
+                            '운천신봉동': '운천.신봉동',
+                            '율량사천동': '율량.사천동',
+                        }
+                        if sub_district_name in mappings:
+                            sub_district_name = mappings[sub_district_name]
+
+                        # district_name에 띄어쓰기가 있으면, 첫 번째 단어만 사용
+                        if ' ' in district_name:
+                            district_name = district_name.split()[0]
+                        
+                        # 2. 로드된 데이터에서 참조
+                        city = cities.get(city_name)
+                        district = districts.get((city.city_id, district_name))
+                        sub_district = sub_districts.get((district.district_id, sub_district_name))
+
+                        # 행정기관코드와 기준연월
+                        admin_code = row['행정기관코드']
+                        reference_date = row['기준연월']
+
+                        # 남자와 여자의 인구수를 각각 가져옴
+                        male_population = row['남자']
+                        female_population = row['여자']
+
+                        # 계(total_population)를 남자와 여자의 합으로 설정
+                        total_population = male_population + female_population
+
+                        # 성별 데이터와 gender_id를 처리
+                        gender_data = [
+                            {'gender_id': 1, 'gender': '남자', 'population': male_population},
+                            {'gender_id': 2, 'gender': '여자', 'population': female_population}
+                        ]
+
+                        for gender_info in gender_data:
+                            gender_id = gender_info['gender_id']
+                            gender = gender_info['gender']
+
+                            # 나이별 인구 데이터를 처리
+                            age_data = {}
+                            for age in range(0, 110):
+                                age_data[f'age_{age}'] = row[f'{age}세{gender}']
+                            age_data['age_110_over'] = row[f'110세이상 {gender}']
+
+                            # 여기서 population_data 생성 및 DB에 삽입
+                            population_data = Population(
+                                city_id=city.city_id,
+                                district_id=district.district_id,
+                                sub_district_id=sub_district.sub_district_id,
+                                gender_id=gender_id,
+                                admin_code=admin_code,
+                                reference_date=reference_date,
+                                province_name=city_name,
+                                district_name=district_name,
+                                subdistrict_name=sub_district_name,
+                                total_population=total_population,
+                                male_population=male_population if gender_id == 1 else 0,
+                                female_population=female_population if gender_id == 2 else 0,
+                                **age_data
+                            )
+
+                            insert_population_data(connection, population_data)
+
+                    except Exception as e:
+                        print(f"Row data: {row}")
                         continue
 
-                    # sub_district_name에서 '제'를 제거
-                    if isinstance(sub_district_name, str):
-                        sub_district_name = re.sub(r'제(\d)', r'\1', sub_district_name)
-                            
-                    # 특정 패턴의 동명 매핑 작업
-                    mappings = {
-                        '숭의1.3동': '숭의1,3동',
-                        '용현1.4동': '용현1,4동',
-                        '도화2.3동': '도화2,3동',
-                        '봉명2송정동': '봉명2.송정동',
-                        '성화개신죽림동': '성화.개신.죽림동',
-                        '용담명암산성동': '용담.명암.산성동',
-                        '운천신봉동': '운천.신봉동',
-                        '율량사천동': '율량.사천동',
-                    }
-                    if sub_district_name in mappings:
-                        sub_district_name = mappings[sub_district_name]
-
-                    # district_name에 띄어쓰기가 있으면, 첫 번째 단어만 사용
-                    if ' ' in district_name:
-                        district_name = district_name.split()[0]
-                    
-                    # 2. 로드된 데이터에서 참조
-                    city = cities.get(city_name)
-                    district = districts.get((city.city_id, district_name))
-                    sub_district = sub_districts.get((district.district_id, sub_district_name))
-
-                    # 행정기관코드와 기준연월
-                    admin_code = row['행정기관코드']
-                    reference_date = row['기준연월']
-
-                    # 남자와 여자의 인구수를 각각 가져옴
-                    male_population = row['남자']
-                    female_population = row['여자']
-
-                    # 계(total_population)를 남자와 여자의 합으로 설정
-                    total_population = male_population + female_population
-
-                    # 성별 데이터와 gender_id를 처리
-                    gender_data = [
-                        {'gender_id': 1, 'gender': '남자', 'population': male_population},
-                        {'gender_id': 2, 'gender': '여자', 'population': female_population}
-                    ]
-
-                    for gender_info in gender_data:
-                        gender_id = gender_info['gender_id']
-                        gender = gender_info['gender']
-
-                        # 나이별 인구 데이터를 처리
-                        age_data = {}
-                        for age in range(0, 110):
-                            age_data[f'age_{age}'] = row[f'{age}세{gender}']
-                        age_data['age_110_over'] = row[f'110세이상 {gender}']
-
-                        # 여기서 population_data 생성 및 DB에 삽입
-                        population_data = Population(
-                            city_id=city.city_id,
-                            district_id=district.district_id,
-                            sub_district_id=sub_district.sub_district_id,
-                            gender_id=gender_id,
-                            admin_code=admin_code,
-                            reference_date=reference_date,
-                            province_name=city_name,
-                            district_name=district_name,
-                            subdistrict_name=sub_district_name,
-                            total_population=total_population,
-                            male_population=male_population if gender_id == 1 else 0,
-                            female_population=female_population if gender_id == 2 else 0,
-                            **age_data
-                        )
-
-                        insert_population_data(connection, population_data)
-
-                except Exception as e:
-                    print(f"Error processing row {index} in file {last_file}: {e}")
-                    print(f"Row data: {row}")
-                    continue
-
-        # 모든 데이터가 성공적으로 삽입된 후에 커밋
-        commit(connection)
+            # 모든 데이터가 성공적으로 삽입된 후에 커밋
+            commit(connection)
 
     except Exception as e:
         print(f"Error during population data insertion: {e}")
     finally:
         close_connection(connection)
 
+    # 만약 폴더 내의 마지막 파일만 처리하려면 아래의 코드를 사용합니다:
+    # 파일 목록을 정렬하여 가장 마지막 파일을 선택하고, 해당 파일만 처리
+    # 들여쓰기 주의
+    # last_file = sorted(files)[-1]
+    # file_path = os.path.join(csv_directory, last_file)
+    # df = pd.read_csv(file_path, encoding='euc-kr')
+    # 이후 처리 로직은 동일하게 적용됩니다.
 
 
 # 미리 데이터를 로드하는 함수들

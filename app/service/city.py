@@ -28,18 +28,18 @@ def load_and_insert_city_data():
         sub_district_name = row['SUB_DISTRICT']  # 'SUB_DISTRICT' 열의 데이터
 
         # City 처리
-        city_data = City(name=city_name)
+        city_data = City(city_name=city_name)
         city = get_or_create_city(city_data)
 
         # District 처리
-        district_data = District(name=district_name, city_id=city.city_id)
+        district_data = District(district_name=district_name, city_id=city.city_id)
         district = get_or_create_district(district_data)
 
         # SubDistrict 처리
-        sub_district_data = SubDistrict(name=sub_district_name, district_id=district.district_id, city_id=city.city_id)
+        sub_district_data = SubDistrict(sub_district_name=sub_district_name, district_id=district.district_id, city_id=city.city_id)
         sub_district = get_or_create_sub_district(sub_district_data)
 
-        print(f"Inserted/Found City: {city.name}, District: {district.name}, SubDistrict: {sub_district.name}")
+        print(f"Inserted/Found City: {city.city_name}, District: {district.district_name}, SubDistrict: {sub_district.sub_district_name}")
 
 if __name__ == "__main__":
     load_and_insert_city_data()

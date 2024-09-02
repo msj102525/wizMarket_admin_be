@@ -26,7 +26,7 @@ def get_or_create_sub_district(sub_district_data: SubDistrict) -> SubDistrict:
         cursor.execute(
             select_query,
             (
-                sub_district_data.name,
+                sub_district_data.sub_district_name,
                 sub_district_data.district_id,
                 sub_district_data.city_id,
             ),
@@ -36,7 +36,7 @@ def get_or_create_sub_district(sub_district_data: SubDistrict) -> SubDistrict:
         if result:
             return SubDistrict(
                 sub_district_id=result[0],
-                name=result[1],
+                sub_district_name=result[1],
                 district_id=result[2],
                 city_id=result[3],
             )
@@ -48,7 +48,7 @@ def get_or_create_sub_district(sub_district_data: SubDistrict) -> SubDistrict:
             cursor.execute(
                 insert_query,
                 (
-                    sub_district_data.name,
+                    sub_district_data.sub_district_name,
                     sub_district_data.district_id,
                     sub_district_data.city_id,
                 ),
@@ -56,7 +56,7 @@ def get_or_create_sub_district(sub_district_data: SubDistrict) -> SubDistrict:
             commit(connection)
             return SubDistrict(
                 sub_district_id=cursor.lastrowid,
-                name=sub_district_data.name,
+                sub_district_name=sub_district_data.sub_district_name,
                 district_id=sub_district_data.district_id,
                 city_id=sub_district_data.city_id,
             )

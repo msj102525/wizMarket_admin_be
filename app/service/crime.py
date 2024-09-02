@@ -125,5 +125,5 @@ def process_crime_data():
     finally:
         close_connection(connection)
 
-# if __name__ == "__main__":
-#     process_crime_data()
+if __name__ == "__main__":
+    process_crime_data()
