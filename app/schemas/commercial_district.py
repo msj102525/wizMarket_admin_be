@@ -153,10 +153,10 @@ class CommercialDistrictOutput(BaseModel):
     biz_sub_category_name: str
     biz_detail_category_name: str
 
-    national_density: float
-    city_density: float
-    district_density: float
-    sub_district_density: float
+    national_density: Optional[float] = None
+    city_density: Optional[float] = None
+    district_density: Optional[float] = None
+    sub_district_density: Optional[float] = None
 
     market_size: Optional[int] = None
 

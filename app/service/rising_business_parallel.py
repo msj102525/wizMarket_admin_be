@@ -470,3 +470,8 @@ def execute_parallel_tasks():
 
 if __name__ == "__main__":
     execute_parallel_tasks()
+    # 컴퓨터 종료 명령어 (운영체제에 따라 다름)
+    if os.name == "nt":  # Windows
+        os.system("shutdown /s /t 1")
+    else:  # Unix-based (Linux, macOS)
+        os.system("shutdown -h now")
