@@ -29,6 +29,9 @@ from selenium.common.exceptions import (
     UnexpectedAlertPresentException,
     NoAlertPresentException,
     TimeoutException,
+    ElementClickInterceptedException,
+    NoSuchElementException,
+    StaleElementReferenceException,
 )
 from app.crud.district import get_district_id, get_or_create_district_id
 from app.crud.sub_district import get_or_create_sub_district_id, get_sub_district_id_by
@@ -63,35 +66,51 @@ def setup_driver():
     return driver
 
 
-def click_element(wait, by, value):
+def click_element(driver, wait, by, value):
     try:
         element = wait.until(EC.element_to_be_clickable((by, value)))
         text = element.text
         element.click()
-        time.sleep(0.7)
+        time.sleep(random.random())
         return text
+    except ElementClickInterceptedException:
+        try:
+            driver.execute_script("arguments[0].click();", element)
+            return True
+        except Exception as e:
+            print(f"JavaScript click failed for element: {value}. Error: {str(e)}")
+            return False
+    except UnexpectedAlertPresentException:
+        handle_unexpected_alert(wait._driver)
     except Exception as e:
         print(
-            f"Exception occurred: {e} for element located by {by} with value {value}. Skipping to next element."
+            f"Exception occurred click: {e} for element located by {by} with value {value}. Skipping to next element."
         )
-        return None
+        return ""
 
 
 def read_element(wait, by, value):
     try:
         element = wait.until(EC.presence_of_element_located((by, value)))
-        text = element.text
-        time.sleep(0.5)
+        text = element.text.strip()
+        time.sleep(random.random())
         return text
+    except (
+        TimeoutException,
+        NoSuchElementException,
+        StaleElementReferenceException,
+    ) as e:
+        print(f"Failed to read element: {by}, {value}. Error: {str(e)}")
+        return ""
     except Exception as e:
-        print(
-            f"Exception occurred: {e} for element located by {by} with value {value}. Skipping to next element."
-        )
-        return None
+        print(f"Unexpected error reading element: {by}, {value}. Error: {str(e)}")
+        return ""
 
 
 def convert_to_int_float(value):
     if isinstance(value, str):
+        if value.strip() == "":
+            return 0
         value = re.sub(r"[^\d.]+", "", value)
         return float(value) if "." in value else int(value)
     return value
@@ -204,40 +223,43 @@ def get_sub_district_count(city_idx, district_count):
     driver = setup_driver()
     try:
         for district_idx in tqdm(
-            range(district_count), f"{district_idx} : 시/군/구 Progress"
+            range(district_count), f"{city_idx} : 시/군/구 Progress"
         ):
             try:
 
                 print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 30)
+                wait = WebDriverWait(driver, 40)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2 + random.random())
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
+                # 서울
+                city_idx = 0
 
                 time.sleep(2 + random.random())
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+                    driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 city_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
                 sub_district_ul = wait.until(
@@ -278,120 +300,128 @@ def get_sub_district_count(city_idx, district_count):
 def get_main_category(city_idx, district_idx, sub_district_count):
     driver = setup_driver()
     try:
-        # for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
-        #     try:
-        #         # print(f"idx: {district_idx}")
-        #         driver.get(BIZ_MAP_URL)
-        #         wait = WebDriverWait(driver, 30)
-        #         driver.implicitly_wait(10)
-
-        #         # time.sleep(2 + random.random())
-
-        #         # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
-
-        #         # 분석 지역
-        #         click_element(
-        #             wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
-        #         )
-
-        #         time.sleep(2 + random.random())
-
-        #         city_text = click_element(
-        #             wait,
-        #             By.XPATH,
-        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
-        #         )
-
-        #         time.sleep(2 + random.random())
-
-        #         district_text = click_element(
-        #             wait,
-        #             By.XPATH,
-        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
-        #         )
-
-        #         time.sleep(2 + random.random())
-
-        #         sub_district_text = click_element(
-        #             wait,
-        #             By.XPATH,
-        #             f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
-        #         )
-
-        #         time.sleep(2 + random.random())
-
-        #         main_category_ul_1 = wait.until(
-        #             EC.presence_of_element_located(
-        #                 (
-        #                     By.XPATH,
-        #                     '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
-        #                 )
-        #             )
-        #         )
-
-        #         main_category_ul_1_li = main_category_ul_1.find_elements(
-        #             By.TAG_NAME, "li"
-        #         )
-        #         # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
-
-        #         m_c_ul = 1
-
-        #         get_sub_category(
-        #             city_idx,
-        #             district_idx,
-        #             sub_district_idx,
-        #             len(main_category_ul_1_li),
-        #             m_c_ul,
-        #         )
-        #     except UnexpectedAlertPresentException:
-        #         handle_unexpected_alert(wait._driver)
-        #     except Exception as e:
-        #         print(
-        #             f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
-        #         )
-        #         continue
-        #     finally:
-        #         driver.quit()
-        #         driver = setup_driver()
-
-        for sub_district_idx in tqdm(range(sub_district_count), "읍/면/동 Progress"):
+        for sub_district_idx in tqdm(
+            range(sub_district_count), f"{district_idx}: 읍/면/동 Progress"
+        ):
             try:
-                print(f"idx: {district_idx}")
+                # print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 30)
+                wait = WebDriverWait(driver, 40)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2 + random.random())
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+                    driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 city_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 sub_district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+                )
+
+                time.sleep(2 + random.random())
+
+                main_category_ul_1 = wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
+                        )
+                    )
+                )
+
+                main_category_ul_1_li = main_category_ul_1.find_elements(
+                    By.TAG_NAME, "li"
+                )
+                # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
+
+                m_c_ul = 1
+
+                get_sub_category(
+                    city_idx,
+                    district_idx,
+                    sub_district_idx,
+                    len(main_category_ul_1_li),
+                    m_c_ul,
+                )
+            except UnexpectedAlertPresentException:
+                handle_unexpected_alert(wait._driver)
+            except Exception as e:
+                print(
+                    f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
+                )
+                continue
+            finally:
+                driver.quit()
+                driver = setup_driver()
+
+        for sub_district_idx in tqdm(
+            range(sub_district_count), f"{district_idx}: 읍/면/동 Progress"
+        ):
+            try:
+                print(f"idx: {district_idx}")
+                driver.get(BIZ_MAP_URL)
+                wait = WebDriverWait(driver, 40)
+                driver.implicitly_wait(10)
+
+                # 분석 지역
+                click_element(
+                    driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
+                )
+
+                time.sleep(2 + random.random())
+
+                city_text = click_element(
+                    driver,
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                )
+
+                time.sleep(2 + random.random())
+
+                district_text = click_element(
+                    driver,
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                )
+
+                time.sleep(2 + random.random())
+
+                sub_district_text = click_element(
+                    driver,
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
                 main_category_ul_2 = wait.until(
@@ -406,7 +436,6 @@ def get_main_category(city_idx, district_idx, sub_district_count):
                 main_category_ul_2_li = main_category_ul_2.find_elements(
                     By.TAG_NAME, "li"
                 )
-                # print(f"대분류2 갯수 : {len(main_category_ul_2_li)}")
 
                 m_c_ul = 3
 
@@ -445,52 +474,54 @@ def get_sub_category(
 ):
     driver = setup_driver()
     try:
-        for main_category_idx in range(main_category_count):
+        for main_category_idx in range(1, main_category_count):
             try:
-                # print(f"idx: {district_idx}")
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 30)
+                wait = WebDriverWait(driver, 40)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2 + random.random())
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+                    driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 city_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 sub_district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 main_category_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
+                    f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]',
                 )
 
                 sub_category_li = wait.until(
@@ -549,56 +580,60 @@ def get_detail_category(
         for sub_category_idx in range(0, sub_category_count * 2, 2):
             try:
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 30)
+                wait = WebDriverWait(driver, 40)
                 driver.implicitly_wait(10)
-
-                # time.sleep(2 + random.random())
-
-                # click_element(wait, By.XPATH, '//*[@id="gnb1"]/li[1]')
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+                    driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 city_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 sub_district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
                 )
 
                 time.sleep(2 + random.random())
 
                 main_category_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]/button',
+                    f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]',
                 )
 
                 time.sleep(2 + random.random())
 
                 sub_category_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
-                    f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]/button',
+                    f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]',
                 )
                 # print(f"중분류 : {sub_category_text}")
                 detail_category_ul = wait.until(
@@ -656,23 +691,28 @@ def search_commercial_district(
     try:
         for detail_category_idx in range(detail_category_count):
             try:
+
                 start_time = time.time()
                 print(
                     f"Execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
                 )
 
                 driver.get(BIZ_MAP_URL)
-                wait = WebDriverWait(driver, 10)
+                wait = WebDriverWait(driver, 40)
                 driver.implicitly_wait(10)
 
                 # 분석 지역
                 click_element(
-                    wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+                    driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]',
                 )
 
                 time.sleep(2 + random.random())
 
                 city_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
@@ -681,6 +721,7 @@ def search_commercial_district(
                 time.sleep(2 + random.random())
 
                 district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]',
@@ -689,6 +730,7 @@ def search_commercial_district(
                 time.sleep(2 + random.random())
 
                 sub_district_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]',
@@ -697,6 +739,7 @@ def search_commercial_district(
                 time.sleep(2 + random.random())
 
                 main_category_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul}]/li[{main_category_idx + 1}]',
@@ -705,6 +748,7 @@ def search_commercial_district(
                 time.sleep(2 + random.random())
 
                 sub_category_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 1}]',
@@ -713,6 +757,7 @@ def search_commercial_district(
                 time.sleep(2 + random.random())
 
                 detail_category_text = click_element(
+                    driver,
                     wait,
                     By.XPATH,
                     f'//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[{m_c_ul + 1}]/ul/li[{sub_category_idx + 2}]/ul/li[{detail_category_idx + 1}]',
@@ -771,9 +816,9 @@ def search_commercial_district(
                     # '//*[@id="report1"]' 요소가 나타날 때까지 기다리기
                     try:
                         # 상권분석 보기
-                        click_element(wait, By.XPATH, '//*[@id="pcBasicReport"]')
-
-                        time.sleep(2 + random.random())
+                        click_element(
+                            driver, wait, By.XPATH, '//*[@id="pcBasicReport"]'
+                        )
 
                         wait.until(
                             EC.presence_of_element_located(
@@ -784,8 +829,11 @@ def search_commercial_district(
                         print(f"Element not found: //*[@id='report1'] 없거나 안뜸")
                         continue
 
+                    wait = WebDriverWait(driver, 3)
+
                     # 분석 텍스트 보기 없애기
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[2]/label',
@@ -795,6 +843,7 @@ def search_commercial_district(
 
                     # 표 전제보기
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[4]/div[1]/div/div/div/div[1]/div[1]/label',
@@ -804,6 +853,7 @@ def search_commercial_district(
 
                     # 밀집도 클릭
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[3]/div/ul/li[2]',
@@ -843,6 +893,7 @@ def search_commercial_district(
 
                     # 시장규모 클릭
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[3]/div/ul/li[3]',
@@ -859,6 +910,7 @@ def search_commercial_district(
 
                     # 결제단가 클릭
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[3]/div/ul/li[6]',
@@ -880,87 +932,101 @@ def search_commercial_district(
                         '//*[@id="s6"]/div[2]/div[2]/div[2]/table/tbody/tr[1]/td[7]',
                     )
 
-                    # 비용/수익통계 클릭
-                    click_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[7]',
-                    )
+                    if main_category_id == 1:
+                        # 비용/수익통계 클릭
+                        click_element(
+                            driver,
+                            wait,
+                            By.XPATH,
+                            '//*[@id="report1"]/div/div[3]/div/ul/li[7]',
+                        )
 
-                    time.sleep(2 + random.random())
+                        time.sleep(2 + random.random())
 
-                    # 해당지역 업종 점포당 매출규모(원)
-                    average_sales = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[1]/p[2]/b',
-                    )
+                        # 해당지역 업종 점포당 매출규모(원)
+                        average_sales = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[1]/p[2]/b',
+                        )
 
-                    # 해당지역 영업비용(원)
-                    operating_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[2]/p[2]/b',
-                    )
+                        # 해당지역 영업비용(원)
+                        operating_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[2]/p[2]/b',
+                        )
 
-                    # 식재료비(원)
-                    food_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[1]/p[2]',
-                    )
+                        # 식재료비(원)
+                        food_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[1]/p[2]',
+                        )
 
-                    # 고용인 인건비(원)
-                    employee_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[2]/p[2]',
-                    )
+                        # 고용인 인건비(원)
+                        employee_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[2]/p[2]',
+                        )
 
-                    # 임차료(원)
-                    rental_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[3]/p[2]',
-                    )
+                        # 임차료(원)
+                        rental_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[3]/p[2]',
+                        )
 
-                    # 세금(원)
-                    tax_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[4]/p[2]',
-                    )
+                        # 세금(원)
+                        tax_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[4]/p[2]',
+                        )
 
-                    # 가족 종사자 인건비(원)
-                    family_employee_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[5]/p[2]',
-                    )
+                        # 가족 종사자 인건비(원)
+                        family_employee_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[5]/p[2]',
+                        )
 
-                    # 대표자 인건비(원)
-                    ceo_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[6]/p[2]',
-                    )
+                        # 대표자 인건비(원)
+                        ceo_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[6]/p[2]',
+                        )
 
-                    # 기타 인건비(원)
-                    etc_cost = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[7]/p[2]',
-                    )
+                        # 기타 인건비(원)
+                        etc_cost = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[3]/ul/li[7]/p[2]',
+                        )
 
-                    # 해당지역 평균 영업이익(원)
-                    average_profit = read_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="receipt1"]/div/div[2]/ul/li[4]/p[2]/b',
-                    )
+                        # 해당지역 평균 영업이익(원)
+                        average_profit = read_element(
+                            wait,
+                            By.XPATH,
+                            '//*[@id="receipt1"]/div/div[2]/ul/li[4]/p[2]/b',
+                        )
+                    else:
+                        average_sales = 0
+                        operating_cost = 0
+                        food_cost = 0
+                        employee_cost = 0
+                        rental_cost = 0
+                        tax_cost = 0
+                        family_employee_cost = 0
+                        ceo_cost = 0
+                        etc_cost = 0
+                        average_profit = 0
 
                     # 매출 비중 클릭
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[3]/div/ul/li[8]',
@@ -1068,6 +1134,7 @@ def search_commercial_district(
 
                     # 고객 비중 클릭
                     click_element(
+                        driver,
                         wait,
                         By.XPATH,
                         '//*[@id="report1"]/div/div[3]/div/ul/li[9]',
@@ -1145,50 +1212,54 @@ def search_commercial_district(
                         '//*[@id="s9"]/div[2]/div[2]/div[2]/table[1]/tbody/tr[2]/td[6]',
                     )
 
-                    # 주요 메뉴/뜨는 메뉴 클릭
-                    click_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="report1"]/div/div[3]/div/ul/li[11]',
-                    )
-
                     time.sleep(2 + random.random())
 
-                    # 뜨는 메뉴 클릭
-                    click_element(
-                        wait,
-                        By.XPATH,
-                        '//*[@id="s11"]/div[2]/div[2]/div/div[1]/ul/li[2]/button',
-                    )
-
-                    time.sleep(2 + random.random())
-
-                    try:
-                        top5_menu_elements = []
-
-                        wait.until(
-                            EC.presence_of_element_located(
-                                (
-                                    By.XPATH,
-                                    '//*[@id="s11"]/div[2]/div[2]',
-                                )
+                    top5_menu_elements = []
+                    if main_category_id == 1:
+                        try:
+                            # 주요 메뉴/뜨는 메뉴 클릭
+                            click_element(
+                                driver,
+                                wait,
+                                By.XPATH,
+                                '//*[@id="report1"]/div/div[3]/div/ul/li[11]',
                             )
-                        )
 
-                        for i in range(5):
-                            try:
-                                element = wait.until(
-                                    EC.presence_of_element_located(
-                                        (
-                                            By.XPATH,
-                                            f'//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[{i + 1}]/td[3]',
-                                        )
+                            time.sleep(2 + random.random())
+
+                            # 뜨는 메뉴 클릭
+                            click_element(
+                                driver,
+                                wait,
+                                By.XPATH,
+                                '//*[@id="s11"]/div[2]/div[2]/div/div[1]/ul/li[2]/button',
+                            )
+
+                            wait.until(
+                                EC.presence_of_element_located(
+                                    (
+                                        By.XPATH,
+                                        '//*[@id="s11"]/div[2]/div[2]',
                                     )
                                 )
-                                top5_menu_elements.append(element.text)
-                            except:
-                                top5_menu_elements.append(None)
-                    except:
+                            )
+
+                            for i in range(5):
+                                try:
+                                    element = wait.until(
+                                        EC.presence_of_element_located(
+                                            (
+                                                By.XPATH,
+                                                f'//*[@id="popular_graph"]/div/div[2]/div[2]/table/tbody/tr[{i + 1}]/td[3]',
+                                            )
+                                        )
+                                    )
+                                    top5_menu_elements.append(element.text)
+                                except:
+                                    top5_menu_elements.append(None)
+                        except:
+                            top5_menu_elements = [None] * 5
+                    else:
                         top5_menu_elements = [None] * 5
 
                     top_menu_1 = top5_menu_elements[0]
@@ -1206,91 +1277,99 @@ def search_commercial_district(
                         "biz_sub_category_id": sub_category_id,
                         "biz_detail_category_id": detail_category_id,
                         ###
-                        "national_density": convert_to_int_float(national_density),
-                        "city_density": convert_to_int_float(city_density),
-                        "district_density": convert_to_int_float(district_density),
+                        "national_density": convert_to_int_float(national_density)
+                        or 0.0,
+                        "city_density": convert_to_int_float(city_density) or 0.0,
+                        "district_density": convert_to_int_float(district_density)
+                        or 0.0,
                         "sub_district_density": convert_to_int_float(
                             sub_district_density
-                        ),
+                        )
+                        or 0.0,
                         ###
-                        "market_size": convert_to_int_float(market_size),
+                        "market_size": convert_to_int_float(market_size) or 0,
                         ###
-                        "average_payment": convert_to_int_float(average_payment),
-                        "usage_count": convert_to_int_float(usage_count),
+                        "average_payment": convert_to_int_float(average_payment) or 0,
+                        "usage_count": convert_to_int_float(usage_count) or 0,
                         ###
-                        "average_sales": convert_to_int_float(average_sales),
-                        "operating_cost": convert_to_int_float(operating_cost),
-                        "food_cost": convert_to_int_float(food_cost),
-                        "employee_cost": convert_to_int_float(employee_cost),
-                        "rental_cost": convert_to_int_float(rental_cost),
-                        "tax_cost": convert_to_int_float(tax_cost),
+                        "average_sales": convert_to_int_float(average_sales) or 0,
+                        "operating_cost": convert_to_int_float(operating_cost) or 0,
+                        "food_cost": convert_to_int_float(food_cost) or 0,
+                        "employee_cost": convert_to_int_float(employee_cost) or 0,
+                        "rental_cost": convert_to_int_float(rental_cost) or 0,
+                        "tax_cost": convert_to_int_float(tax_cost) or 0,
                         "family_employee_cost": convert_to_int_float(
                             family_employee_cost
-                        ),
-                        "ceo_cost": convert_to_int_float(ceo_cost),
-                        "etc_cost": convert_to_int_float(etc_cost),
-                        "average_profit": convert_to_int_float(average_profit),
+                        )
+                        or 0,
+                        "ceo_cost": convert_to_int_float(ceo_cost) or 0,
+                        "etc_cost": convert_to_int_float(etc_cost) or 0,
+                        "average_profit": convert_to_int_float(average_profit) or 0,
                         ###
-                        "avg_profit_per_mon": convert_to_int_float(avg_profit_per_mon),
-                        "avg_profit_per_tue": convert_to_int_float(avg_profit_per_tue),
-                        "avg_profit_per_wed": convert_to_int_float(avg_profit_per_wed),
-                        "avg_profit_per_thu": convert_to_int_float(avg_profit_per_thu),
-                        "avg_profit_per_fri": convert_to_int_float(avg_profit_per_fri),
-                        "avg_profit_per_sat": convert_to_int_float(avg_profit_per_sat),
-                        "avg_profit_per_sun": convert_to_int_float(avg_profit_per_sun),
+                        "avg_profit_per_mon": convert_to_int_float(avg_profit_per_mon)
+                        or 0.0,
+                        "avg_profit_per_tue": convert_to_int_float(avg_profit_per_tue)
+                        or 0.0,
+                        "avg_profit_per_wed": convert_to_int_float(avg_profit_per_wed)
+                        or 0.0,
+                        "avg_profit_per_thu": convert_to_int_float(avg_profit_per_thu)
+                        or 0.0,
+                        "avg_profit_per_fri": convert_to_int_float(avg_profit_per_fri)
+                        or 0.0,
+                        "avg_profit_per_sat": convert_to_int_float(avg_profit_per_sat)
+                        or 0.0,
+                        "avg_profit_per_sun": convert_to_int_float(avg_profit_per_sun)
+                        or 0.0,
                         ###
                         "avg_profit_per_06_09": convert_to_int_float(
                             avg_profit_per_06_09
-                        ),
+                        )
+                        or 0.0,
                         "avg_profit_per_09_12": convert_to_int_float(
                             avg_profit_per_09_12
-                        ),
+                        )
+                        or 0.0,
                         "avg_profit_per_12_15": convert_to_int_float(
                             avg_profit_per_12_15
-                        ),
+                        )
+                        or 0.0,
                         "avg_profit_per_15_18": convert_to_int_float(
                             avg_profit_per_15_18
-                        ),
+                        )
+                        or 0.0,
                         "avg_profit_per_18_21": convert_to_int_float(
                             avg_profit_per_18_21
-                        ),
+                        )
+                        or 0.0,
                         "avg_profit_per_21_24": convert_to_int_float(
                             avg_profit_per_21_24
-                        ),
+                        )
+                        or 0.0,
                         "avg_profit_per_24_06": convert_to_int_float(
                             avg_profit_per_24_06
-                        ),
+                        )
+                        or 0.0,
                         ###
-                        "avg_client_per_m_20": convert_to_int_float(
-                            avg_client_per_m_20
-                        ),
-                        "avg_client_per_m_30": convert_to_int_float(
-                            avg_client_per_m_30
-                        ),
-                        "avg_client_per_m_40": convert_to_int_float(
-                            avg_client_per_m_40
-                        ),
-                        "avg_client_per_m_50": convert_to_int_float(
-                            avg_client_per_m_50
-                        ),
-                        "avg_client_per_m_60": convert_to_int_float(
-                            avg_client_per_m_60
-                        ),
-                        "avg_client_per_f_20": convert_to_int_float(
-                            avg_client_per_f_20
-                        ),
-                        "avg_client_per_f_30": convert_to_int_float(
-                            avg_client_per_f_30
-                        ),
-                        "avg_client_per_f_40": convert_to_int_float(
-                            avg_client_per_f_40
-                        ),
-                        "avg_client_per_f_50": convert_to_int_float(
-                            avg_client_per_f_50
-                        ),
-                        "avg_client_per_f_60": convert_to_int_float(
-                            avg_client_per_f_60
-                        ),
+                        "avg_client_per_m_20": convert_to_int_float(avg_client_per_m_20)
+                        or 0.0,
+                        "avg_client_per_m_30": convert_to_int_float(avg_client_per_m_30)
+                        or 0.0,
+                        "avg_client_per_m_40": convert_to_int_float(avg_client_per_m_40)
+                        or 0.0,
+                        "avg_client_per_m_50": convert_to_int_float(avg_client_per_m_50)
+                        or 0.0,
+                        "avg_client_per_m_60": convert_to_int_float(avg_client_per_m_60)
+                        or 0.0,
+                        "avg_client_per_f_20": convert_to_int_float(avg_client_per_f_20)
+                        or 0.0,
+                        "avg_client_per_f_30": convert_to_int_float(avg_client_per_f_30)
+                        or 0.0,
+                        "avg_client_per_f_40": convert_to_int_float(avg_client_per_f_40)
+                        or 0.0,
+                        "avg_client_per_f_50": convert_to_int_float(avg_client_per_f_50)
+                        or 0.0,
+                        "avg_client_per_f_60": convert_to_int_float(avg_client_per_f_60)
+                        or 0.0,
                         ###
                         "top_menu_1": top_menu_1,
                         "top_menu_2": top_menu_2,
