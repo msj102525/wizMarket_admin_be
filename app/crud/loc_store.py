@@ -1,5 +1,21 @@
 import pymysql
-from datetime import datetime
+
+# crud/loc_store.py
+
+def check_previous_quarter_data_exists(connection, previous_quarter):
+    """저번 분기의 데이터가 DB에 있는지 확인하는 함수"""
+    
+    # SQL 쿼리 작성 (저번 분기의 데이터가 존재하는지 확인)
+    query = "SELECT COUNT(*) AS count FROM temp WHERE Y_Q = %s"
+    
+    with connection.cursor() as cursor:
+        cursor.execute(query, (previous_quarter,))
+        result = cursor.fetchone()
+
+    # count 값이 0이면 데이터가 없는 것
+    return result[0] > 0
+
+
 
 def insert_data_to_loc_store(connection, data):
     try:

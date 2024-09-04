@@ -6,12 +6,10 @@ from app.service.population import *
 from app.db.connect import * 
 import re
 from app.crud.loc_store import insert_data_to_loc_store
+import platform
+from datetime import datetime
+from app.crud.loc_store import check_previous_quarter_data_exists
 
-# .env 파일 로드
-load_dotenv()
-
-# .env 파일에서 ROOT_PATH 변수 가져오기
-root_path = os.getenv('ROOT_PATH')
 
 # root_dir 경로 설정
 root_dir = r'C:\Users\jyes_semin\Desktop\locStoreData'
@@ -22,8 +20,64 @@ cities = load_all_cities(connection)
 districts = load_all_districts(connection)
 sub_districts = load_all_sub_districts(connection)
 
+
+# 1. 저번 분기를 'YYYY.Q/4' 형식으로 반환하는 함수 (DB 형식)
+def get_previous_quarter():
+    """저번 분기를 'YYYY.Q/4' 형식으로 반환하는 함수."""
+    now = datetime.now()
+    current_quarter = (now.month - 1) // 3 + 1
+    previous_year = now.year if current_quarter > 1 else now.year - 1
+    previous_quarter = current_quarter - 1 if current_quarter > 1 else 4
+    return f"{previous_year}.{previous_quarter}/4"
+
+
+# 2. 저번 분기를 'YYYY Q분기' 형식으로 변환 (폴더명 형식)
+def convert_to_folder_quarter_format(db_quarter):
+    """DB 분기 형식을 폴더명 형식으로 변환 (예: '2021.1/4' -> '2021 1분기')"""
+    year, quarter = db_quarter.split(".")
+    quarter = quarter.split("/")[0]  # '1/4'에서 '1' 추출
+    return f"{year} {quarter}분기"
+
+
+# 3. 디렉토리에서 저번 분기 폴더가 있는지 확인하는 함수
+def find_previous_quarter_folder(root_dir):
+    """저번 분기에 해당하는 폴더명을 찾아 반환하는 함수."""
+    previous_quarter = get_previous_quarter()  # DB 형식 'YYYY.Q/4'
+    previous_quarter_folder = convert_to_folder_quarter_format(previous_quarter)  # 폴더명 형식 'YYYY Q분기'
+
+    # 디렉토리 내에서 저번 분기 폴더명 찾기
+    for folder_name in os.listdir(root_dir):
+        if previous_quarter_folder in folder_name:
+            return os.path.join(root_dir, folder_name)
+
+    return None
+
+
+
 # 2. 데이터 처리 및 로드
 def process_csv_files():
+
+    connection = get_db_connection()
+
+    # 1. 저번 분기 계산
+    previous_quarter = get_previous_quarter()
+    
+
+    # 2. 데이터베이스에 저번 분기 데이터가 있는지 확인 (crud/loc_store.py 함수 사용)
+    exists = check_previous_quarter_data_exists(connection, previous_quarter)
+    if exists:
+        print(f"저번 분기({previous_quarter}) 데이터가 이미 존재합니다. 인서트 생략.")
+        return
+    
+
+    # 3. 디렉토리에서 저번 분기 폴더를 찾음
+    quarter_folder = find_previous_quarter_folder(root_dir)
+    if not quarter_folder:
+        print(f"저번 분기({previous_quarter})에 해당하는 폴더를 찾을 수 없습니다.")
+        return
+
+
+
     # 시도명 매핑 (CSV 파일의 시도명 -> 데이터베이스의 시도명)
     city_name_mappings = {
         '강원도': '강원특별자치도',
@@ -31,9 +85,9 @@ def process_csv_files():
         # 필요한 다른 매핑도 추가 가능합니다.
     }
 
-    connection = get_db_connection()
+    
     try:
-        for subdir, dirs, files in os.walk(root_dir):
+        for subdir, dirs, files in os.walk(quarter_folder):
             for file in files:
                 if file.endswith('.csv'):
                     file_path = os.path.join(subdir, file)
@@ -53,17 +107,20 @@ def process_csv_files():
                         df = df.where(pd.notnull(df), None)
                         # 빈칸, 공백 문자열을 모두 None (즉, NULL)으로 처리
                         df = df.apply(lambda col: col.map(lambda x: None if pd.isna(x) or x.strip() == '' else x))
-                        df = df.apply(lambda col: col.map(lambda x: None if pd.isna(x) or x.strip() == ' ' else x))
-                        df = df.apply(lambda col: col.map(lambda x: None if pd.isna(x) or x.strip() == '  ' else x))
 
                         # 데이터프레임의 각 행을 순회하며 처리
                         for _, row in df.iterrows():
-                            city_name = row['시도명']
-                            district_name = row['시군구명']
-                            sub_district_name = row['행정동명']
+                            city_name = row['시도명'] if row['시도명'] is not None else None
+                            district_name = row['시군구명'] if row['시군구명'] is not None else None
+                            sub_district_name = row['행정동명'] if row['행정동명'] is not None else None
+
 
                             # 시도명을 매핑된 값으로 변환
                             city_name = city_name_mappings.get(city_name, city_name)
+
+                            # sub_district_name이 None이면 다음으로 넘어가도록 처리
+                            if sub_district_name is None:
+                                continue
 
                             # sub_district_name에 '출장소'라는 단어가 포함된 경우, 건너뛰기
                             if '출장소' in sub_district_name:
@@ -174,5 +231,10 @@ def process_csv_files():
         close_connection(connection)
 
 
+# 윈도우 PC를 종료하는 명령어
+def shutdown_windows():
+    os.system("shutdown /s /t 1")
+
 if __name__ == "__main__":
     process_csv_files()
+    # shutdown_windows()
