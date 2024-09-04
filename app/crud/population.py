@@ -6,6 +6,23 @@ from typing import List
 from mysql.connector.cursor import MySQLCursorDict
 
 
+def check_previous_month_data_exists(connection, previous_month):
+    """저번 달 데이터가 DB에 존재하는지 확인하는 함수."""
+    
+    query = """
+        SELECT COUNT(*) AS count
+        FROM population
+        WHERE reference_date = %s
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, (previous_month,))
+        result = cursor.fetchone()
+    
+    # COUNT 값을 반환
+    return result[0] > 0
+
+
 # 1. 전체 도시 리스트 출력
 def get_all_cities() -> List[str]:
     connection = get_db_connection()
