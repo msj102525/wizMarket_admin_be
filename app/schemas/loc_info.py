@@ -26,3 +26,12 @@ class LocationRequest(BaseModel):
     city_name: str
     district_name: str
     sub_district_name: str
+
+class FilterRequest(BaseModel):
+    city: Optional[str] = None  # 기본값 None을 설정
+    district: Optional[str] = None
+    sub_district: Optional[str] = None
+    move_popMin: Optional[int] = None
+    move_popMax: Optional[int] = None
+    houseMin: Optional[int] = None
+    houseMax: Optional[int] = None

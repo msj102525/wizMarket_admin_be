@@ -17,6 +17,7 @@ def check_previous_quarter_data_exists(connection, previous_quarter):
 
 
 
+
 def insert_data_to_loc_store(connection, data):
     try:
         with connection.cursor() as cursor:
