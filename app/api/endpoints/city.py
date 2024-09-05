@@ -10,5 +10,5 @@ router = APIRouter()
 @router.get("/locations")
 async def get_locations():
     locations = await get_locations_service() 
-    print(locations)
+
     return locations

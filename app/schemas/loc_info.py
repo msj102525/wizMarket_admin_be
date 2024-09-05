@@ -28,9 +28,9 @@ class LocationRequest(BaseModel):
     sub_district_name: str
 
 class FilterRequest(BaseModel):
-    city: Optional[str] = None  # 기본값 None을 설정
-    district: Optional[str] = None
-    sub_district: Optional[str] = None
+    city: Optional[int] = None  # 기본값 None을 설정
+    district: Optional[int] = None
+    subDistrict: Optional[int] = None
 
     shopMin: Optional[int] = None
     move_popMin: Optional[int] = None

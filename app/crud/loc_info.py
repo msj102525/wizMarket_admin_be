@@ -44,17 +44,16 @@ def get_filtered_locations(filters):
 
         # 필터 값이 존재할 때만 쿼리에 조건 추가
         if "city" in filters:
-            query += " AND city_id = %s"
+            query += " AND loc_info.city_id = %s"
             query_params.append(filters["city"])
 
         if "district" in filters:
-            query += " AND district_id = %s"
+            query += " AND loc_info.district_id = %s"
             query_params.append(filters["district"])
 
-        if "sub_district" in filters:
-            query += " AND sub_district_id = %s"
-            query_params.append(filters["sub_district"])
-
+        if "subDistrict" in filters:
+            query += " AND loc_info.sub_district_id = %s"
+            query_params.append(filters["subDistrict"])
 
 
 
