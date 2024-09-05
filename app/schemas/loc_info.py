@@ -31,7 +31,22 @@ class FilterRequest(BaseModel):
     city: Optional[str] = None  # 기본값 None을 설정
     district: Optional[str] = None
     sub_district: Optional[str] = None
+
+    shopMin: Optional[int] = None
     move_popMin: Optional[int] = None
-    move_popMax: Optional[int] = None
+    salesMin: Optional[int] = None
+    work_popMin: Optional[int] = None
+    incomeMin: Optional[int] = None
+    spendMin: Optional[int] = None
     houseMin: Optional[int] = None
+    residentMin: Optional[int] = None
+
+    shopMax: Optional[int] = None
+    move_popMax: Optional[int] = None
+    salesMax: Optional[int] = None
+    work_popMax: Optional[int] = None
+    incomeMax: Optional[int] = None
+    spendMax: Optional[int] = None
     houseMax: Optional[int] = None
+    residentMax: Optional[int] = None
+    
