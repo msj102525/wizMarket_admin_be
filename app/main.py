@@ -6,6 +6,7 @@ from app.api.endpoints import cai_info, hello, rising_business, commercial_distr
 from app.api.endpoints import loc_info
 from app.api.endpoints import population
 from app.api.endpoints import crime
+from app.api.endpoints import city
 
 app = FastAPI()
 
@@ -35,6 +36,7 @@ app.include_router(crime.router, prefix="/crime")
 app.include_router(commercial_district.router, prefix="/commercial")
 app.include_router(rising_business.router, prefix="/rising")
 app.include_router(cai_info.router, prefix="/cai")
+app.include_router(city.router, prefix="/city")
 
 if __name__ == "__main__":
     import uvicorn
