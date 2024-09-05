@@ -2,7 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-from app.api.endpoints import cai_info, hello, rising_business, commercial_district
+from app.api.endpoints import (
+    biz_detail_category,
+    biz_main_category,
+    biz_sub_category,
+    cai_info,
+    city,
+    district,
+    hello,
+    rising_business,
+    commercial_district,
+)
 from app.api.endpoints import loc_info
 from app.api.endpoints import population
 from app.api.endpoints import crime
@@ -35,6 +45,11 @@ app.include_router(crime.router, prefix="/crime")
 app.include_router(commercial_district.router, prefix="/commercial")
 app.include_router(rising_business.router, prefix="/rising")
 app.include_router(cai_info.router, prefix="/cai")
+app.include_router(city.router, prefix="/city")
+app.include_router(district.router, prefix="/district")
+app.include_router(biz_main_category.router, prefix="/biz_main_category")
+app.include_router(biz_sub_category.router, prefix="/biz_sub_category")
+app.include_router(biz_detail_category.router, prefix="/biz_detail_category")
 
 if __name__ == "__main__":
     import uvicorn

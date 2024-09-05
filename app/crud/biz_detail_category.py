@@ -1,4 +1,8 @@
 import logging
+from typing import List
+
+from fastapi import HTTPException
+import pymysql
 from app.db.connect import (
     get_db_connection,
     close_connection,
@@ -6,6 +10,7 @@ from app.db.connect import (
     commit,
     rollback,
 )
+from app.schemas.biz_detail_category import BizDetailCategoryOutput
 
 
 def get_or_create_biz_detail_category_id(
@@ -123,7 +128,39 @@ def get_biz_categories_id_by_biz_detail_category_name(biz_detail_category_name: 
         close_connection(connection)
 
 
+def get_all_biz_detail_category_by_biz_sub_category_id(
+    biz_sub_category_id: int,
+) -> List[BizDetailCategoryOutput]:
+    connection = get_db_connection()
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            results: List[BizDetailCategoryOutput] = []
+            select_query = """
+            SELECT BIZ_DETAIL_CATEGORY_ID, BIZ_DETAIL_CATEGORY_NAME
+            FROM BIZ_DETAIL_CATEGORY
+            WHERE BIZ_SUB_CATEGORY_ID = %s
+            ;
+            """
+
+            cursor.execute(select_query, (biz_sub_category_id,))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                if row.get("BIZ_SUB_CATEGORY_ID") != 2:
+                    biz_main_category = BizDetailCategoryOutput(
+                        biz_detail_category_id=row.get("BIZ_DETAIL_CATEGORY_ID"),
+                        biz_detail_categoty_name=row.get("BIZ_DETAIL_CATEGORY_NAME"),
+                    )
+                    results.append(biz_main_category)
+
+            return results
+    except Exception as e:
+        print(f"get_all_main_category Error: {e}")
+        raise HTTPException(status_code=500, detail="Database query failed")
+    finally:
+        close_connection(connection)
+
+
 if __name__ == "__main__":
     # print(get_or_create_biz_detail_category_id(2, "막창구이"))
     print(get_biz_categories_id_by_biz_detail_category_name("호프/맥주"))
-

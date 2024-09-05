@@ -13,5 +13,7 @@ def get_rising_business(city: str, district: str, sub_district: str):
     try:
         results = get_all_rising_business_by_region_name(city, district, sub_district)
         return results
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

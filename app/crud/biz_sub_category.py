@@ -1,5 +1,9 @@
 import logging
+from typing import List
+from fastapi import HTTPException
 import pandas as pd
+import pymysql
+from app.schemas.biz_sub_category import BizSubCategoryOutPut
 from app.schemas.city import City
 from dotenv import load_dotenv
 from app.db.connect import (
@@ -72,6 +76,39 @@ def get_sub_category_name_by_sub_category_id(sub_category_id: int) -> str:
         print(f"get_sub_category_name:{e}")
     finally:
         close_cursor(cursor)
+        close_connection(connection)
+
+
+def get_all_biz_sub_category_by_biz_main_category_id(
+    biz_main_category_id: int,
+) -> List[BizSubCategoryOutPut]:
+    connection = get_db_connection()
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            results: List[BizSubCategoryOutPut] = []
+            select_query = """
+            SELECT BIZ_SUB_CATEGORY_ID, BIZ_SUB_CATEGORY_NAME
+            FROM biz_sub_category
+            WHERE biz_main_category_id = %s
+            ;
+            """
+
+            cursor.execute(select_query, (biz_main_category_id,))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                if row.get("BIZ_SUB_CATEGORY_ID") != 2:
+                    biz_main_category = BizSubCategoryOutPut(
+                        biz_sub_category_id=row.get("BIZ_SUB_CATEGORY_ID"),
+                        biz_sub_category_name=row.get("BIZ_SUB_CATEGORY_NAME"),
+                    )
+                    results.append(biz_main_category)
+
+            return results
+    except Exception as e:
+        print(f"get_all_main_category Error: {e}")
+        raise HTTPException(status_code=500, detail="Database query failed")
+    finally:
         close_connection(connection)
 
 

@@ -1,6 +1,9 @@
-class BizMainCategory:
+from pydantic import BaseModel
+
+
+class BizMainCategory(BaseModel):
     biz_main_category_id: int
-    biz_main_categoty_name: str
+    biz_main_category_name: str
 
     class Config:
         from_attributes = True

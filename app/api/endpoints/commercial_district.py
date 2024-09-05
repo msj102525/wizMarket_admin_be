@@ -17,5 +17,7 @@ def get_commercial_district(city: str, district: str, sub_district: str):
             city, district, sub_district
         )
         return results
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
