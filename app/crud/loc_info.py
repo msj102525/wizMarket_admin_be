@@ -29,7 +29,17 @@ def get_filtered_locations(filters):
     cursor = None
 
     try:
-        query = "SELECT * FROM loc_info WHERE 1=1"
+        query = """
+            SELECT loc_info.*, 
+                   city.city_name AS city_name, 
+                   district.district_name AS district_name, 
+                   sub_district.sub_district_name AS sub_district_name
+            FROM loc_info
+            JOIN city ON loc_info.city_id = city.city_id
+            JOIN district ON loc_info.district_id = district.district_id
+            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+            WHERE 1=1
+        """
         query_params = []
 
         # 필터 값이 존재할 때만 쿼리에 조건 추가
@@ -45,21 +55,79 @@ def get_filtered_locations(filters):
             query += " AND sub_district_id = %s"
             query_params.append(filters["sub_district"])
 
+
+
+
+        if filters.get("shopMin") is not None:
+            query += " AND shop >= %s"
+            query_params.append(filters["shopMin"])
+        
         if filters.get("move_popMin") is not None:
             query += " AND move_pop >= %s"
             query_params.append(filters["move_popMin"])
 
-        if filters.get("move_popMax") is not None:
-            query += " AND move_pop <= %s"
-            query_params.append(filters["move_popMax"])
+        if filters.get("salesMin") is not None:
+            query += " AND sales >= %s"
+            query_params.append(filters["salesMin"])
+
+        if filters.get("work_popMin") is not None:
+            query += " AND work_pop >= %s"
+            query_params.append(filters["work_popMin"])
+
+        if filters.get("incomeMin") is not None:
+            query += " AND income >= %s"
+            query_params.append(filters["incomeMin"])
+        
+        if filters.get("spendMin") is not None:
+            query += " AND spend >= %s"
+            query_params.append(filters["spendMin"])
 
         if filters.get("houseMin") is not None:
             query += " AND house >= %s"
             query_params.append(filters["houseMin"])
+        
+        if filters.get("residentMin") is not None:
+            query += " AND resident >= %s"
+            query_params.append(filters["resident"])
 
+
+
+
+        if filters.get("shopMax") is not None:
+            query += " AND shop <= %s"
+            query_params.append(filters["shopMax"])
+        
+        if filters.get("move_popMax") is not None:
+            query += " AND move_pop <= %s"
+            query_params.append(filters["move_popMax"])
+        
+        if filters.get("salesMax") is not None:
+            query += " AND sales <= %s"
+            query_params.append(filters["salesMax"])
+        
+        if filters.get("worK_popMax") is not None:
+            query += " AND work_pop <= %s"
+            query_params.append(filters["worK_popMax"])
+        
+        if filters.get("incomeMax") is not None:
+            query += " AND income <= %s"
+            query_params.append(filters["incomeMax"])
+        
+        if filters.get("spendMax") is not None:
+            query += " AND spend <= %s"
+            query_params.append(filters["spendMax"])
+        
         if filters.get("houseMax") is not None:
             query += " AND house <= %s"
             query_params.append(filters["houseMax"])
+        
+        if filters.get("residentMax") is not None:
+            query += " AND resident <= %s"
+            query_params.append(filters["residentMax"])
+
+    
+
+        
 
 
         # 실행될 쿼리 출력 (디버깅용)

@@ -16,6 +16,7 @@ from app.api.endpoints import (
 from app.api.endpoints import loc_info
 from app.api.endpoints import population
 from app.api.endpoints import crime
+from app.api.endpoints import city
 
 app = FastAPI()
 

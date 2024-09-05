@@ -30,14 +30,15 @@ def get_location_data(city_name: str, district_name: str, sub_district_name: str
 
 
 async def filter_location_info(filters: dict):
-    """
-    비즈니스 로직을 처리하고 CRUD 레이어로 전달
-    """
     # 필터링 로직: 필요하면 여기서 추가적인 필터 처리를 할 수 있습니다.
     filtered_locations = get_filtered_locations(filters)
     
     # 필요 시 추가적인 비즈니스 로직을 처리할 수 있음
     return filtered_locations
+
+
+
+
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
