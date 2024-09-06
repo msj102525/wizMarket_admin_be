@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class RisingBusiness(BaseModel):
-    rising_business_id: Optional[int]
+    rising_business_id: int
     city_id: int
     district_id: int
     sub_district_id: int
@@ -40,6 +40,7 @@ class RisingBusinessInsert(BaseModel):
 
 
 class RisingBusinessOutput(BaseModel):
+    rising_business_id: int
     city_name: str
     district_name: str
     sub_district_name: str

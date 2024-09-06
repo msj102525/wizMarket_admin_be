@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from typing import List
 
 from app.schemas.biz_detail_category import BizDetailCategoryOutput
@@ -10,7 +10,9 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[BizDetailCategoryOutput])
-def get_all_biz_detail_category_by_biz_sub_category_id(biz_sub_category_id: int):
+def get_all_biz_detail_category_by_biz_sub_category_id(
+    biz_sub_category_id: int = Query(True),
+):
     try:
         results = service_get_all_biz_detail_category_by_biz_sub_category_id(
             biz_sub_category_id

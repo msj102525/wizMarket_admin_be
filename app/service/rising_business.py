@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Pool
 import re
-from typing import List
+from typing import List, Optional
 import time
 from fastapi import HTTPException
 from selenium import webdriver
@@ -14,12 +14,14 @@ import os
 
 from tqdm import tqdm
 from app.crud.biz_detail_category import (
+    get__all_biz_categories_id_like_biz_detail_category_name as crud_get__all_biz_categories_id_like_biz_detail_category_name,
     get_biz_categories_id_by_biz_detail_category_name,
 )
 from app.crud.city import get_or_create_city_id
 from app.crud.district import get_district_id, get_or_create_district_id
 from app.crud.rising_business import (
     insert_rising_business,
+    select_all_rising_business_by_dynamic_query as crud_select_all_rising_business_by_dynamic_query,
     select_all_rising_business_by_region_id,
 )
 from app.crud.sub_district import get_or_create_sub_district_id, get_sub_district_id_by
@@ -447,3 +449,56 @@ def get_all_rising_business_by_region_name(
         return select_all_rising_business_by_region_id(
             city_id, district_id, sub_district_id
         )
+
+
+def select_all_rising_business_by_dynamic_query(
+    search_cate: Optional[str] = None,
+    city_id: Optional[int] = None,
+    district_id: Optional[int] = None,
+    sub_district_id: Optional[int] = None,
+    biz_main_category_id: Optional[int] = None,
+    biz_sub_category_id: Optional[int] = None,
+    biz_detail_category_id: Optional[int] = None,
+    growth_rate_min: Optional[float] = None,
+    growth_rate_max: Optional[float] = None,
+    rank_min: Optional[int] = None,
+    rank_max: Optional[int] = None,
+) -> List[RisingBusinessOutput]:
+
+    if search_cate:
+        cate_list = crud_get__all_biz_categories_id_like_biz_detail_category_name(
+            search_cate
+        )
+
+        if cate_list:
+            results = []
+            for main_cat_id, sub_cat_id, detail_cat_id in cate_list:
+                result = crud_select_all_rising_business_by_dynamic_query(
+                    city_id=city_id,
+                    district_id=district_id,
+                    sub_district_id=sub_district_id,
+                    biz_main_category_id=main_cat_id,
+                    biz_sub_category_id=sub_cat_id,
+                    biz_detail_category_id=detail_cat_id,
+                    growth_rate_min=growth_rate_min,
+                    growth_rate_max=growth_rate_max,
+                    rank_min=rank_min,
+                    rank_max=rank_max,
+                )
+                results.extend(result)
+            return results
+        else:
+            return []
+
+    return crud_select_all_rising_business_by_dynamic_query(
+        city_id=city_id,
+        district_id=district_id,
+        sub_district_id=sub_district_id,
+        biz_main_category_id=biz_main_category_id,
+        biz_sub_category_id=biz_sub_category_id,
+        biz_detail_category_id=biz_detail_category_id,
+        growth_rate_min=growth_rate_min,
+        growth_rate_max=growth_rate_max,
+        rank_min=rank_min,
+        rank_max=rank_max,
+    )

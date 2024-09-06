@@ -16,3 +16,5 @@ def get_all_biz_sub_category_by_biz_main_category_id(
     if not results:
         raise HTTPException(status_code=404, detail="Business main category not found")
     return results
+
+

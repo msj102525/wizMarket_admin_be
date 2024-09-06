@@ -161,6 +161,47 @@ def get_all_biz_detail_category_by_biz_sub_category_id(
         close_connection(connection)
 
 
+def get__all_biz_categories_id_like_biz_detail_category_name(
+    search_cate: str,
+):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    logger = logging.getLogger(__name__)
+
+    try:
+        select_query = """
+        SELECT
+            bmc.biz_main_category_id,
+            bsc.biz_sub_category_id,
+            bdc.biz_detail_category_id
+        FROM
+            biz_detail_category bdc
+        JOIN
+            biz_sub_category bsc ON bdc.biz_sub_category_id = bsc.biz_sub_category_id
+        JOIN
+            biz_main_category bmc ON bsc.biz_main_category_id = bmc.biz_main_category_id
+        WHERE bdc.biz_detail_category_name LIKE %s
+        ;
+        """
+
+        like_pattern = f"%{search_cate}%"
+
+        # logger.info(f"Executing query: {select_query} with pattern: {like_pattern}")
+
+        cursor.execute(select_query, (like_pattern,))
+        result = cursor.fetchall()
+
+        return result
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+        # Handle exception as needed
+    except Exception as e:
+        logger.error(f"Unexpected Error: {e}")
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
 if __name__ == "__main__":
     # print(get_or_create_biz_detail_category_id(2, "막창구이"))
     print(get_biz_categories_id_by_biz_detail_category_name("호프/맥주"))
