@@ -1,11 +1,13 @@
+from typing import List
 from fastapi import HTTPException
 
 from app.crud.biz_main_category import (
     get_all_main_category as crud_get_all_main_category,
 )
+from app.schemas.biz_main_category import BizMainCategoryOutput
 
 
-def get_all_biz_main_category():
+def get_all_biz_main_category() -> List[BizMainCategoryOutput]:
     results = []
     results = crud_get_all_main_category()
     if not results:

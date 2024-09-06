@@ -2,7 +2,7 @@ import logging
 from typing import List
 from fastapi import HTTPException
 import pymysql
-from app.schemas.biz_main_category import BizMainCategory
+from app.schemas.biz_main_category import BizMainCategory, BizMainCategoryOutput
 from dotenv import load_dotenv
 from app.db.connect import (
     get_db_connection,
@@ -63,23 +63,44 @@ def get_main_category_name_by_main_category_id(main_category_id: int) -> str:
         close_connection(connection)
 
 
-def get_all_main_category() -> List[BizMainCategory]:
+def get_all_main_category() -> List[BizMainCategoryOutput]:
     connection = get_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            results: List[BizMainCategory] = []
+            # Fetch all main categories
             select_query = "SELECT * FROM biz_main_category;"
             cursor.execute(select_query)
             rows = cursor.fetchall()
 
-            # Filter out the item with biz_main_category_id == 2
+            # Fetch sub category counts
+            select_sub_query = """
+                SELECT biz_main_category_id, COUNT(*) AS sub_category_count
+                FROM biz_sub_category
+                GROUP BY biz_main_category_id;
+            """
+            cursor.execute(select_sub_query)
+            sub_category_counts = cursor.fetchall()
+
+            sub_category_count_dict = {
+                row["biz_main_category_id"]: row["sub_category_count"]
+                for row in sub_category_counts
+            }
+            print(sub_category_count_dict)
+
+            results: List[BizMainCategoryOutput] = []
+
+            # Combine results
             for row in rows:
-                if row.get("BIZ_MAIN_CATEGORY_ID") != 2:
-                    biz_main_category = BizMainCategory(
-                        biz_main_category_id=row.get("BIZ_MAIN_CATEGORY_ID"),
+                biz_main_category_id = row.get("BIZ_MAIN_CATEGORY_ID")
+                if biz_main_category_id != 2:
+                    biz_main_category_output = BizMainCategoryOutput(
+                        biz_main_category_id=biz_main_category_id,
                         biz_main_category_name=row.get("BIZ_MAIN_CATEGORY_NAME"),
+                        biz_sub_category_count=sub_category_count_dict.get(
+                            biz_main_category_id, 0
+                        ),
                     )
-                    results.append(biz_main_category)
+                    results.append(biz_main_category_output)
 
             return results
     except Exception as e:
