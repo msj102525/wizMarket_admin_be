@@ -140,3 +140,13 @@ class PopulationRequest(BaseModel):
     district_name: str
     sub_district_name: str
     start_year_month: str  # YYYY-MM-DD 형식의 문자열
+
+class PopulationSearch(BaseModel):
+    city: Optional[int] = None  # 기본값 None을 설정
+    district: Optional[int] = None
+    subDistrict: Optional[int] = None
+
+    gender: Optional[int] = None
+    ageGroupMin: Optional[str] = None
+    ageGroupMax: Optional[str] = None
+    

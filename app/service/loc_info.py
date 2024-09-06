@@ -12,21 +12,8 @@ import os, time
 from tqdm import tqdm
 import sys
 from app.crud.loc_info import *
-from app.crud.population import get_ids_by_names
 
 
-def get_location_data(city_name: str, district_name: str, sub_district_name: str) -> dict:
-    ids = get_ids_by_names(city_name, district_name, sub_district_name)
-    
-    if not ids:
-        raise ValueError(f"ID not found for given location names: {city_name}, {district_name}, {sub_district_name}")
-    
-    location_data = fetch_loc_info_by_ids(ids['city_id'], ids['district_id'], ids['sub_district_id'])
-    
-    if not location_data:
-        raise ValueError(f"No location data found for the given IDs: {ids}")
-    
-    return location_data
 
 
 async def filter_location_info(filters: dict):

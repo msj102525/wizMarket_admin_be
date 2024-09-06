@@ -4,6 +4,8 @@ from app.db.connect import get_db_connection, close_connection, close_cursor, co
 from app.schemas.population import Population
 from typing import List
 from mysql.connector.cursor import MySQLCursorDict
+from typing import List, Dict
+import decimal
 
 
 def check_previous_month_data_exists(connection, previous_month):
@@ -22,155 +24,97 @@ def check_previous_month_data_exists(connection, previous_month):
     # COUNT 값을 반환
     return result[0] > 0
 
-
-# 1. 전체 도시 리스트 출력
-def get_all_cities() -> List[str]:
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT city_name FROM city")
-        cities = cursor.fetchall()
-        return [city[0] for city in cities]
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
-
-# 2. 선택된 도시명으로 도시 ID 리턴
-def get_city_id_by_name(city_name: str) -> int:
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT city_id FROM city WHERE city_name = %s", (city_name,))
-        city_id = cursor.fetchone()
-        if not city_id:
-            return None
-        return city_id[0]
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
-
-# 3. 선택된 도시의 도시 ID로 해당하는 시/군/구 리스트 출력
-def get_districts_by_city_id(city_id: int) -> List[str]:
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT district_name FROM district WHERE city_id = %s", (city_id,))
-        districts = cursor.fetchall()
-        return [district[0] for district in districts]
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
-
-# 4. 선택된 시/군/구 명으로 시/군/구 ID 리턴
-def get_district_id_by_name(district_name: str) -> int:
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT district_id FROM district WHERE district_name = %s", (district_name,))
-        district_id = cursor.fetchone()
-        if not district_id:
-            return None
-        return district_id[0]
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
-
-# 5. 선택된 시/군/구 ID로 해당하는 읍/면/동 리스트 출력
-def get_sub_districts_by_district_id(district_id: int) -> List[str]:
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT sub_district_name FROM sub_district WHERE district_id = %s", (district_id,))
-        sub_districts = cursor.fetchall()
-        return [sub_district[0] for sub_district in sub_districts]  # sub_district 이름 리스트 반환
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
+def convert_decimal_to_float(data):
+    if isinstance(data, list):
+        for item in data:
+            for key, value in item.items():
+                if isinstance(value, decimal.Decimal):
+                    item[key] = float(value)
+    return data
 
 
-# 선택된 지역 명으로 각각의 id 값 리턴 리턴 리턴
-def get_ids_by_names(city_name: str, district_name: str, sub_district_name: str) -> dict:
+
+def get_filtered_population_data(filters):
+    # 데이터베이스 연결
     connection = get_db_connection()
     cursor = None
     try:
         cursor = connection.cursor()
 
-        # 시/도 ID 조회
-        cursor.execute("SELECT city_id FROM city WHERE city_name = %s", (city_name,))
-        city_result = cursor.fetchone()
-        if city_result is None:
-            return None
-        city_id = city_result[0]
-
-        # 시/군/구 ID 조회
-        cursor.execute("SELECT district_id FROM district WHERE district_name = %s AND city_id = %s", (district_name, city_id))
-        district_result = cursor.fetchone()
-        if district_result is None:
-            return None
-        district_id = district_result[0]
-
-        # 읍/면/동 ID 조회
-        cursor.execute("SELECT sub_district_id FROM sub_district WHERE sub_district_name = %s AND district_id = %s", (sub_district_name, district_id))
-        sub_district_result = cursor.fetchone()
-        if sub_district_result is None:
-            return None
-        sub_district_id = sub_district_result[0]
-
-        return {
-            "city_id": city_id,
-            "district_id": district_id,
-            "sub_district_id": sub_district_id
-        }
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
-
-
-def get_population_data(city_id: int, district_id: int, sub_district_id: int, start_year_month: str) -> list:
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
+        # 기본 쿼리
         query = """
-                SELECT *
-                FROM population
-                WHERE city_id = %s 
-                  AND district_id = %s 
-                  AND sub_district_id = %s 
-                  AND reference_date = %s
-                """
-        cursor.execute(query, (city_id, district_id, sub_district_id, start_year_month))
-        
-        
-        population = cursor.fetchall()
-        
-        if population:
-            population_list = list(population)
-            return population_list
-        else:
-            return []
+            SELECT 
+                p.POPULATION_ID AS pop_id,                
+                city.city_name AS city_name,              
+                district.district_name AS district_name,   
+                sub_district.sub_district_name AS subdistrict_name,  
+                ROUND((p.male_population / p.total_population) * 100, 2) AS male_percentage,  
+                ROUND((p.female_population / p.total_population) * 100, 2) AS female_percentage, 
+
+                
+                (p.age_0 + p.age_1 + p.age_2 + p.age_3 + p.age_4 + p.age_5 + p.age_6 + p.age_7 + p.age_8 + p.age_9) AS under_10,
+                (p.age_10 + p.age_11 + p.age_12 + p.age_13 + p.age_14 + p.age_15 + p.age_16 + p.age_17 + p.age_18 + p.age_19) AS age_10s,
+                (p.age_20 + p.age_21 + p.age_22 + p.age_23 + p.age_24 + p.age_25 + p.age_26 + p.age_27 + p.age_28 + p.age_29) AS age_20s,
+                (p.age_30 + p.age_31 + p.age_32 + p.age_33 + p.age_34 + p.age_35 + p.age_36 + p.age_37 + p.age_38 + p.age_39) AS age_30s,
+                (p.age_40 + p.age_41 + p.age_42 + p.age_43 + p.age_44 + p.age_45 + p.age_46 + p.age_47 + p.age_48 + p.age_49) AS age_40s,
+                (p.age_50 + p.age_51 + p.age_52 + p.age_53 + p.age_54 + p.age_55 + p.age_56 + p.age_57 + p.age_58 + p.age_59) AS age_50s,
+                (p.age_60 + p.age_61 + p.age_62 + p.age_63 + p.age_64 + p.age_65 + p.age_66 + p.age_67 + p.age_68 + p.age_69 +
+                p.age_70 + p.age_71 + p.age_72 + p.age_73 + p.age_74 + p.age_75 + p.age_76 + p.age_77 + p.age_78 + p.age_79 +
+                p.age_80 + p.age_81 + p.age_82 + p.age_83 + p.age_84 + p.age_85 + p.age_86 + p.age_87 + p.age_88 + p.age_89 +
+                p.age_90 + p.age_91 + p.age_92 + p.age_93 + p.age_94 + p.age_95 + p.age_96 + p.age_97 + p.age_98 + p.age_99 + 
+                p.age_100 + p.age_101 + p.age_102 + p.age_103 + p.age_104 + p.age_105 + p.age_106 + p.age_107 + p.age_108 + 
+                p.age_109 + p.age_110_over) AS age_60_plus,
+                p.reference_date
+
+            FROM population p
+            JOIN city ON p.CITY_ID = city.city_id               
+            JOIN district ON p.DISTRICT_ID = district.district_id 
+            JOIN sub_district ON p.SUB_DISTRICT_ID = sub_district.sub_district_id
+            WHERE 1 = 1
+
+        """
+
+        # 필터 조건에 따라 쿼리 구성
+        params = []
+
+        # 시/도 필터
+        if 'city' in filters:
+            query += " AND p.city_id = %s"
+            params.append(filters['city'])
+
+        # 군/구 필터
+        if 'district' in filters:
+            query += " AND p.district_id = %s"
+            params.append(filters['district'])
+
+        # 읍/면/동 필터
+        if 'subDistrict' in filters:
+            query += " AND p.sub_district_id = %s"
+            params.append(filters['subDistrict'])
+
+
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        result = convert_decimal_to_float(result)  # Decimal 값을 float으로 변환
+
+        print(type(result))
+        print(result[0])
+
+        for key, value in result[0].items():
+            print(f"Key: {key}, Value: {value}, Type: {type(value)}")
+
+        return result
+
     finally:
+        # 커서와 연결 닫기
         if cursor:
             cursor.close()
         if connection:
             connection.close()
+
+
+
 
 
 def insert_population_data(connection, population_data: Population):

@@ -2,7 +2,9 @@
 # python -m venv .venv  # 가상 환경 생성
 # .venv\Scripts\activate  # 가상 환경 활성화
 # $env:PYTHONPATH = "C:\Users\jyes_dev\Desktop\````\`````\wizMarket_back" # 파이썬 경로 수정, 자기 프로젝트 경로로 수정
-# $env:PYTHONPATH = "C:\workspace\python\wizMarket_back"
+# $env:PYTHONPATH = "C:\Users\jyes_dev\Desktop\doorwinbell\project_wiz\wizMarket_back"
+# $env:PYTHONPATH = "C:\workspace\python\wizMarket_back\app"
+
 # python.exe -m pip install --upgrade pip
 # pip install -r requirements.txt  # 필수 패키지 설치
 

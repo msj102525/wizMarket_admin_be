@@ -8,48 +8,21 @@ from app.schemas.city import City
 from app.schemas.district import District
 from app.schemas.sub_district import SubDistrict
 from app.db.connect import * 
-from typing import List
 from datetime import datetime, timedelta
 
 
-# 첫 로딩 시 전체 시도명 출력
-def fetch_cities() -> List[str]:
-    return get_all_cities()
 
+# 상세 조회
+async def filter_population_data(filters: dict) :
+    print("서비스 전")
+    try:
+        # select/population.py의 쿼리 함수 호출
+        results = get_filtered_population_data(filters)
+        print("서비스 후")
+        return results
+    except Exception as e:
+        raise Exception(f"Error in filtering population data: {str(e)}")
 
-# 시도명으로 시도 아이디값 리턴 후 해당하는 시/군/구 리스트 출력
-def fetch_districts_for_sido(sido_name: str) -> List[str]:
-    city_id = get_city_id_by_name(sido_name)
-    if city_id is None:
-        raise ValueError("City not found")
-    return get_districts_by_city_id(city_id)
-
-
-# 시/군/구 명으로 시/군/구 아이디값 리턴 후 해당하는 읍/면/동(sub_district) 이름 리스트 출력
-def fetch_sub_districts_for_district(district_name: str) -> List[str]:
-    district_id = get_district_id_by_name(district_name)
-    if district_id is None:
-        raise ValueError("District not found")
-    return get_sub_districts_by_district_id(district_id) 
-
-
-# 월별 인구 조회
-def fetch_population(city_name: str, district_name: str, sub_district_name: str, start_year_month: str) -> Population:
-    ids = get_ids_by_names(city_name, district_name, sub_district_name)
-    if ids is None:
-        raise ValueError(f"Could not find matching records for the given names: {city_name}, {district_name}, {sub_district_name}")
-    
-    # 시작년월과 끝년월을 get_population_data 함수에 전달
-    population_data = get_population_data(
-        ids['city_id'], 
-        ids['district_id'], 
-        ids['sub_district_id'], 
-        start_year_month
-    )
-    if population_data is None:
-        raise ValueError(f"No population data found for the given IDs: {ids}")
-    
-    return population_data
 
 
 # 1. 데이터베이스 조회용 저번 달 ('YYYY-MM-DD' 형식)

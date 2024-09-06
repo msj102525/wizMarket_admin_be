@@ -4,35 +4,9 @@ from dotenv import load_dotenv
 from app.db.connect import *
 from app.crud.crime import insert_crime_data
 from app.schemas.crime import CrimeRequest
-from app.crud.population import get_city_id_by_name
-from app.crud.crime import get_crime_by_city_id
 
-# 지역별 분기별 범죄 조회
-def fetch_crime_data(crime_request: CrimeRequest):
-    connection = get_db_connection()
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        
-        # city_name을 city_id로 변환
-        city_id = get_city_id_by_name(crime_request.city_name)
-        if not city_id:
-            return None
 
-        # start_year_month를 바로 사용
-        quarter = crime_request.start_year_month
 
-        # CRUD 레이어 호출, city_id와 quarter를 전달
-        crime_data = get_crime_by_city_id(cursor, city_id, quarter)
-        connection.commit()
-        return crime_data
-    except Exception as e:
-        connection.rollback()
-        raise e
-    finally:
-        if cursor:
-            cursor.close()
-        close_connection(connection)
 
 
 

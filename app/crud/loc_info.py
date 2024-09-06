@@ -124,14 +124,6 @@ def get_filtered_locations(filters):
             query += " AND resident <= %s"
             query_params.append(filters["residentMax"])
 
-    
-
-        
-
-
-        # 실행될 쿼리 출력 (디버깅용)
-        query_with_params = query % tuple(query_params)
-        print("실행할 쿼리:", query_with_params)  # 쿼리 출력
 
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
