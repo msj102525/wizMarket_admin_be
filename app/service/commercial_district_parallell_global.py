@@ -145,10 +145,10 @@ def get_sub_district_count(start_idx: int, end_idx: int):
                 wait = WebDriverWait(global_driver, 40)
                 global_driver.implicitly_wait(10)
                 # 서울
-                # city_idx = 0
+                city_idx = 0
 
                 # 부산
-                city_idx = 1
+                # city_idx = 1
 
                 time.sleep(2 + random.random())
 
@@ -207,12 +207,15 @@ def get_sub_district_count(start_idx: int, end_idx: int):
             global_driver = None
 
 
-# def get_main_category(start_idx: int, end_idx: int):
-def get_main_category(city_idx, district_idx, sub_district_count):
+# def get_main_category(city_idx, district_idx, sub_district_count):
+def get_main_category(start_idx: int, end_idx: int):
     global global_driver
     setup_global_driver()
     try:
-        for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
+        city_idx = 0
+        district_idx = 0
+        # for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
+        for sub_district_idx in tqdm(range(start_idx, end_idx)):
             try:
                 # print(f"idx: {district_idx}")
                 global_driver.get(BIZ_MAP_URL)
@@ -289,7 +292,8 @@ def get_main_category(city_idx, district_idx, sub_district_count):
             finally:
                 pass
 
-        for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
+        for sub_district_idx in tqdm(range(start_idx, end_idx)):
+            # for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
             try:
                 print(f"idx: {district_idx}")
                 global_driver.get(BIZ_MAP_URL)
@@ -1328,7 +1332,8 @@ def search_commercial_district(
 def execute_task_in_thread(start, end):
     with ThreadPoolExecutor(max_workers=18) as executor:
         futures = [
-            executor.submit(get_sub_district_count, start, end),
+            # executor.submit(get_sub_district_count, start, end),
+            executor.submit(get_main_category, start, end),
         ]
         for future in futures:
             future.result()
@@ -1340,28 +1345,17 @@ def execute_parallel_tasks():
         f"Total execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
     )
 
-    # ranges = [
-    #     (0, 2),
-    #     (2, 4),
-    #     (4, 6),
-    #     (6, 8),
-    #     (8, 10),
-    #     (10, 13),
-    #     (13, 16),
-    #     (16, 19),
-    #     (19, 22),
-    #     (22, 25),
-    # ]
-
     ranges = [
         (0, 2),
         (2, 4),
         (4, 6),
         (6, 8),
         (8, 10),
-        (10, 12),
-        (12, 14),
-        (14, 16),
+        (10, 13),
+        (13, 16),
+        (16, 19),
+        (19, 22),
+        # (22, 25),
     ]
 
     with Pool(processes=len(ranges)) as pool:
