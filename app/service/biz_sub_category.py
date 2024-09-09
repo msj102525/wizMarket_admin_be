@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import HTTPException
-from app.schemas.biz_sub_category import BizSubCategoryOutPut
+from app.schemas.biz_sub_category import BizSubCategoryOutput
 from crud.biz_sub_category import (
     get_all_biz_sub_category_by_biz_main_category_id as crud_get_all_biz_sub_category_by_biz_main_category_id,
 )
@@ -8,7 +8,7 @@ from crud.biz_sub_category import (
 
 def get_all_biz_sub_category_by_biz_main_category_id(
     biz_main_category_id: int,
-) -> List[BizSubCategoryOutPut]:
+) -> List[BizSubCategoryOutput]:
     results = []
     results = crud_get_all_biz_sub_category_by_biz_main_category_id(
         biz_main_category_id

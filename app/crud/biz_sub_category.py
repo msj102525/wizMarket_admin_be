@@ -3,7 +3,7 @@ from typing import List
 from fastapi import HTTPException
 import pandas as pd
 import pymysql
-from app.schemas.biz_sub_category import BizSubCategoryOutPut
+from app.schemas.biz_sub_category import BizSubCategoryOutput
 from app.schemas.city import City
 from dotenv import load_dotenv
 from app.db.connect import (
@@ -81,26 +81,50 @@ def get_sub_category_name_by_sub_category_id(sub_category_id: int) -> str:
 
 def get_all_biz_sub_category_by_biz_main_category_id(
     biz_main_category_id: int,
-) -> List[BizSubCategoryOutPut]:
+) -> List[BizSubCategoryOutput]:
     connection = get_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            results: List[BizSubCategoryOutPut] = []
             select_query = """
             SELECT BIZ_SUB_CATEGORY_ID, BIZ_SUB_CATEGORY_NAME
             FROM biz_sub_category
             WHERE biz_main_category_id = %s
             ;
             """
-
             cursor.execute(select_query, (biz_main_category_id,))
             rows = cursor.fetchall()
 
+            # print(rows)
+
+            select_detail_query = """
+            SELECT BIZ_SUB_CATEGORY_ID, COUNT(*) AS DETAIL_CATEGORY_COUNT
+            FROM biz_detail_category
+            GROUP BY BIZ_SUB_CATEGORY_ID
+            ;
+            """
+            cursor.execute(select_detail_query)
+            detail_category_count = cursor.fetchall()
+
+            # print(detail_category_count)
+
+            detail_category_count_dict = {
+                row["BIZ_SUB_CATEGORY_ID"]: row["DETAIL_CATEGORY_COUNT"]
+                for row in detail_category_count
+            }
+
+            # print(detail_category_count_dict)
+
+            results: List[BizSubCategoryOutput] = []
+
             for row in rows:
+                biz_sub_category_id = row.get("BIZ_SUB_CATEGORY_ID")
                 if row.get("BIZ_SUB_CATEGORY_ID") != 2:
-                    biz_main_category = BizSubCategoryOutPut(
-                        biz_sub_category_id=row.get("BIZ_SUB_CATEGORY_ID"),
+                    biz_main_category = BizSubCategoryOutput(
+                        biz_sub_category_id=biz_sub_category_id,
                         biz_sub_category_name=row.get("BIZ_SUB_CATEGORY_NAME"),
+                        biz_detail_cateogry_count=detail_category_count_dict.get(
+                            biz_sub_category_id, 0
+                        ),
                     )
                     results.append(biz_main_category)
 

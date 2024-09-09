@@ -131,14 +131,17 @@ def handle_unexpected_alert(driver):
         return False
 
 
-# def get_sub_district_count(city_idx, district_count):
 def get_sub_district_count(start_idx: int, end_idx: int):
+    # def get_sub_district_count(city_idx, district_count):
     global global_driver
     setup_global_driver()
     try:
         for district_idx in tqdm(
             range(start_idx, end_idx), f"{start_idx} : 시/군/구 Progress"
         ):
+            # for district_idx in tqdm(
+            #     range(district_count), f"{city_idx} : 시/군/구 Progress"
+            # ):
             print()
             try:
                 global_driver.get(BIZ_MAP_URL)
@@ -207,15 +210,15 @@ def get_sub_district_count(start_idx: int, end_idx: int):
             global_driver = None
 
 
-# def get_main_category(city_idx, district_idx, sub_district_count):
-def get_main_category(start_idx: int, end_idx: int):
+# def get_main_category(start_idx: int, end_idx: int):
+def get_main_category(city_idx, district_idx, sub_district_count):
     global global_driver
     setup_global_driver()
     try:
-        city_idx = 0
-        district_idx = 0
-        # for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
-        for sub_district_idx in tqdm(range(start_idx, end_idx)):
+        # city_idx = 0
+        # district_idx = 0
+        # for sub_district_idx in tqdm(range(start_idx, end_idx)):
+        for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
             try:
                 # print(f"idx: {district_idx}")
                 global_driver.get(BIZ_MAP_URL)
@@ -292,8 +295,8 @@ def get_main_category(start_idx: int, end_idx: int):
             finally:
                 pass
 
-        for sub_district_idx in tqdm(range(start_idx, end_idx)):
-            # for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
+        # for sub_district_idx in tqdm(range(start_idx, end_idx)):
+        for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
             try:
                 print(f"idx: {district_idx}")
                 global_driver.get(BIZ_MAP_URL)
@@ -1332,8 +1335,8 @@ def search_commercial_district(
 def execute_task_in_thread(start, end):
     with ThreadPoolExecutor(max_workers=18) as executor:
         futures = [
-            # executor.submit(get_sub_district_count, start, end),
-            executor.submit(get_main_category, start, end),
+            executor.submit(get_sub_district_count, start, end),
+            # executor.submit(get_main_category, start, end),
         ]
         for future in futures:
             future.result()
@@ -1351,11 +1354,13 @@ def execute_parallel_tasks():
         (4, 6),
         (6, 8),
         (8, 10),
-        (10, 13),
-        (13, 16),
-        (16, 19),
-        (19, 22),
-        # (22, 25),
+        (10, 12),
+        (12, 14),
+        (14, 16),
+        (16, 18),
+        (18, 20),
+        (20, 22),
+        (22, 25),
     ]
 
     with Pool(processes=len(ranges)) as pool:

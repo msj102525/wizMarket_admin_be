@@ -10,9 +10,10 @@ class BizSubCategory(BaseModel):
         from_attributes = True
 
 
-class BizSubCategoryOutPut(BaseModel):
+class BizSubCategoryOutput(BaseModel):
     biz_sub_category_id: int
     biz_sub_category_name: str
+    biz_detail_cateogry_count: int
 
     class Config:
         from_attributes = True
