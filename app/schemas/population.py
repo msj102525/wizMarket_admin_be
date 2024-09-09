@@ -149,4 +149,7 @@ class PopulationSearch(BaseModel):
     gender: Optional[int] = None
     ageGroupMin: Optional[str] = None
     ageGroupMax: Optional[str] = None
+
+    startDate: Optional[str] = None
+    endDate : Optional[str] = None
     
