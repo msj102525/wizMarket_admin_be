@@ -22,4 +22,3 @@ def get_all_biz_detail_category_by_biz_sub_category_id(
         raise http_ex
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    pass

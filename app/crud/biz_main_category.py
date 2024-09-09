@@ -79,13 +79,13 @@ def get_all_main_category() -> List[BizMainCategoryOutput]:
                 GROUP BY biz_main_category_id;
             """
             cursor.execute(select_sub_query)
-            sub_category_counts = cursor.fetchall()
+            sub_category_count = cursor.fetchall()
 
             sub_category_count_dict = {
                 row["biz_main_category_id"]: row["sub_category_count"]
-                for row in sub_category_counts
+                for row in sub_category_count
             }
-            print(sub_category_count_dict)
+            # print(sub_category_count_dict)
 
             results: List[BizMainCategoryOutput] = []
 
