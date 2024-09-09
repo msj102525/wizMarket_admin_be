@@ -464,41 +464,41 @@ def select_all_rising_business_by_dynamic_query(
     rank_min: Optional[int] = None,
     rank_max: Optional[int] = None,
 ) -> List[RisingBusinessOutput]:
+    try:
+        if search_cate:
+            cate_list = crud_get__all_biz_categories_id_like_biz_detail_category_name(search_cate)
 
-    if search_cate:
-        cate_list = crud_get__all_biz_categories_id_like_biz_detail_category_name(
-            search_cate
+            if cate_list:
+                results = []
+                for main_cat_id, sub_cat_id, detail_cat_id in cate_list:
+                    result = crud_select_all_rising_business_by_dynamic_query(
+                        city_id=city_id,
+                        district_id=district_id,
+                        sub_district_id=sub_district_id,
+                        biz_main_category_id=main_cat_id,
+                        biz_sub_category_id=sub_cat_id,
+                        biz_detail_category_id=detail_cat_id,
+                        growth_rate_min=growth_rate_min,
+                        growth_rate_max=growth_rate_max,
+                        rank_min=rank_min,
+                        rank_max=rank_max,
+                    )
+                    results.extend(result)
+                return results
+            else:
+                return []
+        return crud_select_all_rising_business_by_dynamic_query(
+            city_id=city_id,
+            district_id=district_id,
+            sub_district_id=sub_district_id,
+            biz_main_category_id=biz_main_category_id,
+            biz_sub_category_id=biz_sub_category_id,
+            biz_detail_category_id=biz_detail_category_id,
+            growth_rate_min=growth_rate_min,
+            growth_rate_max=growth_rate_max,
+            rank_min=rank_min,
+            rank_max=rank_max,
         )
-
-        if cate_list:
-            results = []
-            for main_cat_id, sub_cat_id, detail_cat_id in cate_list:
-                result = crud_select_all_rising_business_by_dynamic_query(
-                    city_id=city_id,
-                    district_id=district_id,
-                    sub_district_id=sub_district_id,
-                    biz_main_category_id=main_cat_id,
-                    biz_sub_category_id=sub_cat_id,
-                    biz_detail_category_id=detail_cat_id,
-                    growth_rate_min=growth_rate_min,
-                    growth_rate_max=growth_rate_max,
-                    rank_min=rank_min,
-                    rank_max=rank_max,
-                )
-                results.extend(result)
-            return results
-        else:
-            return []
-
-    return crud_select_all_rising_business_by_dynamic_query(
-        city_id=city_id,
-        district_id=district_id,
-        sub_district_id=sub_district_id,
-        biz_main_category_id=biz_main_category_id,
-        biz_sub_category_id=biz_sub_category_id,
-        biz_detail_category_id=biz_detail_category_id,
-        growth_rate_min=growth_rate_min,
-        growth_rate_max=growth_rate_max,
-        rank_min=rank_min,
-        rank_max=rank_max,
-    )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

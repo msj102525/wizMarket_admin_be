@@ -150,9 +150,6 @@ def get_sub_district_count(start_idx: int, end_idx: int):
                 # 서울
                 city_idx = 0
 
-                # 부산
-                # city_idx = 1
-
                 time.sleep(2 + random.random())
 
                 # 분석 지역
@@ -210,17 +207,12 @@ def get_sub_district_count(start_idx: int, end_idx: int):
             global_driver = None
 
 
-# def get_main_category(start_idx: int, end_idx: int):
 def get_main_category(city_idx, district_idx, sub_district_count):
     global global_driver
     setup_global_driver()
     try:
-        # city_idx = 0
-        # district_idx = 0
-        # for sub_district_idx in tqdm(range(start_idx, end_idx)):
-        for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
+        for sub_district_idx in range(sub_district_count):
             try:
-                # print(f"idx: {district_idx}")
                 global_driver.get(BIZ_MAP_URL)
                 wait = WebDriverWait(global_driver, 40)
                 global_driver.implicitly_wait(10)
@@ -295,8 +287,7 @@ def get_main_category(city_idx, district_idx, sub_district_count):
             finally:
                 pass
 
-        # for sub_district_idx in tqdm(range(start_idx, end_idx)):
-        for sub_district_idx in tqdm(range(sub_district_count), f"{district_idx}: 동 "):
+        for sub_district_idx in range(sub_district_count):
             try:
                 print(f"idx: {district_idx}")
                 global_driver.get(BIZ_MAP_URL)
@@ -384,7 +375,9 @@ def get_sub_category(
     global global_driver
     setup_global_driver()
     try:
-        for main_category_idx in range(main_category_count):
+        for main_category_idx in tqdm(
+            range(main_category_count), f"동: {sub_district_idx}"
+        ):
 
             try:
                 global_driver.get(BIZ_MAP_URL)
@@ -594,8 +587,6 @@ def search_commercial_district(
         for detail_category_idx in range(detail_category_count):
 
             try:
-                print(f"main_category_idx : { main_category_idx}")
-
                 start_time = time.time()
                 print(
                     f"Execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
@@ -1336,7 +1327,6 @@ def execute_task_in_thread(start, end):
     with ThreadPoolExecutor(max_workers=18) as executor:
         futures = [
             executor.submit(get_sub_district_count, start, end),
-            # executor.submit(get_main_category, start, end),
         ]
         for future in futures:
             future.result()
@@ -1360,7 +1350,7 @@ def execute_parallel_tasks():
         (16, 18),
         (18, 20),
         (20, 22),
-        (22, 25),
+        # (22, 25),
     ]
 
     with Pool(processes=len(ranges)) as pool:

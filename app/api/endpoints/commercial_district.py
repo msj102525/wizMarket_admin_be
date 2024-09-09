@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
-from typing import List
+from fastapi import APIRouter, HTTPException, Query
+from typing import List, Optional
 
-from app.schemas.commercial_district import CommercialDistrict, CommercialDistrictOutput
+from app.schemas.commercial_district import CommercialDistrictOutput
 from app.service.commercial_district import (
     get_all_commercial_district_by_sub_district_id,
+    select_commercial_district_by_dynamic_query as service_select_commercial_district_by_dynamic_query,
 )
 
 router = APIRouter()
@@ -15,6 +16,59 @@ def get_commercial_district(city: str, district: str, sub_district: str):
     try:
         results = get_all_commercial_district_by_sub_district_id(
             city, district, sub_district
+        )
+        return results
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/cd", response_model=List[CommercialDistrictOutput])
+def get_commercial_district_by_query(
+    city_id: Optional[int] = Query(None),
+    district_id: Optional[int] = Query(None),
+    sub_district_id: Optional[int] = Query(None),
+    biz_main_category_id: Optional[int] = Query(None),
+    biz_sub_category_id: Optional[int] = Query(None),
+    biz_detail_category_id: Optional[int] = Query(None),
+    market_size_min: Optional[int] = Query(None),
+    market_size_max: Optional[int] = Query(None),
+    avg_sales_min: Optional[int] = Query(None),
+    avg_sales_max: Optional[int] = Query(None),
+    operating_cost_min: Optional[int] = Query(None),
+    operating_cost_max: Optional[int] = Query(None),
+    food_cost_min: Optional[int] = Query(None),
+    food_cost_max: Optional[int] = Query(None),
+    employee_cost_min: Optional[int] = Query(None),
+    employee_cost_max: Optional[int] = Query(None),
+    rental_cost_min: Optional[int] = Query(None),
+    rental_cost_max: Optional[int] = Query(None),
+    avg_profit_min: Optional[int] = Query(None),
+    avg_profit_max: Optional[int] = Query(None),
+):
+    try:
+        results = service_select_commercial_district_by_dynamic_query(
+            city_id,
+            district_id,
+            sub_district_id,
+            biz_main_category_id,
+            biz_sub_category_id,
+            biz_detail_category_id,
+            market_size_min,
+            market_size_max,
+            avg_sales_min,
+            avg_sales_max,
+            operating_cost_min,
+            operating_cost_max,
+            food_cost_min,
+            food_cost_max,
+            employee_cost_min,
+            employee_cost_max,
+            rental_cost_min,
+            rental_cost_max,
+            avg_profit_min,
+            avg_profit_max,
         )
         return results
     except HTTPException as http_ex:
