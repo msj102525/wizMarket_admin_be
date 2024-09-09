@@ -8,8 +8,112 @@ from typing import List, Dict
 import decimal
 
 
+def download_data_ex(filters):
+    # 데이터베이스 연결
+    connection = get_db_connection()
+    cursor = None
 
+    # 연령대에 따른 나이 범위 매핑
+    age_groups = {
+        "under_10": range(0, 10),
+        "age_10s": range(10, 20),
+        "age_20s": range(20, 30),
+        "age_30s": range(30, 40),
+        "age_40s": range(40, 50),
+        "age_50s": range(50, 60),
+        "age_60_plus": range(60, 111)  # 60세 이상은 60세부터 110세까지 포함
+    }
 
+    try:
+        # 기본 쿼리 시작
+        query = """
+            SELECT
+                city.city_name,
+                district.district_name,
+                sub_district.sub_district_name,
+                p.male_population,
+                p.female_population,
+                p.reference_date,
+                gender.gender_name
+        """
+
+        # 나이 컬럼들을 동적으로 선택
+        age_columns = []
+        min_age_range = None
+        max_age_range = None
+
+        # ageGroupMin과 ageGroupMax 처리
+        if filters.get('ageGroupMin'):
+            min_age_range = age_groups[filters['ageGroupMin']]
+
+        if filters.get('ageGroupMax'):
+            max_age_range = age_groups[filters['ageGroupMax']]
+
+        # 나이 컬럼 동적 선택 (둘 중 하나만 있을 경우에도 처리)
+        if min_age_range or max_age_range:
+            min_age = min(min_age_range) if min_age_range else min(max_age_range)
+            max_age = max(max_age_range) if max_age_range else max(min_age_range)
+
+            # 선택된 연령대 범위에 해당하는 모든 나이 컬럼 추가
+            for age in range(min_age, max_age + 1):
+                age_columns.append(f"p.age_{age}")
+
+        # age 컬럼을 쿼리에 추가
+        if age_columns:
+            query += ", " + ", ".join(age_columns)
+
+        query += """
+            FROM population p
+            JOIN city ON p.city_id = city.city_id
+            JOIN district ON p.district_id = district.district_id
+            JOIN sub_district ON p.sub_district_id = sub_district.sub_district_id
+            JOIN gender ON p.gender_id = gender.gender_id
+            WHERE 1=1
+        """
+
+        # 파라미터 목록 초기화
+        query_params = []
+
+        # 필터 값에 따라 동적 쿼리 추가
+        if filters.get('city'):
+            query += " AND p.city_id = %s"
+            query_params.append(filters['city'])
+
+        if filters.get('district'):
+            query += " AND p.district_id = %s"
+            query_params.append(filters['district'])
+
+        if filters.get('subDistrict'):
+            query += " AND p.sub_district_id = %s"
+            query_params.append(filters['subDistrict'])
+
+        if filters.get('gender'):
+            query += " AND p.gender_id = %s"
+            query_params.append(filters['gender'])
+
+        if filters.get('startDate'):
+            query += " AND p.reference_date >= %s"
+            query_params.append(filters['startDate'])
+
+        if filters.get('endDate'):
+            query += " AND p.reference_date <= %s"
+            query_params.append(filters['endDate'])
+
+        # 쿼리 실행
+        cursor = connection.cursor()
+        cursor.execute(query, query_params)
+        result = cursor.fetchall()
+
+        return result
+
+    except Exception as e:
+        print(f"데이터베이스 조회 중 오류 발생: {e}")
+        return None
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
 
 
 
@@ -28,6 +132,8 @@ def check_previous_month_data_exists(connection, previous_month):
     
     # COUNT 값을 반환
     return result[0] > 0
+
+
 
 def convert_decimal_to_float(data):
     if isinstance(data, list):
@@ -134,7 +240,6 @@ def get_filtered_population_data(filters):
         # 쿼리 실행
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, params)
-        print(query)
         result = cursor.fetchall()
 
         # Decimal 값을 float으로 변환

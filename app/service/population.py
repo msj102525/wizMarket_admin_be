@@ -24,6 +24,17 @@ async def filter_population_data(filters: dict) :
         raise Exception(f"Error in filtering population data: {str(e)}")
 
 
+# 엑셀 다운
+async def download_data(filters: dict) :
+    try:
+        results = download_data_ex(filters)
+        print("서비스 후")
+        return results
+    except Exception as e:
+        raise Exception(f"Error in filtering population data: {str(e)}")
+
+
+
 
 # 1. 데이터베이스 조회용 저번 달 ('YYYY-MM-DD' 형식)
 def get_previous_month_for_db():

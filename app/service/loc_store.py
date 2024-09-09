@@ -8,7 +8,24 @@ import re
 from app.crud.loc_store import insert_data_to_loc_store
 import platform
 from datetime import datetime
-from app.crud.loc_store import check_previous_quarter_data_exists
+from app.crud.loc_store import *
+
+
+
+
+async def filter_location_store(filters: dict, page: int = 1, limit: int = 20, sort_by: str = None, order: str = "asc") -> List[dict]:
+   
+    # 필터 처리 로직 (필요시)
+    if "store_name" in filters:
+        filters["store_name"] = filters["store_name"].lower()
+
+    # CRUD로 필터, 페이징, 정렬 옵션 전달
+    filtered_locations = get_filtered_store(filters, page, limit, sort_by, order)
+    
+    return filtered_locations
+
+
+
 
 
 # root_dir 경로 설정
