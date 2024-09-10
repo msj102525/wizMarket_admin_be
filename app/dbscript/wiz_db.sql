@@ -150,28 +150,28 @@ CREATE TABLE
         FOREIGN KEY (`BIZ_DETAIL_CATEGORY_ID`) REFERENCES `BIZ_DETAIL_CATEGORY` (`BIZ_DETAIL_CATEGORY_ID`)
     );
 
-
-CREATE TABLE `LOC_INFO` (
-	`LOC_INFO_ID`	int	NOT NULL    AUTO_INCREMENT	COMMENT 'PK_LIID',
-	`CITY_ID`	INT	NOT NULL	COMMENT 'FK_CID',
-	`DISTRICT_ID`	INT	NOT NULL	COMMENT 'FK_DID',
-	`SUB_DISTRICT_ID`	INT	NOT NULL	COMMENT 'FK_SDID',
-	`SHOP`	int	NULL	COMMENT '업소 갯수',
-	`MOVE_POP`	int	NULL	COMMENT '유동인구',
-	`SALES`	int	NULL	COMMENT '매출',
-	`WORK_POP`	INT	NULL	COMMENT '직장인구',
-	`INCOME`	INT	NULL	COMMENT '소득',
-	`SPEND`	INT	NULL	COMMENT '소비',
-	`HOUSE`	INT	NULL	COMMENT '세대수',
-	`RESIDENT`	INT	NULL	COMMENT '주거인구',
-	`CREATED_AT`	DATETIME	NULL	COMMENT '생성일시',
-	`UPDATED_AT`	DATETIME	NULL	COMMENT '수정일시',
-	`Y_M`	DATE	NULL	COMMENT '기준 년 월',
-    PRIMARY KEY (`LOC_INFO_ID`),
-    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
-    FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
-    FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`)
-);
+CREATE TABLE
+    `LOC_INFO` (
+        `LOC_INFO_ID` int NOT NULL AUTO_INCREMENT COMMENT 'PK_LIID',
+        `CITY_ID` INT NOT NULL COMMENT 'FK_CID',
+        `DISTRICT_ID` INT NOT NULL COMMENT 'FK_DID',
+        `SUB_DISTRICT_ID` INT NOT NULL COMMENT 'FK_SDID',
+        `SHOP` int NULL COMMENT '업소 갯수',
+        `MOVE_POP` int NULL COMMENT '유동인구',
+        `SALES` int NULL COMMENT '매출',
+        `WORK_POP` INT NULL COMMENT '직장인구',
+        `INCOME` INT NULL COMMENT '소득',
+        `SPEND` INT NULL COMMENT '소비',
+        `HOUSE` INT NULL COMMENT '세대수',
+        `RESIDENT` INT NULL COMMENT '주거인구',
+        `CREATED_AT` DATETIME NULL COMMENT '생성일시',
+        `UPDATED_AT` DATETIME NULL COMMENT '수정일시',
+        `Y_M` DATE NULL COMMENT '기준 년 월',
+        PRIMARY KEY (`LOC_INFO_ID`),
+        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
+        FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
+        FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`)
+    );
 
 CREATE TABLE
     `RISING_BUSINESS` (
@@ -182,7 +182,7 @@ CREATE TABLE
         `BIZ_MAIN_CATEGORY_ID` INT NOT NULL COMMENT 'FK_BMCID',
         `BIZ_SUB_CATEGORY_ID` INT NOT NULL COMMENT 'FK_BSCID',
         `BIZ_DETAIL_CATEGORY_ID` INT NOT NULL COMMENT 'FK_BDID',
-        `GROWTH_RATE` DECIMAL(7,2) NULL COMMENT '증가율',
+        `GROWTH_RATE` DECIMAL(7, 2) NULL COMMENT '증가율',
         `SUB_DISTRICT_RANK` int NULL COMMENT '해당 읍/면/동에서 순위',
         `CREATED_AT` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
         `UPDATED_AT` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
@@ -195,66 +195,65 @@ CREATE TABLE
         FOREIGN KEY (`BIZ_DETAIL_CATEGORY_ID`) REFERENCES `BIZ_DETAIL_CATEGORY` (`BIZ_DETAIL_CATEGORY_ID`)
     );
 
+CREATE TABLE
+    `LOC_STORE` (
+        `LOC_STORE_ID` INT NOT NULL AUTO_INCREMENT COMMENT 'PK_LCID',
+        `CITY_ID` INT NOT NULL COMMENT 'FK_CID',
+        `DISTRICT_ID` INT NULL COMMENT 'FK_DID',
+        `SUB_DISTRICT_ID` INT NULL COMMENT 'FK_SDID',
+        `StoreBusinessNumber` VARCHAR(100) NULL COMMENT '상가업소번호',
+        `store_name` VARCHAR(255) NULL COMMENT '상호명',
+        `branch_name` VARCHAR(255) NULL COMMENT '지점명',
+        `large_category_code` VARCHAR(10) NULL COMMENT '상권업종대분류코드',
+        `large_category_name` VARCHAR(100) NULL COMMENT '상권업종대분류명',
+        `medium_category_code` VARCHAR(10) NULL COMMENT '상권업종중분류코드',
+        `medium_category_name` VARCHAR(100) NULL COMMENT '상권업종중분류명',
+        `small_category_code` VARCHAR(10) NULL COMMENT '상권업종소분류코드',
+        `small_category_name` VARCHAR(100) NULL COMMENT '상권업종소분류명',
+        `industry_code` VARCHAR(10) NULL COMMENT '표준산업분류코드',
+        `industry_name` VARCHAR(100) NULL COMMENT '표준산업분류명',
+        `province_code` VARCHAR(10) NULL COMMENT '시도코드',
+        `province_name` VARCHAR(100) NULL COMMENT '시도명',
+        `district_code` VARCHAR(10) NULL COMMENT '시군구코드',
+        `district_name` VARCHAR(100) NULL COMMENT '시군구명',
+        `administrative_dong_code` VARCHAR(20) NULL COMMENT '행정동코드',
+        `administrative_dong_name` VARCHAR(100) NULL COMMENT '행정동명',
+        `legal_dong_code` VARCHAR(20) NULL COMMENT '법정동코드',
+        `legal_dong_name` VARCHAR(100) NULL COMMENT '법정동명',
+        `lot_number_code` VARCHAR(30) NULL COMMENT '지번코드',
+        `land_category_code` VARCHAR(10) NULL COMMENT '대지구분코드',
+        `land_category_name` VARCHAR(100) NULL COMMENT '대지구분명',
+        `lot_main_number` VARCHAR(10) NULL COMMENT '지번본번지',
+        `lot_sub_number` VARCHAR(10) NULL COMMENT '지번부번지',
+        `lot_address` VARCHAR(255) NULL COMMENT '지번주소',
+        `road_name_code` VARCHAR(20) NULL COMMENT '도로명코드',
+        `road_name` VARCHAR(255) NULL COMMENT '도로명',
+        `building_main_number` VARCHAR(30) NULL COMMENT '건물본번지',
+        `building_sub_number` VARCHAR(30) NULL COMMENT '건물부번지',
+        `building_management_number` VARCHAR(100) NULL COMMENT '건물관리번호',
+        `building_name` VARCHAR(255) NULL COMMENT '건물명',
+        `road_name_address` VARCHAR(255) NULL COMMENT '도로명주소',
+        `old_postal_code` VARCHAR(10) NULL COMMENT '구우편번호',
+        `new_postal_code` VARCHAR(10) NULL COMMENT '신우편번호',
+        `dong_info` VARCHAR(100) NULL COMMENT '동정보',
+        `floor_info` VARCHAR(50) NULL COMMENT '층정보',
+        `unit_info` VARCHAR(50) NULL COMMENT '호정보',
+        `longitude` VARCHAR(30) NULL COMMENT '경도',
+        `latitude` VARCHAR(30) NULL COMMENT '위도',
+        `Y_Q` VARCHAR(30) NULL COMMENT '기준 년 분기',
+        `CREATED_AT` DATETIME NULL COMMENT '생성일자',
+        `UPDATED_AT` DATETIME NULL COMMENT '수정일자',
+        PRIMARY KEY (`LOC_STORE_ID`),
+        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
+        FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
+        FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`)
+    );
 
-CREATE TABLE `LOC_STORE` (
-	`LOC_STORE_ID`	INT	NOT NULL    AUTO_INCREMENT	COMMENT 'PK_LCID',
-	`CITY_ID`	INT	NOT NULL	COMMENT 'FK_CID',
-	`DISTRICT_ID`	INT NULL	COMMENT 'FK_DID',
-	`SUB_DISTRICT_ID`	INT NULL	COMMENT 'FK_SDID',
-    `StoreBusinessNumber` VARCHAR(100) NULL COMMENT '상가업소번호',
-	`store_name`	VARCHAR(255)	NULL	COMMENT '상호명',
-	`branch_name`	VARCHAR(255)	NULL	COMMENT '지점명',
-	`large_category_code`	VARCHAR(10)	NULL	COMMENT '상권업종대분류코드',
-	`large_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종대분류명',
-	`medium_category_code`	VARCHAR(10)	NULL	COMMENT '상권업종중분류코드',
-	`medium_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종중분류명',
-	`small_category_code`	VARCHAR(10)	NULL	COMMENT '상권업종소분류코드',
-	`small_category_name`	VARCHAR(100)	NULL	COMMENT '상권업종소분류명',
-	`industry_code`	VARCHAR(10)	NULL	COMMENT '표준산업분류코드',
-	`industry_name`	VARCHAR(100)	NULL	COMMENT '표준산업분류명',
-	`province_code`	VARCHAR(10)	NULL	COMMENT '시도코드',
-	`province_name`	VARCHAR(100)	NULL	COMMENT '시도명',
-	`district_code`	VARCHAR(10)	NULL	COMMENT '시군구코드',
-	`district_name`	VARCHAR(100)	NULL	COMMENT '시군구명',
-	`administrative_dong_code`	VARCHAR(20)	NULL	COMMENT '행정동코드',
-	`administrative_dong_name`	VARCHAR(100)	NULL	COMMENT '행정동명',
-	`legal_dong_code`	VARCHAR(20)	NULL	COMMENT '법정동코드',
-	`legal_dong_name`	VARCHAR(100)	NULL	COMMENT '법정동명',
-	`lot_number_code`	VARCHAR(30)	NULL	COMMENT '지번코드',
-	`land_category_code`	VARCHAR(10)	NULL	COMMENT '대지구분코드',
-	`land_category_name`	VARCHAR(100)	NULL	COMMENT '대지구분명',
-	`lot_main_number`	VARCHAR(10)	NULL	COMMENT '지번본번지',
-	`lot_sub_number`	VARCHAR(10)	NULL	COMMENT '지번부번지',
-	`lot_address`	VARCHAR(255)	NULL	COMMENT '지번주소',
-	`road_name_code`	VARCHAR(20)	NULL	COMMENT '도로명코드',
-	`road_name`	VARCHAR(255)	NULL	COMMENT '도로명',
-	`building_main_number`	VARCHAR(30)	NULL	COMMENT '건물본번지',
-	`building_sub_number`	VARCHAR(30)	NULL	COMMENT '건물부번지',
-	`building_management_number`	VARCHAR(100)	NULL	COMMENT '건물관리번호',
-	`building_name`	VARCHAR(255)	NULL	COMMENT '건물명',
-	`road_name_address`	VARCHAR(255)	NULL	COMMENT '도로명주소',
-	`old_postal_code`	VARCHAR(10)	NULL	COMMENT '구우편번호',
-	`new_postal_code`	VARCHAR(10)	NULL	COMMENT '신우편번호',
-	`dong_info`	VARCHAR(100)	NULL	COMMENT '동정보',
-	`floor_info`	VARCHAR(50)	NULL	COMMENT '층정보',
-	`unit_info`	VARCHAR(50)	NULL	COMMENT '호정보',
-	`longitude`	VARCHAR(30)	NULL	COMMENT '경도',
-	`latitude`	VARCHAR(30)	NULL	COMMENT '위도',
-	`Y_Q`	VARCHAR(30)	NULL	COMMENT '기준 년 분기',
-	`CREATED_AT`	DATETIME	NULL	COMMENT '생성일자',
-	`UPDATED_AT`	DATETIME	NULL	COMMENT '수정일자',
-    PRIMARY KEY (`LOC_STORE_ID`),
-    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
-    FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
-    FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`)
-);
-
-
-CREATE TABLE gender (
-    gender_id INT PRIMARY KEY,
-    gender_name VARCHAR(10) NOT NULL
-);
-
+CREATE TABLE
+    gender (
+        gender_id INT PRIMARY KEY,
+        gender_name VARCHAR(10) NOT NULL
+    );
 
 CREATE TABLE
     `POPULATION` (
@@ -391,43 +390,71 @@ CREATE TABLE
         FOREIGN KEY (`GENDER_ID`) REFERENCES `GENDER` (`GENDER_ID`)
     );
 
+CREATE TABLE
+    CRIME (
+        CRIME_ID INT AUTO_INCREMENT PRIMARY KEY COMMENT '범죄 ID',
+        CITY_ID INT NOT NULL COMMENT '시/도 ID',
+        QUARTER VARCHAR(10) NOT NULL COMMENT '해당 분기',
+        CRIME_MAJOR_CATEGORY VARCHAR(50) NOT NULL COMMENT '범죄의 대분류',
+        CRIME_MINOR_CATEGORY VARCHAR(50) NOT NULL COMMENT '범죄의 소분류',
+        INCIDENT_COUNT INT NOT NULL COMMENT '발생한 사건의 건수',
+        ARREST_COUNT INT NOT NULL COMMENT '검거된 사건의 건수',
+        INCIDENT_TO_ARREST_RATIO DECIMAL(5, 2) NOT NULL COMMENT '발생 건수 대비 검거 건수의 비율',
+        ARREST_PERSONNEL INT NOT NULL COMMENT '검거에 관여한 인원 수',
+        LEGAL_ENTITY INT NOT NULL COMMENT '관련된 법인체의 수',
+        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`)
+    );
 
-
-CREATE TABLE CRIME (
-    CRIME_ID INT AUTO_INCREMENT PRIMARY KEY COMMENT '범죄 ID',
-    CITY_ID INT NOT NULL COMMENT '시/도 ID',
-    QUARTER VARCHAR(10) NOT NULL COMMENT '해당 분기',
-    CRIME_MAJOR_CATEGORY VARCHAR(50) NOT NULL COMMENT '범죄의 대분류',
-    CRIME_MINOR_CATEGORY VARCHAR(50) NOT NULL COMMENT '범죄의 소분류',
-    INCIDENT_COUNT INT NOT NULL COMMENT '발생한 사건의 건수',
-    ARREST_COUNT INT NOT NULL COMMENT '검거된 사건의 건수',
-    INCIDENT_TO_ARREST_RATIO DECIMAL(5,2) NOT NULL COMMENT '발생 건수 대비 검거 건수의 비율',
-    ARREST_PERSONNEL INT NOT NULL COMMENT '검거에 관여한 인원 수',
-    LEGAL_ENTITY INT NOT NULL COMMENT '관련된 법인체의 수',
-    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`)
-);
-
-
-CREATE TABLE CLASSIFICATION (
-    CLASSIFICATION_ID INT AUTO_INCREMENT PRIMARY KEY,
-    MAIN_CATEGORY_CODE CHAR(1),
-    MAIN_CATEGORY_NAME VARCHAR(100),
-    SUB_CATEGORY_CODE CHAR(2),
-    SUB_CATEGORY_NAME VARCHAR(100),
-    DETAIL_CATEGORY_CODE CHAR(3),
-    DETAIL_CATEGORY_NAME VARCHAR(100),
-    SUB_DETAIL_CATEGORY_CODE CHAR(4),
-    SUB_DETAIL_CATEGORY_NAME VARCHAR(100),
-    SUB_SUB_DETAIL_CATEGORY_CODE CHAR(5),
-    SUB_SUB_DETAIL_CATEGORY_NAME VARCHAR(100)
-);
+CREATE TABLE
+    CLASSIFICATION (
+        CLASSIFICATION_ID INT AUTO_INCREMENT PRIMARY KEY,
+        MAIN_CATEGORY_CODE CHAR(1),
+        MAIN_CATEGORY_NAME VARCHAR(100),
+        SUB_CATEGORY_CODE CHAR(2),
+        SUB_CATEGORY_NAME VARCHAR(100),
+        DETAIL_CATEGORY_CODE CHAR(3),
+        DETAIL_CATEGORY_NAME VARCHAR(100),
+        SUB_DETAIL_CATEGORY_CODE CHAR(4),
+        SUB_DETAIL_CATEGORY_NAME VARCHAR(100),
+        SUB_SUB_DETAIL_CATEGORY_CODE CHAR(5),
+        SUB_SUB_DETAIL_CATEGORY_NAME VARCHAR(100)
+    );
 
 -- 외래 키 제약 조건을 다시 활성화
 SET
     FOREIGN_KEY_CHECKS = 1;
 
-INSERT INTO gender (gender_id, gender_name)
-VALUES (1, '남자'), 
-       (2, '여자');
+INSERT INTO
+    gender (gender_id, gender_name)
+VALUES
+    (1, '남자'),
+    (2, '여자');
+
+-- 출처 테이블 생성 및 값 추가
+CREATE TABLE
+    `REFERENCE` (
+        `REFERENCE_ID` INT NOT NULL AUTO_INCREMENT COMMENT 'PK_RFID',
+        `REFERENCE_NAME` VARCHAR(50) NOT NULL COMMENT '출처명',
+        `REFERENCE_URL` VARCHAR(255) NOT NULL COMMENT '출처URL',
+        PRIMARY KEY (`REFERENCE_ID`)
+    );
+
+INSERT INTO `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
+VALUES ('나이스 비즈맵', 'https://m.nicebizmap.co.kr/');
+
+-- 비즈맵 메인 카테고리 테이블 수정
+-- 컬럼 추가
+ALTER TABLE `BIZ_MAIN_CATEGORY`
+ADD COLUMN `REFERENCE_ID` INT NOT NULL COMMENT '출처 ID';
 
 
+UPDATE `BIZ_MAIN_CATEGORY`
+SET `REFERENCE_ID` = 1
+WHERE `REFERENCE_ID` NOT IN (SELECT `REFERENCE_ID` FROM `REFERENCE`);
+
+-- 외래키 제약조건 추가
+ALTER TABLE `BIZ_MAIN_CATEGORY`
+ADD CONSTRAINT `fk_reference_id`
+FOREIGN KEY (`REFERENCE_ID`)
+REFERENCES `REFERENCE` (`REFERENCE_ID`)
+ON DELETE RESTRICT;

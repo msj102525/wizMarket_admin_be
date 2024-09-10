@@ -10,6 +10,7 @@ from app.api.endpoints import (
     city,
     district,
     hello,
+    reference,
     rising_business,
     commercial_district,
 )
@@ -48,6 +49,7 @@ app.include_router(rising_business.router, prefix="/rising")
 app.include_router(cai_info.router, prefix="/cai")
 app.include_router(city.router, prefix="/city")
 app.include_router(district.router, prefix="/district")
+app.include_router(reference.router, prefix="/reference")
 app.include_router(biz_main_category.router, prefix="/biz_main_category")
 app.include_router(biz_sub_category.router, prefix="/biz_sub_category")
 app.include_router(biz_detail_category.router, prefix="/biz_detail_category")

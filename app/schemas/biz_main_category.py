@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class BizMainCategory(BaseModel):
     biz_main_category_id: int
     biz_main_category_name: str
+    reference_id : int
 
     class Config:
         from_attributes = True
