@@ -1,28 +1,23 @@
 import os
 import pandas as pd
-import sys
 from dotenv import load_dotenv  # .env 파일 로드용 패키지
 from app.service.population import *
 from app.db.connect import * 
 import re
 from app.crud.loc_store import insert_data_to_loc_store
-import platform
 from datetime import datetime
 from app.crud.loc_store import *
 
 
 
 
-async def filter_location_store(filters: dict, page: int = 1, limit: int = 20, sort_by: str = None, order: str = "asc") -> List[dict]:
-   
-    # 필터 처리 로직 (필요시)
-    if "store_name" in filters:
-        filters["store_name"] = filters["store_name"].lower()
-
-    # CRUD로 필터, 페이징, 정렬 옵션 전달
-    filtered_locations = get_filtered_store(filters, page, limit, sort_by, order)
+# 서비스 레이어 함수
+async def filter_loc_store(filters):
     
-    return filtered_locations
+    data = get_filtered_loc_store(filters.dict())  # 필터 데이터를 딕셔너리로 전달
+    total_items = get_total_item_count(filters.dict())
+
+    return data, total_items
 
 
 

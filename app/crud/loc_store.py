@@ -3,21 +3,88 @@ from app.db.connect import get_db_connection
 # crud/loc_store.py
 
 
-def get_filtered_store(filters, page, limit, sort_by, order):
-    """주어진 필터 조건을 바탕으로 데이터를 조회하는 함수"""
-    
-    # 여기서 직접 DB 연결을 설정
-    connection = get_db_connection()  # DB 연결 함수
+def get_filtered_loc_store(filters: dict):
+
+    connection = get_db_connection()
     cursor = None
 
     try:
-        # 기본 쿼리 생성
         query = """
-            SELECT temp.loc_store_id, temp.store_name, temp.branch_name, temp.road_name_address, 
-                   temp.large_category_name, temp.medium_category_name, temp.small_category_name, temp.industry_name,
-                   city.city_name AS city_name, 
-                   district.district_name AS district_name, 
-                   sub_district.sub_district_name AS sub_district_name
+                SELECT 
+                    temp.loc_store_id, temp.store_name, temp.branch_name, temp.road_name_address,
+                    temp.large_category_name, temp.medium_category_name, temp.small_category_name,
+                    temp.industry_name, temp.building_name, temp.new_postal_code, temp.dong_info, temp.floor_info,
+                    temp.unit_info, temp.Y_Q, temp.CREATED_AT, temp.UPDATED_AT,
+                    city.city_name AS city_name, 
+                    district.district_name AS district_name, 
+                    sub_district.sub_district_name AS sub_district_name
+                FROM temp
+                JOIN city ON temp.city_id = city.city_id
+                JOIN district ON temp.district_id = district.district_id
+                JOIN sub_district ON temp.sub_district_id = sub_district.sub_district_id
+                WHERE 1=1
+            """
+        query_params = []
+
+        if filters.get("city") is not None:
+            query += " AND temp.city_id = %s"
+            query_params.append(filters["city"])
+
+        if filters.get("district") is not None:
+            query += " AND temp.district_id = %s"
+            query_params.append(filters["district"])
+
+        if filters.get("subDistrict") is not None:
+            query += " AND temp.sub_district_id = %s"
+            query_params.append(filters["subDistrict"])
+        
+        if filters.get("selectedQuarterMin") is not None:
+            query += " AND temp.Y_Q >= %s"
+            query_params.append(filters["selectedQuarterMin"])
+        
+        if filters.get("selectedQuarterMax") is not None:
+            query += " AND temp.Y_Q <= %s"
+            query_params.append(filters["selectedQuarterMax"])
+        
+        if filters.get("storeName") is not None:
+            query += " AND temp.store_name LIKE %s"
+            query_params.append(filters["storeName"])
+
+
+        # 페이징 정보 처리
+        page = filters.get("page", 1)  # 기본값 1
+        page_size = filters.get("page_size", 20)  # 기본값 20
+        offset = (page - 1) * page_size
+
+        # 페이징을 위한 LIMIT과 OFFSET 추가
+        query += " LIMIT %s OFFSET %s"
+        query_params.append(page_size)  # LIMIT 값 (page_size)
+        query_params.append(offset)  # OFFSET 값 (건너뛸 데이터 수)
+
+        # 쿼리 실행
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query, query_params)
+        result = cursor.fetchall()
+        print(result)
+        print(query)
+        print(query_params)
+
+        return result
+    
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
+
+    
+# CRUD 레이어에서 필터 조건에 맞는 총 데이터 개수를 가져오는 함수
+def get_total_item_count(filters: dict):
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)  # DictCursor 사용
+
+    try:
+        query = """
+            SELECT COUNT(*) as total_items
             FROM temp
             JOIN city ON temp.city_id = city.city_id
             JOIN district ON temp.district_id = district.district_id
@@ -25,64 +92,43 @@ def get_filtered_store(filters, page, limit, sort_by, order):
             WHERE 1=1
         """
         
+        # 필터 적용 부분
         query_params = []
 
-        # 필터 조건이 있을 경우 쿼리에 추가
-        if "store_name" in filters and filters["store_name"]:
-            query += " AND temp.store_name ILIKE %s"
-            query_params.append(f"%{filters['store_name']}%")  # 부분 검색을 위해 LIKE 사용
-
-        if "city" in filters and filters["city"]:
+        if filters.get("city") is not None:
             query += " AND temp.city_id = %s"
             query_params.append(filters["city"])
 
-        if "district" in filters and filters["district"]:
+        if filters.get("district") is not None:
             query += " AND temp.district_id = %s"
             query_params.append(filters["district"])
 
-        if "sub_district" in filters and filters["sub_district"]:
+        if filters.get("subDistrict") is not None:
             query += " AND temp.sub_district_id = %s"
-            query_params.append(filters["sub_district"])
+            query_params.append(filters["subDistrict"])
         
-        if "selectedQuarter" in filters and filters["selectedQuarter"]:
-            query += " AND temp.Y_Q = %s"
-            query_params.append(filters["selectedQuarter"])
+        if filters.get("selectedQuarterMin") is not None:
+            query += " AND temp.Y_Q >= %s"
+            query_params.append(filters["selectedQuarterMin"])
+        
+        if filters.get("selectedQuarterMax") is not None:
+            query += " AND temp.Y_Q <= %s"
+            query_params.append(filters["selectedQuarterMax"])
+        
+        if filters.get("storeName") is not None:
+            query += " AND temp.store_name LIKE %s"
+            query_params.append(filters["storeName"])
 
-        # 정렬 조건이 있을 경우 추가 (기본값: store_name 오름차순)
-        sort_by = filters.get("sort_by", "store_name")
-        order = filters.get("order", "asc").lower()
-        if order not in ["asc", "desc"]:
-            order = "asc"  # 기본값으로 설정
 
-        query += f" ORDER BY {sort_by} {order.upper()}"
-
-        # 페이징 처리 (limit와 offset)
-        page = filters.get("page", 1)
-        limit = filters.get("limit", 20)
-        offset = (page - 1) * limit
-
-        query += " LIMIT %s OFFSET %s"
-        query_params.extend([limit, offset])
-
-        # 쿼리 실행
-        cursor = connection.cursor()
+        # 총 데이터 개수 쿼리 실행
         cursor.execute(query, query_params)
-        
-        # 결과 가져오기
-        results = cursor.fetchall()
+        total_items = cursor.fetchone()['total_items']
 
-        return results
-
-    except Exception as e:
-        print(f"데이터베이스 조회 중 오류 발생: {e}")
-        return []
+        return total_items
 
     finally:
-        if cursor:
-            cursor.close()
+        cursor.close()
         connection.close()
-
-
 
 
 
