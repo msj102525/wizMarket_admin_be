@@ -3,10 +3,11 @@
 # .venv\Scripts\activate  # 가상 환경 활성화
 # $env:PYTHONPATH = "C:\Users\jyes_dev\Desktop\````\`````\wizMarket_back" # 파이썬 경로 수정, 자기 프로젝트 경로로 수정
 # $env:PYTHONPATH = "C:\Users\jyes_dev\Desktop\doorwinbell\project_wiz\wizMarket_back"
-# $env:PYTHONPATH = "C:\workspace\python\wizMarket_back\app"
+# $env:PYTHONPATH = "C:\workspace\python\wizMarket_back"
 
 # python.exe -m pip install --upgrade pip
 # pip install -r requirements.txt  # 필수 패키지 설치
 
 # 터미널 프로젝트루트디렉토리에서 python app/main.py 로 실행
 # 또는 터미널에서 uvicorn app.main:app --reload 으로 실행
+# python .\app\main.py
