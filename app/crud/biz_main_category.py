@@ -63,13 +63,13 @@ def get_main_category_name_by_main_category_id(main_category_id: int) -> str:
         close_connection(connection)
 
 
-def get_all_main_category() -> List[BizMainCategoryOutput]:
+def get_all_main_category(reference_id: int) -> List[BizMainCategoryOutput]:
     connection = get_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             # Fetch all main categories
-            select_query = "SELECT * FROM biz_main_category;"
-            cursor.execute(select_query)
+            select_query = "SELECT * FROM biz_main_category WHERE reference_id = %s;"
+            cursor.execute(select_query, (reference_id,))
             rows = cursor.fetchall()
 
             # Fetch sub category counts
