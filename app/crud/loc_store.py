@@ -65,9 +65,7 @@ def get_filtered_loc_store(filters: dict):
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         result = cursor.fetchall()
-        print(result)
-        print(query)
-        print(query_params)
+
 
         return result
     
@@ -84,7 +82,14 @@ def get_total_item_count(filters: dict):
 
     try:
         query = """
-            SELECT COUNT(*) as total_items
+            SELECT 
+                temp.loc_store_id, temp.store_name, temp.branch_name, temp.road_name_address,
+                temp.large_category_name, temp.medium_category_name, temp.small_category_name,
+                temp.industry_name, temp.building_name, temp.new_postal_code, temp.dong_info, temp.floor_info,
+                temp.unit_info, temp.Y_Q, temp.CREATED_AT, temp.UPDATED_AT,
+                city.city_name AS city_name, 
+                district.district_name AS district_name, 
+                sub_district.sub_district_name AS sub_district_name
             FROM temp
             JOIN city ON temp.city_id = city.city_id
             JOIN district ON temp.district_id = district.district_id
@@ -121,8 +126,11 @@ def get_total_item_count(filters: dict):
 
 
         # 총 데이터 개수 쿼리 실행
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
-        total_items = cursor.fetchone()['total_items']
+        total_items = cursor.fetchall()
+
+        print(type(total_items))
 
         return total_items
 
