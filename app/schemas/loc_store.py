@@ -8,6 +8,9 @@ class FilterRequest(BaseModel):
     storeName: Optional[str] = None
     selectedQuarterMin: Optional[str] = None
     selectedQuarterMax: Optional[str] = None
+    mainCategory: Optional[str] = None
+    subCategory: Optional[str] = None
+    detailCategory: Optional[str] = None
     page: Optional[int] = 1  # 페이지 번호 (기본값 1)
     page_size: Optional[int] = 20  # 페이지 크기 (기본값 20)
 

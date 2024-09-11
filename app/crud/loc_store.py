@@ -48,8 +48,24 @@ def get_filtered_loc_store(filters: dict):
         
         if filters.get("storeName") is not None:
             query += " AND temp.store_name LIKE %s"
-            query_params.append(filters["storeName"])
+            query_params.append(f"%{filters['storeName']}%")
 
+        selected_quarter_min = filters.get("selectedQuarterMin")
+        threshold_quarter = "2023.3/4"
+
+        # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
+        if selected_quarter_min and selected_quarter_min >= threshold_quarter:
+            if filters.get('mainCategory') is not None:
+                query += " AND temp.large_category_code = %s "
+                query_params.append(filters["mainCategory"])
+
+            if filters.get('subCategory') is not None:
+                query += " AND temp.medium_category_code = %s "
+                query_params.append(filters["subCategory"])
+
+            if filters.get('detailCategory') is not None:
+                query += " AND temp.small_category_code = %s "
+                query_params.append(filters["detailCategory"])
 
         # 페이징 정보 처리
         page = filters.get("page", 1)  # 기본값 1
@@ -65,7 +81,7 @@ def get_filtered_loc_store(filters: dict):
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         result = cursor.fetchall()
-
+        print(query)
 
         return result
     
@@ -122,7 +138,24 @@ def get_total_item_count(filters: dict):
         
         if filters.get("storeName") is not None:
             query += " AND temp.store_name LIKE %s"
-            query_params.append(filters["storeName"])
+            query_params.append(f"%{filters['storeName']}%")
+
+        selected_quarter_min = filters.get("selectedQuarterMin")
+        threshold_quarter = "2023.3/4"
+
+        # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
+        if selected_quarter_min and selected_quarter_min >= threshold_quarter:
+            if filters.get('mainCategory') is not None:
+                query += " AND temp.large_category_code = %s "
+                query_params.append(filters["mainCategory"])
+
+            if filters.get('subCategory') is not None:
+                query += " AND temp.medium_category_code = %s "
+                query_params.append(filters["subCategory"])
+
+            if filters.get('detailCategory') is not None:
+                query += " AND temp.small_category_code = %s "
+                query_params.append(filters["detailCategory"])
 
 
         # 총 데이터 개수 쿼리 실행
