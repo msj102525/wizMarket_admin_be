@@ -65,28 +65,71 @@ def find_previous_quarter_folder(root_dir):
     return None
 
 
+# 특정 분기 인서트 ###################################
+def get_specific_quarter(year, quarter):
+    """지정된 연도와 분기를 'YYYY.Q/4' 형식으로 반환하는 함수."""
+    return f"{year}.{quarter}/4"
+
+
+def find_specific_quarter_folder(root_dir, year, quarter):
+    """지정된 연도와 분기에 해당하는 폴더명을 찾아 반환하는 함수."""
+    specific_quarter = get_specific_quarter(year, quarter)
+    specific_quarter_folder = convert_to_folder_quarter_format(specific_quarter)
+
+    for folder_name in os.listdir(root_dir):
+        if specific_quarter_folder in folder_name:
+            return os.path.join(root_dir, folder_name)
+
+    return None
+
+#########################################################
 
 # 2. 데이터 처리 및 로드
-def process_csv_files():
+# def process_csv_files():
+def process_csv_files(year, quarter):
 
     connection = get_db_connection()
 
-    # 1. 저번 분기 계산
-    previous_quarter = get_previous_quarter()
+    # # 1. 저번 분기 계산
+    # previous_quarter = get_previous_quarter()
     
 
-    # 2. 데이터베이스에 저번 분기 데이터가 있는지 확인 (crud/loc_store.py 함수 사용)
-    exists = check_previous_quarter_data_exists(connection, previous_quarter)
+    # # 2. 데이터베이스에 저번 분기 데이터가 있는지 확인 (crud/loc_store.py 함수 사용)
+    # exists = check_previous_quarter_data_exists(connection, previous_quarter)
+    # if exists:
+    #     print(f"저번 분기({previous_quarter}) 데이터가 이미 존재합니다. 인서트 생략.")
+    #     return
+    
+
+    # # 3. 디렉토리에서 저번 분기 폴더를 찾음
+    # quarter_folder = find_previous_quarter_folder(root_dir)
+    # if not quarter_folder:
+    #     print(f"저번 분기({previous_quarter})에 해당하는 폴더를 찾을 수 없습니다.")
+    #     return
+
+
+
+############################################## 특정 분기 인서트
+
+
+    # 1. 지정된 분기 계산
+    specific_quarter = get_specific_quarter(year, quarter)
+
+    # 2. 데이터베이스에 지정된 분기 데이터가 있는지 확인
+    exists = check_previous_quarter_data_exists(connection, specific_quarter)
     if exists:
-        print(f"저번 분기({previous_quarter}) 데이터가 이미 존재합니다. 인서트 생략.")
+        print(f"지정된 분기({specific_quarter}) 데이터가 이미 존재합니다. 인서트 생략.")
+        return
+
+    # 3. 디렉토리에서 지정된 분기 폴더를 찾음
+    quarter_folder = find_specific_quarter_folder(root_dir, year, quarter)
+    if not quarter_folder:
+        print(f"지정된 분기({specific_quarter})에 해당하는 폴더를 찾을 수 없습니다.")
         return
     
 
-    # 3. 디렉토리에서 저번 분기 폴더를 찾음
-    quarter_folder = find_previous_quarter_folder(root_dir)
-    if not quarter_folder:
-        print(f"저번 분기({previous_quarter})에 해당하는 폴더를 찾을 수 없습니다.")
-        return
+
+######################################################
 
 
 
@@ -113,7 +156,7 @@ def process_csv_files():
 
                     try:
                         # 파일을 읽어서 데이터프레임 생성
-                        df = pd.read_csv(file_path, dtype=str, encoding='utf-8')
+                        df = pd.read_csv(file_path, dtype=str, encoding='cp949')
 
                         # 빈칸을 모두 None (즉, NULL)으로 처리
                         df = df.where(pd.notnull(df), None)
@@ -248,5 +291,5 @@ def shutdown_windows():
     os.system("shutdown /s /t 1")
 
 if __name__ == "__main__":
-    process_csv_files()
+    process_csv_files(2023,1)
     # shutdown_windows()

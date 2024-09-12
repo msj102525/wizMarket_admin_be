@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class BizSubCategory(BaseModel):
     biz_sub_category_id: int
     biz_main_category_id: int
-    biz_sub_categoty_name: str
+    biz_sub_category_name: str
 
     class Config:
         from_attributes = True

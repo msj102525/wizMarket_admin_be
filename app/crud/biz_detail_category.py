@@ -149,7 +149,7 @@ def get_all_biz_detail_category_by_biz_sub_category_id(
                 if row.get("BIZ_SUB_CATEGORY_ID") != 2:
                     biz_main_category = BizDetailCategoryOutput(
                         biz_detail_category_id=row.get("BIZ_DETAIL_CATEGORY_ID"),
-                        biz_detail_categoty_name=row.get("BIZ_DETAIL_CATEGORY_NAME"),
+                        biz_detail_category_name=row.get("BIZ_DETAIL_CATEGORY_NAME"),
                     )
                     results.append(biz_main_category)
 

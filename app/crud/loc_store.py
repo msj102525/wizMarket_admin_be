@@ -67,6 +67,8 @@ def get_filtered_loc_store(filters: dict):
                 query += " AND temp.small_category_code = %s "
                 query_params.append(filters["detailCategory"])
 
+        query += " ORDER BY temp.Y_Q ASC"
+
         # 페이징 정보 처리
         page = filters.get("page", 1)  # 기본값 1
         page_size = filters.get("page_size", 20)  # 기본값 20
