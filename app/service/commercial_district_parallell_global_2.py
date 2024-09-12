@@ -131,81 +131,119 @@ def handle_unexpected_alert(driver):
         return False
 
 
-# def get_sub_district_count(start_idx: int, end_idx: int):
-# def get_sub_district_count(city_idx, district_count):
-def get_sub_district_count(city_idx, district_idx):  # 시/군/구 직접 전달 반복문 X
+def get_district_count(city_idx):
     global global_driver
     setup_global_driver()
     try:
-        # for district_idx in tqdm(
-        #     range(start_idx, end_idx), f"{start_idx} : 시/군/구 Progress"
-        # ):
-        # for district_idx in tqdm(
-        #     range(district_count), f"{city_idx} : 시/군/구 Progress"
-        # ):
-        print()
-        try:
-            global_driver.get(BIZ_MAP_URL)
-            wait = WebDriverWait(global_driver, 40)
-            global_driver.implicitly_wait(10)
-            # 서울
-            city_idx = 0
+        # for city_idx in tqdm(range(city_count), desc="시/도 Progress"):
+        print(f"idx: {city_idx}")
 
-            time.sleep(2 + random.random())
+        global_driver.get(BIZ_MAP_URL)
+        wait = WebDriverWait(global_driver, 40)
 
-            # 분석 지역
-            click_element(
-                global_driver,
-                wait,
-                By.XPATH,
-                '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
-            )
+        time.sleep(2 + random.random())
 
-            time.sleep(2 + random.random())
+        # 분석 지역
+        click_element(
+            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+        )
+        time.sleep(2 + random.random())
 
-            city_text = click_element(
-                global_driver,
-                wait,
-                By.XPATH,
-                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
-            )
+        city_text = click_element(
+            wait,
+            By.XPATH,
+            f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+        )
 
-            time.sleep(2 + random.random())
-
-            district_text = click_element(
-                global_driver,
-                wait,
-                By.XPATH,
-                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
-            )
-
-            sub_district_ul = wait.until(
-                EC.presence_of_element_located(
-                    (
-                        By.XPATH,
-                        '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul',
-                    )
+        district_ul = wait.until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul',
                 )
             )
-            sub_district_ul_li = sub_district_ul.find_elements(By.TAG_NAME, "li")
+        )
+        district_ul_li = district_ul.find_elements(By.TAG_NAME, "li")
+        print(f"시/군/구 갯수: {len(district_ul_li)}")
 
-            get_main_category(city_idx, district_idx, len(sub_district_ul_li))
-        except UnexpectedAlertPresentException:
-            handle_unexpected_alert(wait._driver)
-        except Exception as e:
-            print(f"Error processing district_idx {district_idx}: {str(e)}")
-            # continue # 반복문일때 활성화 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        finally:
-            pass
+        get_sub_district_count(city_idx, len(district_ul_li))
+    except Exception as e:
+        print(f"Exception occurred: {e}.")
+        return None
+    finally:
+        if global_driver:
+            global_driver.quit()  # 메인 함수에서만 드라이버 종료
+            global_driver = None
+
+
+# def get_sub_district_count(start_idx: int, end_idx: int):
+# def get_sub_district_count(city_idx, district_idx):  # 시/군/구 직접 전달 반복문 X
+def get_sub_district_count(city_idx, district_count):
+    global global_driver
+    setup_global_driver()
+    try:
+        for district_idx in tqdm(
+            range(district_count), f"{city_idx} : 시/군/구 Progress"
+        ):
+            print()
+            try:
+                global_driver.get(BIZ_MAP_URL)
+                wait = WebDriverWait(global_driver, 40)
+                global_driver.implicitly_wait(10)
+
+                time.sleep(2 + random.random())
+
+                # 분석 지역
+                click_element(
+                    global_driver,
+                    wait,
+                    By.XPATH,
+                    '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
+                )
+
+                time.sleep(2 + random.random())
+
+                city_text = click_element(
+                    global_driver,
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+                )
+
+                time.sleep(2 + random.random())
+
+                district_text = click_element(
+                    global_driver,
+                    wait,
+                    By.XPATH,
+                    f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+                )
+
+                sub_district_ul = wait.until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            '//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul',
+                        )
+                    )
+                )
+                sub_district_ul_li = sub_district_ul.find_elements(By.TAG_NAME, "li")
+
+                get_main_category(city_idx, district_idx, len(sub_district_ul_li))
+            except UnexpectedAlertPresentException:
+                handle_unexpected_alert(wait._driver)
+            except Exception as e:
+                print(f"Error processing district_idx {district_idx}: {str(e)}")
+                continue  # 반복문일때 활성화 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            finally:
+                pass
     except Exception as e:
         print(
             f"Exception occurred get_sub_district_count(), district_idx {district_idx}: {e}."
         )
         return None
     finally:
-        if global_driver:
-            global_driver.quit()  # 메인 함수에서만 드라이버 종료
-            global_driver = None
+        pass
 
 
 def get_main_category(city_idx, district_idx, sub_district_count):
