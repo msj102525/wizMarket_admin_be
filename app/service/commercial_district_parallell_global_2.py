@@ -1362,53 +1362,11 @@ def search_commercial_district(
         pass
 
 
-# 원래 반복문 실행구문
-"""
-def execute_task_in_thread(start, end):
-    with ThreadPoolExecutor(max_workers=18) as executor:
-        futures = [
-            executor.submit(get_sub_district_count, start, end),
-        ]
-        for future in futures:
-            future.result()
-
-
-def execute_parallel_tasks():
-    start_time = time.time()
-    print(
-        f"Total execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
-    )
-
-    ranges = [
-        (0, 2),
-        (2, 4),
-        (4, 6),
-        (6, 8),
-        (8, 10),
-        (10, 12),
-        (12, 14),
-        (14, 16),
-        (16, 18),
-        (18, 20),
-        (20, 22),
-        # (22, 25),
-    ]
-
-    with Pool(processes=len(ranges)) as pool:
-        pool.starmap(execute_task_in_thread, ranges)
-
-    end_time = time.time()
-    print(
-        f"Total execution finished at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}"
-    )
-    print(f"Total execution time: {end_time - start_time} seconds")
-"""
-
-
 def execute_task_in_thread(value):
     with ThreadPoolExecutor(max_workers=18) as executor:
         futures = [
-            executor.submit(get_sub_district_count, 0, value),
+            # executor.submit(get_sub_district_count, 0, value),
+            executor.submit(get_district_count, value),
         ]
         for future in futures:
             future.result()
@@ -1420,8 +1378,8 @@ def execute_parallel_tasks():
         f"Total execution started at: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}"
     )
 
-    # values = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23, 24, 25]
-    values = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 22, 23, 24]
+    # values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
     with Pool(processes=len(values)) as pool:
         pool.starmap(execute_task_in_thread, [(value,) for value in values])
@@ -1431,8 +1389,8 @@ if __name__ == "__main__":
     execute_parallel_tasks()
     print(f"상권분석 END")
 
-    # # 컴퓨터 종료 명령어 (운영체제에 따라 다름)
-    # if os.name == "nt":  # Windows
-    #     os.system("shutdown /s /t 1")
-    # else:  # Unix-based (Linux, macOS)
-    #     os.system("shutdown -h now")
+    # 컴퓨터 종료 명령어 (운영체제에 따라 다름)
+    if os.name == "nt":  # Windows
+        os.system("shutdown /s /t 1")
+    else:  # Unix-based (Linux, macOS)
+        os.system("shutdown -h now")
