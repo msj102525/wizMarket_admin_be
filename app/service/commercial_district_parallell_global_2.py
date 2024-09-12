@@ -145,15 +145,21 @@ def get_district_count(city_idx):
 
         # 분석 지역
         click_element(
-            wait, By.XPATH, '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]'
+            global_driver,
+            wait,
+            By.XPATH,
+            '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
         )
+
         time.sleep(2 + random.random())
 
         city_text = click_element(
+            global_driver,
             wait,
             By.XPATH,
-            f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]',
+            f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
         )
+
 
         district_ul = wait.until(
             EC.presence_of_element_located(
