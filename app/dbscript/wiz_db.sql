@@ -31,6 +31,10 @@ DROP TABLE IF EXISTS `CRIME`;
 
 DROP TABLE IF EXISTS `CLASSIFICATION`;
 
+DROP TABLE IF EXISTS `BUSINESS_AREA_CATEGORY`;
+
+DROP TABLE IF EXISTS `REFERENCE`;
+
 -- 테이블 생성
 CREATE TABLE
     `CITY` (
@@ -439,6 +443,38 @@ INSERT INTO
     `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
 VALUES
     ('나이스 비즈맵', 'https://m.nicebizmap.co.kr/');
+
+INSERT INTO
+    `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
+VALUES
+    ('표준산업분류코드', 'https://kostat.go.kr/board.es?mid=a10403040000&bid=107&act=view&list_no=430619&tag=&nPage=1&ref_bid=');
+
+INSERT INTO
+    `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
+VALUES
+    ('상권정보분류표', 'https://sg.sbiz.or.kr/godo/noticeInfo/announcementView.sg?id=4570&page=1');
+
+
+
+-- 상권정보분류표 테이블 create
+
+CREATE TABLE `BUSINESS_AREA_CATEGORY` (
+   `BUSINESS_AREA_CATEGORY_ID` int NOT NULL AUTO_INCREMENT COMMENT '상권 분류 고유 ID',
+   `LARGE_CATEGORY_CODE` varchar(50) COLLATE utf8mb3_bin NOT NULL COMMENT '대분류 코드',
+   `LARGE_CATEGORY_NAME` varchar(255) COLLATE utf8mb3_bin NOT NULL COMMENT '대분류 명칭',
+   `MEDIUM_CATEGORY_CODE` varchar(50) COLLATE utf8mb3_bin NOT NULL COMMENT '중분류 코드',
+   `MEDIUM_CATEGORY_NAME` varchar(255) COLLATE utf8mb3_bin NOT NULL COMMENT '중분류 명칭',
+   `SMALL_CATEGORY_CODE` varchar(50) COLLATE utf8mb3_bin NOT NULL COMMENT '소분류 코드',
+   `SMALL_CATEGORY_NAME` varchar(255) COLLATE utf8mb3_bin NOT NULL COMMENT '소분류 명칭',
+   `CREATED_AT` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 일시',
+   `UPDATED_AT` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
+   `REFERENCE_ID` int DEFAULT NULL,
+   PRIMARY KEY (`BUSINESS_AREA_CATEGORY_ID`),
+   KEY `fk_reference_category` (`REFERENCE_ID`),
+   CONSTRAINT `fk_reference_category` FOREIGN KEY (`REFERENCE_ID`) REFERENCES `reference` (`REFERENCE_ID`) ON DELETE CASCADE ON UPDATE CASCADE
+ );
+
+
 
 -- 비즈맵 메인 카테고리 테이블 수정
 -- 컬럼 추가
