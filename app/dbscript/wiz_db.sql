@@ -457,7 +457,6 @@ VALUES
     ('상권정보분류표', 'https://sg.sbiz.or.kr/godo/noticeInfo/announcementView.sg?id=4570&page=1');
 
 
-
 -- 상권정보분류표 테이블 create
 
 CREATE TABLE `BUSINESS_AREA_CATEGORY` (
@@ -478,24 +477,6 @@ CREATE TABLE `BUSINESS_AREA_CATEGORY` (
 
 
 
--- 비즈맵 메인 카테고리 테이블 수정
--- 컬럼 추가
-ALTER TABLE `BIZ_MAIN_CATEGORY`
-ADD COLUMN `REFERENCE_ID` INT NOT NULL COMMENT '출처 ID';
-
-UPDATE `BIZ_MAIN_CATEGORY`
-SET
-    `REFERENCE_ID` = 1
-WHERE
-    `REFERENCE_ID` NOT IN (
-        SELECT
-            `REFERENCE_ID`
-        FROM
-            `REFERENCE`
-    );
-
--- 외래키 제약조건 추가
-ALTER TABLE `BIZ_MAIN_CATEGORY` ADD CONSTRAINT `fk_reference_id` FOREIGN KEY (`REFERENCE_ID`) REFERENCES `REFERENCE` (`REFERENCE_ID`) ON DELETE RESTRICT;
 
 -- 외래 키 제약 조건을 다시 활성화
 SET
