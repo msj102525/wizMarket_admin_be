@@ -11,19 +11,17 @@ from app.db.connect import (
 )
 
 
-def get_all_detail_category_count() -> int:
+def get_all_sub_sub_detail_category_count() -> int:
     connection = get_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             select_query = """
-            SELECT COUNT(BUSINESS_AREA_CATEGORY_ID) COUNT
-            FROM BUSINESS_AREA_CATEGORY
+            SELECT COUNT(CLASSIFICATION_ID) COUNT
+            FROM CLASSIFICATION
             """
             cursor.execute(select_query)
             result = cursor.fetchone()
 
-            # print(result)
-            # print(result["COUNT"])
             return result["COUNT"]
     except Exception as e:
         print(f"get_all_detail_category_count Error: {e}")
@@ -33,4 +31,4 @@ def get_all_detail_category_count() -> int:
 
 
 if __name__ == "__main__":
-    print(get_all_detail_category_count())
+    print(get_all_sub_sub_detail_category_count())

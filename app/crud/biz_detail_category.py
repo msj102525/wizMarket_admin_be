@@ -202,6 +202,28 @@ def get__all_biz_categories_id_like_biz_detail_category_name(
         close_connection(connection)
 
 
+def get_all_detail_category_count() -> int:
+    connection = get_db_connection()
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            select_query = """
+            SELECT COUNT(BIZ_DETAIL_CATEGORY_ID) COUNT
+            FROM BIZ_DETAIL_CATEGORY
+            """
+            cursor.execute(select_query)
+            result = cursor.fetchone()
+
+            # print(result)
+            # print(result["COUNT"])
+            return result["COUNT"]
+    except Exception as e:
+        print(f"get_all_detail_category_count Error: {e}")
+        raise HTTPException(status_code=500, detail="Database query failed")
+    finally:
+        close_connection(connection)
+
+
 if __name__ == "__main__":
     # print(get_or_create_biz_detail_category_id(2, "막창구이"))
-    print(get_biz_categories_id_by_biz_detail_category_name("호프/맥주"))
+    # print(get_biz_categories_id_by_biz_detail_category_name("호프/맥주"))
+    print(get_all_detail_category_count())
