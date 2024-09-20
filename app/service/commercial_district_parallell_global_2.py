@@ -189,7 +189,7 @@ def get_sub_district_count(city_idx, district_count):
     setup_global_driver()
     try:
         for district_idx in tqdm(
-            range(district_count), f"{city_idx} : 시/군/구 Progress"
+            range(2, district_count), f"{city_idx} : 시/군/구 Progress"
         ):
             print()
             try:
@@ -1385,7 +1385,7 @@ def execute_parallel_tasks():
     )
 
     # values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-    values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    values = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
     with Pool(processes=len(values)) as pool:
         pool.starmap(execute_task_in_thread, [(value,) for value in values])
