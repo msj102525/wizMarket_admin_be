@@ -7,7 +7,9 @@ from app.api.endpoints import (
     biz_main_category,
     biz_sub_category,
     cai_info,
+    category,
     city,
+    classification,
     district,
     hello,
     reference,
@@ -55,6 +57,8 @@ app.include_router(biz_main_category.router, prefix="/biz_main_category")
 app.include_router(biz_sub_category.router, prefix="/biz_sub_category")
 app.include_router(biz_detail_category.router, prefix="/biz_detail_category")
 app.include_router(business_area_category.router, prefix="/business_area_category")
+app.include_router(category.router, prefix="/category")
+app.include_router(classification.router, prefix="/classification")
 
 if __name__ == "__main__":
     import uvicorn

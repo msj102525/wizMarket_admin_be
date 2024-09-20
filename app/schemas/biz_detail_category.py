@@ -1,3 +1,4 @@
+from typing import Union
 from pydantic import BaseModel
 
 
@@ -11,7 +12,7 @@ class BizDetailCategory(BaseModel):
 
 
 class BizDetailCategoryOutput(BaseModel):
-    biz_detail_category_id: int
+    biz_detail_category_id: Union[int, str]
     biz_detail_category_name: str
 
     class Config:

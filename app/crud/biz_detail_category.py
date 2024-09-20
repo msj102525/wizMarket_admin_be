@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 from fastapi import HTTPException
 import pymysql
@@ -10,7 +10,10 @@ from app.db.connect import (
     commit,
     rollback,
 )
-from app.schemas.biz_detail_category import BizDetailCategoryOutput
+from app.schemas.biz_detail_category import (
+    BizDetailCategoryOutput,
+)
+from app.schemas.category import CategoryListOutput
 
 
 def get_or_create_biz_detail_category_id(
@@ -223,7 +226,71 @@ def get_all_detail_category_count() -> int:
         close_connection(connection)
 
 
-if __name__ == "__main__":
-    # print(get_or_create_biz_detail_category_id(2, "막창구이"))
-    # print(get_biz_categories_id_by_biz_detail_category_name("호프/맥주"))
-    print(get_all_detail_category_count())
+def select_all_biz_category_by_dynamic_query(
+    main_category_id: Optional[str] = None,
+    sub_category_id: Optional[int] = None,
+    detail_category_id: Optional[int] = None,
+) -> List[CategoryListOutput]:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+    results: List[CategoryListOutput] = []
+
+    try:
+        if connection.open:
+            select_query = """
+                SELECT
+                    BDC.BIZ_DETAIL_CATEGORY_ID,
+                    BMC.BIZ_MAIN_CATEGORY_NAME,
+                    BSC.BIZ_SUB_CATEGORY_NAME,
+                    BDC.BIZ_DETAIL_CATEGORY_NAME
+                FROM
+                    BIZ_DETAIL_CATEGORY BDC
+                JOIN
+                    BIZ_SUB_CATEGORY BSC ON BDC.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
+                JOIN
+                    BIZ_MAIN_CATEGORY BMC ON BSC.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
+            """
+
+            params = []
+
+            if main_category_id is not None:
+                select_query += " AND BSC.BIZ_MAIN_CATEGORY_ID = %s"
+                params.append(main_category_id)
+            if sub_category_id is not None:
+                select_query += " AND BDC.BIZ_SUB_CATEGORY_ID = %s"
+                params.append(sub_category_id)
+            if detail_category_id is not None:
+                select_query += " AND BDC.BIZ_DETAIL_CATEGORY_ID = %s"
+                params.append(detail_category_id)
+
+            select_query += " ORDER BY BDC.BIZ_DETAIL_CATEGORY_ID DESC"
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query, tuple(params))
+
+            rows = cursor.fetchall()
+
+            for row in rows:
+                rising_business_ouput = CategoryListOutput(
+                    category_id=row.get("BIZ_DETAIL_CATEGORY_ID"),
+                    main_category_name=row.get("BIZ_MAIN_CATEGORY_NAME"),
+                    sub_category_name=row.get("BIZ_SUB_CATEGORY_NAME"),
+                    detail_category_name=row.get("BIZ_DETAIL_CATEGORY_NAME"),
+                )
+                results.append(rising_business_ouput)
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+        rollback(connection)
+    except Exception as e:
+        logger.error(f"Unexpected Error: {e}")
+        rollback(connection)
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results

@@ -12,7 +12,6 @@ router = APIRouter()
 def get_all_biz_main_category():
     try:
         results = service_get_all_reference()
-        print(f"end: {results}")
 
         return results
     except HTTPException as http_ex:
