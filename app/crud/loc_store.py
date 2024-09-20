@@ -11,43 +11,43 @@ def get_filtered_loc_store(filters: dict):
     try:
         query = """
                 SELECT 
-                    temp.loc_store_id, temp.store_name, temp.branch_name, temp.road_name_address,
-                    temp.large_category_name, temp.medium_category_name, temp.small_category_name,
-                    temp.industry_name, temp.building_name, temp.new_postal_code, temp.dong_info, temp.floor_info,
-                    temp.unit_info, temp.Y_Q, temp.CREATED_AT, temp.UPDATED_AT,
+                    loc_store.loc_store_id, loc_store.store_name, loc_store.branch_name, loc_store.road_name_address,
+                    loc_store.large_category_name, loc_store.medium_category_name, loc_store.small_category_name,
+                    loc_store.industry_name, loc_store.building_name, loc_store.new_postal_code, loc_store.dong_info, loc_store.floor_info,
+                    loc_store.unit_info, loc_store.Y_Q, loc_store.CREATED_AT, loc_store.UPDATED_AT,
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name
-                FROM temp
-                JOIN city ON temp.city_id = city.city_id
-                JOIN district ON temp.district_id = district.district_id
-                JOIN sub_district ON temp.sub_district_id = sub_district.sub_district_id
+                FROM loc_store
+                JOIN city ON loc_store.city_id = city.city_id
+                JOIN district ON loc_store.district_id = district.district_id
+                JOIN sub_district ON loc_store.sub_district_id = sub_district.sub_district_id
                 WHERE 1=1
             """
         query_params = []
 
         if filters.get("city") is not None:
-            query += " AND temp.city_id = %s"
+            query += " AND loc_store.city_id = %s"
             query_params.append(filters["city"])
 
         if filters.get("district") is not None:
-            query += " AND temp.district_id = %s"
+            query += " AND loc_store.district_id = %s"
             query_params.append(filters["district"])
 
         if filters.get("subDistrict") is not None:
-            query += " AND temp.sub_district_id = %s"
+            query += " AND loc_store.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
         
         if filters.get("selectedQuarterMin") is not None:
-            query += " AND temp.Y_Q >= %s"
+            query += " AND loc_store.Y_Q >= %s"
             query_params.append(filters["selectedQuarterMin"])
         
         if filters.get("selectedQuarterMax") is not None:
-            query += " AND temp.Y_Q <= %s"
+            query += " AND loc_store.Y_Q <= %s"
             query_params.append(filters["selectedQuarterMax"])
         
         if filters.get("storeName") is not None:
-            query += " AND temp.store_name LIKE %s"
+            query += " AND loc_store.store_name LIKE %s"
             query_params.append(f"%{filters['storeName']}%")
 
         selected_quarter_min = filters.get("selectedQuarterMin")
@@ -56,18 +56,18 @@ def get_filtered_loc_store(filters: dict):
         # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
         if selected_quarter_min and selected_quarter_min >= threshold_quarter:
             if filters.get('mainCategory') is not None:
-                query += " AND temp.large_category_code = %s "
+                query += " AND loc_store.large_category_code = %s "
                 query_params.append(filters["mainCategory"])
 
             if filters.get('subCategory') is not None:
-                query += " AND temp.medium_category_code = %s "
+                query += " AND loc_store.medium_category_code = %s "
                 query_params.append(filters["subCategory"])
 
             if filters.get('detailCategory') is not None:
-                query += " AND temp.small_category_code = %s "
+                query += " AND loc_store.small_category_code = %s "
                 query_params.append(filters["detailCategory"])
 
-        query += " ORDER BY temp.Y_Q ASC"
+        query += " ORDER BY loc_store.Y_Q ASC"
 
         # 페이징 정보 처리
         page = filters.get("page", 1)  # 기본값 1
@@ -101,17 +101,17 @@ def get_total_item_count(filters: dict):
     try:
         query = """
             SELECT 
-                temp.loc_store_id, temp.store_name, temp.branch_name, temp.road_name_address,
-                temp.large_category_name, temp.medium_category_name, temp.small_category_name,
-                temp.industry_name, temp.building_name, temp.new_postal_code, temp.dong_info, temp.floor_info,
-                temp.unit_info, temp.Y_Q, temp.CREATED_AT, temp.UPDATED_AT,
+                loc_store.loc_store_id, loc_store.store_name, loc_store.branch_name, loc_store.road_name_address,
+                loc_store.large_category_name, loc_store.medium_category_name, loc_store.small_category_name,
+                loc_store.industry_name, loc_store.building_name, loc_store.new_postal_code, loc_store.dong_info, loc_store.floor_info,
+                loc_store.unit_info, loc_store.Y_Q, loc_store.CREATED_AT, loc_store.UPDATED_AT,
                 city.city_name AS city_name, 
                 district.district_name AS district_name, 
                 sub_district.sub_district_name AS sub_district_name
-            FROM temp
-            JOIN city ON temp.city_id = city.city_id
-            JOIN district ON temp.district_id = district.district_id
-            JOIN sub_district ON temp.sub_district_id = sub_district.sub_district_id
+            FROM loc_store
+            JOIN city ON loc_store.city_id = city.city_id
+            JOIN district ON loc_store.district_id = district.district_id
+            JOIN sub_district ON loc_store.sub_district_id = sub_district.sub_district_id
             WHERE 1=1
         """
         
@@ -119,27 +119,27 @@ def get_total_item_count(filters: dict):
         query_params = []
 
         if filters.get("city") is not None:
-            query += " AND temp.city_id = %s"
+            query += " AND loc_store.city_id = %s"
             query_params.append(filters["city"])
 
         if filters.get("district") is not None:
-            query += " AND temp.district_id = %s"
+            query += " AND loc_store.district_id = %s"
             query_params.append(filters["district"])
 
         if filters.get("subDistrict") is not None:
-            query += " AND temp.sub_district_id = %s"
+            query += " AND loc_store.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
         
         if filters.get("selectedQuarterMin") is not None:
-            query += " AND temp.Y_Q >= %s"
+            query += " AND loc_store.Y_Q >= %s"
             query_params.append(filters["selectedQuarterMin"])
         
         if filters.get("selectedQuarterMax") is not None:
-            query += " AND temp.Y_Q <= %s"
+            query += " AND loc_store.Y_Q <= %s"
             query_params.append(filters["selectedQuarterMax"])
         
         if filters.get("storeName") is not None:
-            query += " AND temp.store_name LIKE %s"
+            query += " AND loc_store.store_name LIKE %s"
             query_params.append(f"%{filters['storeName']}%")
 
         selected_quarter_min = filters.get("selectedQuarterMin")
@@ -148,15 +148,15 @@ def get_total_item_count(filters: dict):
         # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
         if selected_quarter_min and selected_quarter_min >= threshold_quarter:
             if filters.get('mainCategory') is not None:
-                query += " AND temp.large_category_code = %s "
+                query += " AND loc_store.large_category_code = %s "
                 query_params.append(filters["mainCategory"])
 
             if filters.get('subCategory') is not None:
-                query += " AND temp.medium_category_code = %s "
+                query += " AND loc_store.medium_category_code = %s "
                 query_params.append(filters["subCategory"])
 
             if filters.get('detailCategory') is not None:
-                query += " AND temp.small_category_code = %s "
+                query += " AND loc_store.small_category_code = %s "
                 query_params.append(filters["detailCategory"])
 
 
@@ -181,7 +181,7 @@ def check_previous_quarter_data_exists(connection, previous_quarter):
     """저번 분기의 데이터가 DB에 있는지 확인하는 함수"""
     
     # SQL 쿼리 작성 (저번 분기의 데이터가 존재하는지 확인)
-    query = "SELECT COUNT(*) AS count FROM temp WHERE Y_Q = %s"
+    query = "SELECT COUNT(*) AS count FROM loc_store WHERE Y_Q = %s"
     
     with connection.cursor() as cursor:
         cursor.execute(query, (previous_quarter,))
@@ -197,7 +197,7 @@ def insert_data_to_loc_store(connection, data):
     try:
         with connection.cursor() as cursor:
             sql = """
-            INSERT INTO temp (
+            INSERT INTO loc_store (
                 CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID,  
                 StoreBusinessNumber, store_name, branch_name,
                 large_category_code, large_category_name,
