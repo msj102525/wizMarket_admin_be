@@ -2,6 +2,11 @@ import pymysql
 from app.db.connect import get_db_connection
 # crud/loc_store.py
 
+def parse_quarter(quarter_str):
+    year, quarter = quarter_str.split(".")
+    return int(year), int(quarter)
+
+
 
 def get_filtered_loc_store(filters: dict):
 
@@ -14,7 +19,7 @@ def get_filtered_loc_store(filters: dict):
                     loc_store.loc_store_id, loc_store.store_name, loc_store.branch_name, loc_store.road_name_address,
                     loc_store.large_category_name, loc_store.medium_category_name, loc_store.small_category_name,
                     loc_store.industry_name, loc_store.building_name, loc_store.new_postal_code, loc_store.dong_info, loc_store.floor_info,
-                    loc_store.unit_info, loc_store.Y_Q, loc_store.CREATED_AT, loc_store.UPDATED_AT,
+                    loc_store.unit_info, loc_store.info_year, loc_store.info_quarter, loc_store.CREATED_AT, loc_store.UPDATED_AT,
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name
@@ -38,36 +43,43 @@ def get_filtered_loc_store(filters: dict):
             query += " AND loc_store.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
         
-        if filters.get("selectedQuarterMin") is not None:
-            query += " AND loc_store.Y_Q >= %s"
-            query_params.append(filters["selectedQuarterMin"])
-        
-        if filters.get("selectedQuarterMax") is not None:
-            query += " AND loc_store.Y_Q <= %s"
-            query_params.append(filters["selectedQuarterMax"])
+        if filters.get("infoYear") is not None:
+            query += " AND loc_store.info_year = %s"
+            query_params.append(filters["subDistrict"])
+
+        if filters.get("infoQuarter") is not None:
+            query += " AND loc_store.info_quarter = %s"
+            query_params.append(filters["subDistrict"])
         
         if filters.get("storeName") is not None:
             query += " AND loc_store.store_name LIKE %s"
             query_params.append(f"%{filters['storeName']}%")
 
-        selected_quarter_min = filters.get("selectedQuarterMin")
-        threshold_quarter = "2023.3/4"
+        # 기준이 되는 연도와 분기
+        threshold_year = 2023
+        threshold_quarter = 3
+
+        # selectedQuarterMin 값이 infoYear와 infoQuarter로 들어온 경우 비교
+        selected_year_min = filters.get("infoYear")
+        selected_quarter_min = filters.get("infoQuarter")
+
 
         # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
-        if selected_quarter_min and selected_quarter_min >= threshold_quarter:
-            if filters.get('mainCategory') is not None:
-                query += " AND loc_store.large_category_code = %s "
-                query_params.append(filters["mainCategory"])
+        if selected_year_min is not None and selected_quarter_min is not None:
+            if (selected_year_min > threshold_year) or (selected_year_min == threshold_year and selected_quarter_min >= threshold_quarter):
+                if filters.get('mainCategory') is not None:
+                    query += " AND loc_store.large_category_code = %s "
+                    query_params.append(filters["mainCategory"])
 
-            if filters.get('subCategory') is not None:
-                query += " AND loc_store.medium_category_code = %s "
-                query_params.append(filters["subCategory"])
+                if filters.get('subCategory') is not None:
+                    query += " AND loc_store.medium_category_code = %s "
+                    query_params.append(filters["subCategory"])
 
-            if filters.get('detailCategory') is not None:
-                query += " AND loc_store.small_category_code = %s "
-                query_params.append(filters["detailCategory"])
+                if filters.get('detailCategory') is not None:
+                    query += " AND loc_store.small_category_code = %s "
+                    query_params.append(filters["detailCategory"])
 
-        query += " ORDER BY loc_store.Y_Q ASC"
+        query += " ORDER BY loc_store.info_year ASC"
 
         # 페이징 정보 처리
         page = filters.get("page", 1)  # 기본값 1
@@ -104,7 +116,7 @@ def get_total_item_count(filters: dict):
                 loc_store.loc_store_id, loc_store.store_name, loc_store.branch_name, loc_store.road_name_address,
                 loc_store.large_category_name, loc_store.medium_category_name, loc_store.small_category_name,
                 loc_store.industry_name, loc_store.building_name, loc_store.new_postal_code, loc_store.dong_info, loc_store.floor_info,
-                loc_store.unit_info, loc_store.Y_Q, loc_store.CREATED_AT, loc_store.UPDATED_AT,
+                loc_store.unit_info, loc_store.info_year, loc_store.info_quarter, loc_store.CREATED_AT, loc_store.UPDATED_AT,
                 city.city_name AS city_name, 
                 district.district_name AS district_name, 
                 sub_district.sub_district_name AS sub_district_name
@@ -130,34 +142,41 @@ def get_total_item_count(filters: dict):
             query += " AND loc_store.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
         
-        if filters.get("selectedQuarterMin") is not None:
-            query += " AND loc_store.Y_Q >= %s"
-            query_params.append(filters["selectedQuarterMin"])
-        
-        if filters.get("selectedQuarterMax") is not None:
-            query += " AND loc_store.Y_Q <= %s"
-            query_params.append(filters["selectedQuarterMax"])
-        
+        if filters.get("infoYear") is not None:
+            query += " AND loc_store.info_year = %s"
+            query_params.append(filters["subDistrict"])
+
+        if filters.get("infoQuarter") is not None:
+            query += " AND loc_store.info_quarter = %s"
+            query_params.append(filters["subDistrict"])
+                
         if filters.get("storeName") is not None:
             query += " AND loc_store.store_name LIKE %s"
             query_params.append(f"%{filters['storeName']}%")
 
-        selected_quarter_min = filters.get("selectedQuarterMin")
-        threshold_quarter = "2023.3/4"
+        # 기준이 되는 연도와 분기
+        threshold_year = 2023
+        threshold_quarter = 3
+
+        # selectedQuarterMin 값이 infoYear와 infoQuarter로 들어온 경우 비교
+        selected_year_min = filters.get("infoYear")
+        selected_quarter_min = filters.get("infoQuarter")
+
 
         # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
-        if selected_quarter_min and selected_quarter_min >= threshold_quarter:
-            if filters.get('mainCategory') is not None:
-                query += " AND loc_store.large_category_code = %s "
-                query_params.append(filters["mainCategory"])
+        if selected_year_min is not None and selected_quarter_min is not None:
+            if (selected_year_min > threshold_year) or (selected_year_min == threshold_year and selected_quarter_min >= threshold_quarter):
+                if filters.get('mainCategory') is not None:
+                    query += " AND loc_store.large_category_code = %s "
+                    query_params.append(filters["mainCategory"])
 
-            if filters.get('subCategory') is not None:
-                query += " AND loc_store.medium_category_code = %s "
-                query_params.append(filters["subCategory"])
+                if filters.get('subCategory') is not None:
+                    query += " AND loc_store.medium_category_code = %s "
+                    query_params.append(filters["subCategory"])
 
-            if filters.get('detailCategory') is not None:
-                query += " AND loc_store.small_category_code = %s "
-                query_params.append(filters["detailCategory"])
+                if filters.get('detailCategory') is not None:
+                    query += " AND loc_store.small_category_code = %s "
+                    query_params.append(filters["detailCategory"])
 
 
         # 총 데이터 개수 쿼리 실행

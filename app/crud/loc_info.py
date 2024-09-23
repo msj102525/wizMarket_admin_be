@@ -27,13 +27,17 @@ def get_filtered_locations(filters):
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
     cursor = None
-
+    print(filters)
     try:
         query = """
-            SELECT loc_info.*, 
+            SELECT 
                    city.city_name AS city_name, 
                    district.district_name AS district_name, 
-                   sub_district.sub_district_name AS sub_district_name
+                   sub_district.sub_district_name AS sub_district_name,
+                   loc_info.loc_info_id,
+                   loc_info.shop, loc_info.move_pop, loc_info.sales, loc_info.work_pop, 
+                   loc_info.income, loc_info.spend, loc_info.house, loc_info.resident,
+                   loc_info.ref
             FROM loc_info
             JOIN city ON loc_info.city_id = city.city_id
             JOIN district ON loc_info.district_id = district.district_id
@@ -43,15 +47,15 @@ def get_filtered_locations(filters):
         query_params = []
 
         # 필터 값이 존재할 때만 쿼리에 조건 추가
-        if "city" in filters:
+        if filters.get("city") is not None:
             query += " AND loc_info.city_id = %s"
             query_params.append(filters["city"])
 
-        if "district" in filters:
+        if filters.get("district") is not None:
             query += " AND loc_info.district_id = %s"
             query_params.append(filters["district"])
 
-        if "subDistrict" in filters:
+        if filters.get("subDistrict") is not None:
             query += " AND loc_info.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
 
@@ -128,6 +132,8 @@ def get_filtered_locations(filters):
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         result = cursor.fetchall()
+
+        print(query)
 
         return result
 
