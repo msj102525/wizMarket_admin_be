@@ -5,7 +5,7 @@ import re
 import time
 import os
 from typing import Dict, List
-
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -44,20 +44,35 @@ BIZ_MAP_URL = "https://m.nicebizmap.co.kr/analysis/analysisFree"
 global_driver = None
 
 
+# def setup_global_driver():
+#     global global_driver
+#     if global_driver is None:
+#         driver_path = os.path.join(
+#             os.path.dirname(__file__), "../", "drivers", "chromedriver.exe"
+#         )
+
+#         options = Options()
+#         options.add_argument("--start-fullscreen")
+#         options.add_argument("--no-sandbox")
+#         options.add_argument("--disable-dev-shm-usage")
+
+#         service = Service(driver_path)
+#         global_driver = webdriver.Chrome(service=service, options=options)
+#     return global_driver
+
+
 def setup_global_driver():
     global global_driver
     if global_driver is None:
-        driver_path = os.path.join(
-            os.path.dirname(__file__), "../", "drivers", "chromedriver.exe"
-        )
-
         options = Options()
         options.add_argument("--start-fullscreen")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
 
-        service = Service(driver_path)
+        # WebDriver Manager를 이용해 ChromeDriver 자동 관리
+        service = Service(ChromeDriverManager().install())
         global_driver = webdriver.Chrome(service=service, options=options)
+
     return global_driver
 
 
@@ -208,6 +223,8 @@ def get_sub_district_count(city_idx, district_idx):  # 시/군/구 직접 전달
             global_driver = None
 
 
+# 원래 메인 카테고리
+"""
 def get_main_category(city_idx, district_idx, sub_district_count):
     global global_driver
     setup_global_driver()
@@ -368,6 +385,166 @@ def get_main_category(city_idx, district_idx, sub_district_count):
         return None
     finally:
         pass
+"""
+
+
+# def get_main_category(city_idx, district_idx, sub_district_count):
+def get_main_category(city_idx, district_idx, sub_district_idx):
+    global global_driver
+    setup_global_driver()
+    try:
+        try:
+            global_driver.get(BIZ_MAP_URL)
+            wait = WebDriverWait(global_driver, 40)
+            global_driver.implicitly_wait(10)
+
+            # 분석 지역
+            click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            city_text = click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            district_text = click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            sub_district_text = click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            main_category_ul_1 = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[1]',
+                    )
+                )
+            )
+
+            main_category_ul_1_li = main_category_ul_1.find_elements(By.TAG_NAME, "li")
+            # print(f"대분류1 갯수 : {len(main_category_ul_1_li)}")
+
+            m_c_ul = 1
+
+            get_sub_category(
+                city_idx,
+                district_idx,
+                sub_district_idx,
+                len(main_category_ul_1_li),
+                m_c_ul,
+            )
+        except UnexpectedAlertPresentException:
+            handle_unexpected_alert(wait._driver)
+        except Exception as e:
+            print(
+                f"Exception occurred, 대분류1 반복 err, district_idx:  {district_idx}: {str(e)}"
+            )
+        finally:
+            pass
+
+        try:
+            print(f"idx: {district_idx}")
+            global_driver.get(BIZ_MAP_URL)
+            wait = WebDriverWait(global_driver, 40)
+            global_driver.implicitly_wait(10)
+
+            # 분석 지역
+            click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                '//*[@id="pc_sheet01"]/div/div[2]/div[2]/ul/li[1]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            city_text = click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{city_idx + 1}]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            district_text = click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{district_idx + 1}]/a',
+            )
+
+            time.sleep(2 + random.random())
+
+            sub_district_text = click_element(
+                global_driver,
+                wait,
+                By.XPATH,
+                f'//*[@id="basicReport"]/div[4]/div[2]/div[2]/div/div[2]/ul/li[{sub_district_idx + 1}]/a',
+            )
+
+            main_category_ul_2 = wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        '//*[@id="basicReport"]/div[5]/div[3]/div[2]/div/ul[3]',
+                    )
+                )
+            )
+
+            main_category_ul_2_li = main_category_ul_2.find_elements(By.TAG_NAME, "li")
+
+            m_c_ul = 3
+
+            get_sub_category(
+                city_idx,
+                district_idx,
+                sub_district_idx,
+                len(main_category_ul_2_li),
+                m_c_ul,
+            )
+        except UnexpectedAlertPresentException:
+            handle_unexpected_alert(wait._driver)
+        except Exception as e:
+            print(
+                f"Exception occurred: 대분류2 반복 오류, district_idx: {district_idx}: {str(e)}"
+            )
+        finally:
+            pass
+    except Exception as e:
+        print(
+            f"Exception occurred get_main_category(), sub_district: {sub_district_idx} {e}."
+        )
+        return None
+    # finally:
+    #     pass
+    finally:
+        if global_driver:
+            global_driver.quit()
+            global_driver = None
 
 
 def get_sub_category(
@@ -1370,7 +1547,8 @@ def execute_parallel_tasks():
 def execute_task_in_thread(value):
     with ThreadPoolExecutor(max_workers=18) as executor:
         futures = [
-            executor.submit(get_sub_district_count, 0, value),
+            # executor.submit(get_sub_district_count, 0, value),
+            executor.submit(get_main_category, 0, 0, value),
         ]
         for future in futures:
             future.result()
@@ -1383,7 +1561,30 @@ def execute_parallel_tasks():
     )
 
     # values = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23, 24, 25]
-    values = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 22, 23, 24]
+    values = [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+    ]  # 강남구의 읍/면/동
 
     with Pool(processes=len(values)) as pool:
         pool.starmap(execute_task_in_thread, [(value,) for value in values])
