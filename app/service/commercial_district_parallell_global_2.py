@@ -6,6 +6,7 @@ import time
 import os
 from typing import Dict, List
 
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -47,18 +48,17 @@ global_driver = None
 def setup_global_driver():
     global global_driver
     if global_driver is None:
-        driver_path = os.path.join(
-            os.path.dirname(__file__), "../", "drivers", "chromedriver.exe"
-        )
-
         options = Options()
         options.add_argument("--start-fullscreen")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
 
-        service = Service(driver_path)
+        # WebDriver Manager를 이용해 ChromeDriver 자동 관리
+        service = Service(ChromeDriverManager().install())
         global_driver = webdriver.Chrome(service=service, options=options)
+
     return global_driver
+
 
 
 def click_element(driver, wait, by, value):
@@ -189,7 +189,7 @@ def get_sub_district_count(city_idx, district_count):
     setup_global_driver()
     try:
         for district_idx in tqdm(
-            range(2, district_count), f"{city_idx} : 시/군/구 Progress"
+            range(4, district_count), f"{city_idx} : 시/군/구 Progress"
         ):
             print()
             try:
