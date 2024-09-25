@@ -18,7 +18,6 @@ async def filter_population_data(filters: dict) :
     try:
         # select/population.py의 쿼리 함수 호출
         results = get_filtered_population_data(filters)
-        print("서비스 후")
         return results
     except Exception as e:
         raise Exception(f"Error in filtering population data: {str(e)}")
@@ -28,7 +27,7 @@ async def filter_population_data(filters: dict) :
 async def download_data(filters: dict) :
     try:
         results = download_data_ex(filters)
-        print("서비스 후")
+        print("엑셀 다운 로드 후")
         return results
     except Exception as e:
         raise Exception(f"Error in filtering population data: {str(e)}")
@@ -173,7 +172,7 @@ def load_and_insert_population_data():
                             reference_date=reference_date,
                             province_name=city_name,
                             district_name=district_name,
-                            subdistrict_name=sub_district_name,
+                            sub_district_name=sub_district_name,
                             total_population=total_population,
                             male_population=male_population if gender_id == 1 else 0,
                             female_population=female_population if gender_id == 2 else 0,

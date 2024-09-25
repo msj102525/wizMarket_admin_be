@@ -15,7 +15,7 @@ def download_data_ex(filters):
 
     # 연령대에 따른 나이 범위 매핑
     age_groups = {
-        "under_10": range(0, 10),
+        "age_under_10": range(0, 10),
         "age_10s": range(10, 20),
         "age_20s": range(20, 30),
         "age_30s": range(30, 40),
@@ -37,28 +37,32 @@ def download_data_ex(filters):
                 gender.gender_name
         """
 
-        # 나이 컬럼들을 동적으로 선택
+         # 나이 컬럼들을 동적으로 선택
         age_columns = []
-        min_age_range = None
-        max_age_range = None
+        if filters.get('ageGroupMin') or filters.get('ageGroupMax'):
+            # ageGroupMin 및 ageGroupMax 처리
+            if filters.get('ageGroupMin'):
+                min_age_range = age_groups[filters['ageGroupMin']]
+            else:
+                min_age_range = age_groups['age_under_10']
 
-        # ageGroupMin과 ageGroupMax 처리
-        if filters.get('ageGroupMin'):
-            min_age_range = age_groups[filters['ageGroupMin']]
+            if filters.get('ageGroupMax'):
+                max_age_range = age_groups[filters['ageGroupMax']]
+            else:
+                max_age_range = age_groups['age_60_plus']
 
-        if filters.get('ageGroupMax'):
-            max_age_range = age_groups[filters['ageGroupMax']]
+            # 최소 나이부터 최대 나이까지의 범위에 해당하는 컬럼을 동적으로 생성
+            min_age = min(min_age_range)
+            max_age = max(max_age_range)
 
-        # 나이 컬럼 동적 선택 (둘 중 하나만 있을 경우에도 처리)
-        if min_age_range or max_age_range:
-            min_age = min(min_age_range) if min_age_range else min(max_age_range)
-            max_age = max(max_age_range) if max_age_range else max(min_age_range)
+            # 선택된 나이 범위에 해당하는 모든 컬럼 추가
+            age_columns = [f"p.age_{i}" for i in range(min_age, max_age + 1)]
 
-            # 선택된 연령대 범위에 해당하는 모든 나이 컬럼 추가
-            for age in range(min_age, max_age + 1):
-                age_columns.append(f"p.age_{age}")
+        else:
+            # 나이 필터가 없으면 모든 나이대 컬럼을 추가
+            age_columns = [f"p.age_{i}" for i in range(0, 111)]  # age_0 ~ age_110
 
-        # age 컬럼을 쿼리에 추가
+        # 나이 컬럼을 쿼리에 추가
         if age_columns:
             query += ", " + ", ".join(age_columns)
 
@@ -68,7 +72,7 @@ def download_data_ex(filters):
             JOIN district ON p.district_id = district.district_id
             JOIN sub_district ON p.sub_district_id = sub_district.sub_district_id
             JOIN gender ON p.gender_id = gender.gender_id
-            WHERE 1=1
+            WHERE p.reference_date = '2024-07-31'
         """
 
         # 파라미터 목록 초기화
@@ -90,20 +94,14 @@ def download_data_ex(filters):
         if filters.get('gender'):
             query += " AND p.gender_id = %s"
             query_params.append(filters['gender'])
-
-        if filters.get('startDate'):
-            query += " AND p.reference_date >= %s"
-            query_params.append(filters['startDate'])
-
-        if filters.get('endDate'):
-            query += " AND p.reference_date <= %s"
-            query_params.append(filters['endDate'])
+        
+        query += " ORDER BY city.city_name ASC, district.district_name ASC, sub_district.sub_district_name ASC"
 
         # 쿼리 실행
         cursor = connection.cursor()
         cursor.execute(query, query_params)
         result = cursor.fetchall()
-
+        print(query)
         return result
 
     except Exception as e:
@@ -149,6 +147,7 @@ def get_filtered_population_data(filters):
     # 데이터베이스 연결
     connection = get_db_connection()
     cursor = None
+    print(filters)
     try:
         cursor = connection.cursor()
 
@@ -157,15 +156,16 @@ def get_filtered_population_data(filters):
             p.POPULATION_ID AS pop_id,                
             city.city_name AS city_name,              
             district.district_name AS district_name,   
-            sub_district.sub_district_name AS subdistrict_name,  
-            ROUND((p.male_population / p.total_population) * 100, 2) AS male_percentage,  
-            ROUND((p.female_population / p.total_population) * 100, 2) AS female_percentage,
+            sub_district.sub_district_name AS sub_district_name,  
+            p.male_population,  -- 남성 인구수
+            p.female_population, -- 여성 인구수
+            p.total_population, -- 총 인구수
             p.reference_date
         """
         
         # 나이대 필터에 따른 SELECT 절 구성
         age_groups = {
-            "under_10": "(p.age_0 + p.age_1 + p.age_2 + p.age_3 + p.age_4 + p.age_5 + p.age_6 + p.age_7 + p.age_8 + p.age_9) AS under_10",
+            "age_under_10": "(p.age_0 + p.age_1 + p.age_2 + p.age_3 + p.age_4 + p.age_5 + p.age_6 + p.age_7 + p.age_8 + p.age_9) AS age_under_10",
             "age_10s": "(p.age_10 + p.age_11 + p.age_12 + p.age_13 + p.age_14 + p.age_15 + p.age_16 + p.age_17 + p.age_18 + p.age_19) AS age_10s",
             "age_20s": "(p.age_20 + p.age_21 + p.age_22 + p.age_23 + p.age_24 + p.age_25 + p.age_26 + p.age_27 + p.age_28 + p.age_29) AS age_20s",
             "age_30s": "(p.age_30 + p.age_31 + p.age_32 + p.age_33 + p.age_34 + p.age_35 + p.age_36 + p.age_37 + p.age_38 + p.age_39) AS age_30s",
@@ -180,12 +180,12 @@ def get_filtered_population_data(filters):
         }
 
         # ageGroupMin과 ageGroupMax에 따른 나이대 필터링
-        age_groups_keys = ["under_10", "age_10s", "age_20s", "age_30s", "age_40s", "age_50s", "age_60_plus"]
+        age_groups_keys = ["age_under_10", "age_10s", "age_20s", "age_30s", "age_40s", "age_50s", "age_60_plus"]
         selected_age_groups = []
 
         # 필터에 따라 나이대 선택
         if 'ageGroupMin' in filters or 'ageGroupMax' in filters:
-            ageGroupMin = filters.get('ageGroupMin', age_groups_keys[0])  # 최소값이 없으면 "under_10"으로 설정
+            ageGroupMin = filters.get('ageGroupMin', age_groups_keys[0])  # 최소값이 없으면 "age_under_10"으로 설정
             ageGroupMax = filters.get('ageGroupMax', age_groups_keys[-1])  # 최대값이 없으면 "60_plus"으로 설정
 
             start_index = age_groups_keys.index(ageGroupMin)
@@ -194,7 +194,6 @@ def get_filtered_population_data(filters):
         else:
             # 나이대 필터가 없으면 모든 나이대 포함
             selected_age_groups = list(age_groups.values())
-
 
         # SELECT 절에 동적으로 나이대 컬럼 추가
         query = f"""
@@ -226,6 +225,10 @@ def get_filtered_population_data(filters):
             query += " AND p.sub_district_id = %s"
             params.append(filters['subDistrict'])
 
+        # 시작 월 필터
+        if 'startDate' in filters:
+            query += " AND p.reference_date >= %s"
+            params.append(filters['startDate'])
 
         # 끝 월 필터
         if 'endDate' in filters:
@@ -242,8 +245,19 @@ def get_filtered_population_data(filters):
         cursor.execute(query, params)
         result = cursor.fetchall()
 
-        # Decimal 값을 float으로 변환
-        result = convert_decimal_to_float(result)
+        print(result)
+
+        # 한 행(row)의 나이대별 인구만 합산하는 방식으로 수정
+        for row in result:
+            total_population = 0  # 각 행에 대해 개별적으로 total_population을 계산
+            # selected_age_groups의 별칭을 그대로 사용하여 값을 추출하고 합산
+            for key in selected_age_groups:
+                # 'AS age_under_10' 같은 별칭을 사용해야 하므로 key의 마지막 부분 사용
+                alias = key.split(" AS ")[1]
+                total_population += row.get(alias, 0)  # 나이대 인구 수 합산
+            
+            print(f"총 인구 수 (해당 행): {total_population}")
+            row['total_population'] = total_population
 
         return result
 
@@ -264,7 +278,7 @@ def insert_population_data(connection, population_data: Population):
         insert_query = """
         INSERT INTO population (
             CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID, GENDER_ID, admin_code, reference_date,
-            province_name, district_name, subdistrict_name, total_population, male_population, female_population,
+            province_name, district_name, sub_district_name, total_population, male_population, female_population,
             age_0, age_1, age_2, age_3, age_4, age_5, age_6, age_7, age_8, age_9,
             age_10, age_11, age_12, age_13, age_14, age_15, age_16, age_17, age_18, age_19,
             age_20, age_21, age_22, age_23, age_24, age_25, age_26, age_27, age_28, age_29,
@@ -304,7 +318,7 @@ def insert_population_data(connection, population_data: Population):
         population_data.reference_date,
         population_data.province_name,
         population_data.district_name,
-        population_data.subdistrict_name,
+        population_data.sub_district_name,
         population_data.total_population,
         population_data.male_population,
         population_data.female_population,

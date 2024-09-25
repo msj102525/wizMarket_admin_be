@@ -12,7 +12,7 @@ class Population(BaseModel):
     reference_date: datetime
     province_name: str
     district_name: str
-    subdistrict_name: str
+    sub_district_name: str
     total_population: int
     male_population: int
     female_population: int

@@ -35,7 +35,9 @@ DROP TABLE IF EXISTS `BUSINESS_AREA_CATEGORY`;
 
 DROP TABLE IF EXISTS `REFERENCE`;
 
-DROP TABLE IF EXISTS `LOC_INFO_STAT`
+DROP TABLE IF EXISTS `STAT_ITEM `;
+
+DROP TABLE IF EXISTS `STATISTICS  `;
 
 -- 테이블 생성
 CREATE TABLE
@@ -274,7 +276,7 @@ CREATE TABLE
         `reference_date` DATE NULL COMMENT '기준연월',
         `province_name` VARCHAR(100) NULL COMMENT '시도명',
         `district_name` VARCHAR(100) NULL COMMENT '시군구명',
-        `subdistrict_name` VARCHAR(100) NULL COMMENT '읍면동명',
+        `sub_district_name` VARCHAR(100) NULL COMMENT '읍면동명',
         `total_population` integer NULL COMMENT '계',
         `male_population` integer NULL COMMENT '남자',
         `female_population` integer NULL COMMENT '여자',
@@ -484,25 +486,28 @@ VALUES
     );
 
 
-CREATE TABLE LOC_INFO_STAT (
-    `LOC_INFO_STAT_ID` INT AUTO_INCREMENT PRIMARY KEY COMMENT '입지 정보 통계 고유 ID',
-    `CITY_ID` INT NULL COMMENT 'FK_CID',                  
-    `DISTRICT_ID` INT NULL COMMENT 'FK_DID',
-    `SUB_DISTRICT_ID` INT NULL COMMENT 'FK_SDID',
-    `STAT_ITEM` VARCHAR(50) COMMENT '통계 컬럼명',
-    `AVG_VAL` DOUBLE NOT NULL COMMENT '평균',
-    `MED_VAL` DOUBLE NOT NULL COMMENT '중위수',
-    `STD_VAL` DOUBLE NOT NULL COMMENT '표준편차',
-    `MAX_VAL` DOUBLE NOT NULL COMMENT '최대값',
-    `MIN_VAL` DOUBLE NOT NULL COMMENT '최소값',
-    `J_SCORE` DOUBLE NOT NULL COMMENT 'J_Score',
-    `CREATED_AT` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
-    `REF_DATE` DATE COMMENT '참조날짜',
-    `REF` VARCHAR(255) NOT NULL COMMENT '출처',
-    FOREIGN KEY (CITY_ID) REFERENCES CITY(CITY_ID), -- 외래키 제약
-    FOREIGN KEY (DISTRICT_ID) REFERENCES DISTRICT(DISTRICT_ID) -- 외래키 제약,
-    FOREIGN KEY (SUB_DISTRICT_ID) REFERENCES SUB_DISTRICT(SUB_DISTRICT_ID) -- 외래키 제약
-);
+-- STAT_ITEM 테이블 생성
+CREATE TABLE STAT_ITEM (
+    `STAT_ITEM_ID` INT AUTO_INCREMENT PRIMARY KEY,    -- PK, 자동 증가
+    `TABLE_NAME` VARCHAR(255) NOT NULL COMMENT '테이블명', -- 테이블명
+    `COLUMN_NAME` VARCHAR(255) NOT NULL COMMENT '컬럼명', -- 컬럼명
+    `SOURCE` VARCHAR(255) COMMENT '출처', -- 출처
+    `CREATED_AT` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the record was created' -- 생성 시간
+) COMMENT='Table storing statistical item details';
+
+-- STATISTICS 테이블 생성
+CREATE TABLE STATISTICS (
+    `STATISTICS_ID` INT AUTO_INCREMENT PRIMARY KEY,   -- PK, 자동 증가
+    `STAT_ITEM_ID` INT NOT NULL COMMENT 'Foreign key referencing STAT_ITEM',  -- STAT_ITEM 테이블 참조하는 외래키
+    `AVG_VAL` DOUBLE COMMENT '평균 값', -- 평균
+    `MED_VAL` DOUBLE COMMENT '중위수', -- 중위수
+    `STD_VAL` DOUBLE COMMENT '표준편차', -- 표준편차
+    `MAX_VALUE` DOUBLE COMMENT '최대값', -- 최대값
+    `MIN_VALUE` DOUBLE COMMENT '최소값', -- 최소값
+    `J_SCORE` DOUBLE COMMENT 'J-score', -- j_score
+    `CREATED_AT` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the record was created', -- 생성 시간
+    FOREIGN KEY (STAT_ITEM_ID) REFERENCES STAT_ITEM(STAT_ITEM_ID) ON DELETE CASCADE ON UPDATE CASCADE  -- 외래키 설정
+) COMMENT='Table storing statistical results';
 
 
 -- 외래 키 제약 조건을 다시 활성화
