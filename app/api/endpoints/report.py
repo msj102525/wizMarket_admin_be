@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import List
+from typing import List, Optional
 
-from app.schemas.common_information import CommonInformation
+from app.schemas.common_information import CommonInformationOutput
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
 )
@@ -9,7 +9,7 @@ from app.service.common_information import (
 router = APIRouter()
 
 
-@router.get("/info/common", response_model=List[CommonInformation])
+@router.get("/info/common", response_model=List[CommonInformationOutput])
 def get_all_report_common_information():
     try:
         results = service_get_all_report_common_information()
