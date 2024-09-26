@@ -15,5 +15,6 @@ async def filter_data(filters: FilterRequest):
     print(filters_dict)
     # 필터 데이터를 서비스 레이어로 전달
     result = await filter_location_info(filters_dict)
+    print(result)
 
     return {"filtered_data": result}

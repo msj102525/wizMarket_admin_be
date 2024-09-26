@@ -6,8 +6,7 @@ class FilterRequest(BaseModel):
     district: Optional[int] = None
     subDistrict: Optional[int] = None
     storeName: Optional[str] = None
-    selectedQuarterMin: Optional[str] = None
-    selectedQuarterMax: Optional[str] = None
+    matchType: Optional[str] = '='  # = 또는 LIKE 검색
     mainCategory: Optional[str] = None
     subCategory: Optional[str] = None
     detailCategory: Optional[str] = None

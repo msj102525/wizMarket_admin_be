@@ -14,8 +14,7 @@ from app.crud.loc_store import *
 # 서비스 레이어 함수
 async def filter_loc_store(filters):
     
-    data = get_filtered_loc_store(filters.dict())  # 필터 데이터를 딕셔너리로 전달
-    total_items = get_total_item_count(filters.dict())
+    data, total_items = get_filtered_loc_store(filters.dict())  # 필터 데이터를 딕셔너리로 전달
 
     return data, total_items
 
@@ -116,7 +115,7 @@ def process_csv_files(year, quarter):
     specific_quarter = get_specific_quarter(year, quarter)
 
     # 2. 데이터베이스에 지정된 분기 데이터가 있는지 확인
-    exists = check_previous_quarter_data_exists(connection, specific_quarter)
+    exists = check_previous_quarter_data_exists(connection, year, quarter)
     if exists:
         print(f"지정된 분기({specific_quarter}) 데이터가 이미 존재합니다. 인서트 생략.")
         return
@@ -152,11 +151,13 @@ def process_csv_files(year, quarter):
                     year_quarter_raw = file_name.split('_')[-1].split('.')[0]  # 예: '202103'
                     year = year_quarter_raw[:4]  # '2021'
                     quarter = (int(year_quarter_raw[4:6]) - 1) // 3 + 1  # 분기 계산
-                    year_quarter = f"{year}.{quarter}/4"  # '2021.1/4' 형식으로 변환
+                    
+                    year = int(year)
+                    quarter = int(quarter)
 
                     try:
                         # 파일을 읽어서 데이터프레임 생성
-                        df = pd.read_csv(file_path, dtype=str, encoding='cp949')
+                        df = pd.read_csv(file_path, dtype=str, encoding='utf-8')
 
                         # 빈칸을 모두 None (즉, NULL)으로 처리
                         df = df.where(pd.notnull(df), None)
@@ -213,7 +214,7 @@ def process_csv_files(year, quarter):
                                 'CITY_ID': city.city_id,
                                 'DISTRICT_ID': district.district_id if district else None,
                                 'SUB_DISTRICT_ID': sub_district.sub_district_id if sub_district else None,
-                                'StoreBusinessNumber' : row['상가업소번호'],
+                                'STORE_BUSINESS_NUMBER' : row['상가업소번호'],
                                 'store_name': row['상호명'],
                                 'branch_name': row['지점명'],
                                 'large_category_code': row['상권업종대분류코드'],
@@ -252,7 +253,8 @@ def process_csv_files(year, quarter):
                                 'unit_info': row['호정보'],
                                 'longitude': row['경도'],
                                 'latitude': row['위도'],
-                                'Y_Q': year_quarter
+                                'local_year': year,
+                                'local_quarter' : quarter,
                             }
 
                             # # 인서트할 데이터를 출력하고 자료형도 함께 출력
@@ -291,5 +293,5 @@ def shutdown_windows():
     os.system("shutdown /s /t 1")
 
 if __name__ == "__main__":
-    process_csv_files(2023,1)
+    process_csv_files(2024,2)
     # shutdown_windows()

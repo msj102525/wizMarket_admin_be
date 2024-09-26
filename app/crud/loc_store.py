@@ -12,198 +12,118 @@ def get_filtered_loc_store(filters: dict):
 
     connection = get_db_connection()
     cursor = None
+    total_items = 0  # 총 아이템 개수를 저장할 변수
 
     try:
-        query = """
-                SELECT 
-                    loc_store.loc_store_id, loc_store.store_name, loc_store.branch_name, loc_store.road_name_address,
-                    loc_store.large_category_name, loc_store.medium_category_name, loc_store.small_category_name,
-                    loc_store.industry_name, loc_store.building_name, loc_store.new_postal_code, loc_store.dong_info, loc_store.floor_info,
-                    loc_store.unit_info, loc_store.info_year, loc_store.info_quarter, loc_store.CREATED_AT, loc_store.UPDATED_AT,
-                    city.city_name AS city_name, 
-                    district.district_name AS district_name, 
-                    sub_district.sub_district_name AS sub_district_name
-                FROM loc_store
-                JOIN city ON loc_store.city_id = city.city_id
-                JOIN district ON loc_store.district_id = district.district_id
-                JOIN sub_district ON loc_store.sub_district_id = sub_district.sub_district_id
-                WHERE 1=1
-            """
+        # 총 개수 구하기 위한 쿼리
+        count_query = """
+            SELECT COUNT(*) as total
+            FROM local_store
+            JOIN city ON local_store.city_id = city.city_id
+            JOIN district ON local_store.district_id = district.district_id
+            JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
+            WHERE 1=1 and local_year = 2024 and local_quarter = 2
+        """
         query_params = []
 
+        # 필터 조건 추가 (총 개수 구하는 쿼리에도 동일한 조건 사용)
         if filters.get("city") is not None:
-            query += " AND loc_store.city_id = %s"
+            count_query += " AND local_store.city_id = %s"
             query_params.append(filters["city"])
 
         if filters.get("district") is not None:
-            query += " AND loc_store.district_id = %s"
+            count_query += " AND local_store.district_id = %s"
             query_params.append(filters["district"])
 
         if filters.get("subDistrict") is not None:
-            query += " AND loc_store.sub_district_id = %s"
+            count_query += " AND local_store.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
         
-        if filters.get("infoYear") is not None:
-            query += " AND loc_store.info_year = %s"
-            query_params.append(filters["subDistrict"])
-
-        if filters.get("infoQuarter") is not None:
-            query += " AND loc_store.info_quarter = %s"
-            query_params.append(filters["subDistrict"])
+        if filters.get("mainCategory") is not None:
+            count_query += " AND local_store.large_category_code = %s"
+            query_params.append(filters["mainCategory"])
         
-        if filters.get("storeName") is not None:
-            query += " AND loc_store.store_name LIKE %s"
-            query_params.append(f"%{filters['storeName']}%")
+        
+        if filters.get("subCategory") is not None:
+            count_query += " AND local_store.medium_category_code = %s"
+            query_params.append(filters["subCategory"])
+        
+        if filters.get("detailCategory") is not None:
+            count_query += " AND local_store.small_category_code = %s"
+            query_params.append(filters["detailCategory"])
+        
 
-        # 기준이 되는 연도와 분기
-        threshold_year = 2023
-        threshold_quarter = 3
+        # 백엔드에서 검색 쿼리 처리
+        if filters.get('storeName'):
+            if filters.get('matchType') == '=':
+                count_query += " AND local_store.store_name = %s"
+                query_params.append(filters['storeName'])  # 정확히 일치
+            else:
+                count_query += " AND local_store.store_name LIKE %s"
+                query_params.append(f"{filters['storeName']}%")  # '바%'로 시작하는 상호 검색
 
-        # selectedQuarterMin 값이 infoYear와 infoQuarter로 들어온 경우 비교
-        selected_year_min = filters.get("infoYear")
-        selected_quarter_min = filters.get("infoQuarter")
 
+        # 총 개수 계산 쿼리 실행
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(count_query, query_params)
+        total_items = cursor.fetchone()["total"]  # 총 개수
 
-        # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
-        if selected_year_min is not None and selected_quarter_min is not None:
-            if (selected_year_min > threshold_year) or (selected_year_min == threshold_year and selected_quarter_min >= threshold_quarter):
-                if filters.get('mainCategory') is not None:
-                    query += " AND loc_store.large_category_code = %s "
-                    query_params.append(filters["mainCategory"])
+        # 데이터를 가져오는 쿼리 (페이징 적용)
+        data_query = """
+            SELECT 
+                local_store.local_store_id, local_store.store_name, local_store.branch_name, local_store.road_name_address,
+                local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
+                local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info, local_store.floor_info,
+                local_store.unit_info, local_store.local_year, local_store.local_quarter, local_store.CREATED_AT, local_store.UPDATED_AT,
+                city.city_name AS city_name, 
+                district.district_name AS district_name, 
+                sub_district.sub_district_name AS sub_district_name
+            FROM local_store
+            JOIN city ON local_store.city_id = city.city_id
+            JOIN district ON local_store.district_id = district.district_id
+            JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
+            WHERE 1=1
+        """
+        
+        # 동일한 필터 조건 적용
+        data_query += count_query[count_query.find('WHERE 1=1') + len('WHERE 1=1'):]  # 필터 조건 재사용
+        data_query += " ORDER BY local_store.store_name"
 
-                if filters.get('subCategory') is not None:
-                    query += " AND loc_store.medium_category_code = %s "
-                    query_params.append(filters["subCategory"])
-
-                if filters.get('detailCategory') is not None:
-                    query += " AND loc_store.small_category_code = %s "
-                    query_params.append(filters["detailCategory"])
-
-        query += " ORDER BY loc_store.info_year ASC"
-
-        # 페이징 정보 처리
+        # 페이징 처리
         page = filters.get("page", 1)  # 기본값 1
         page_size = filters.get("page_size", 20)  # 기본값 20
         offset = (page - 1) * page_size
 
-        # 페이징을 위한 LIMIT과 OFFSET 추가
-        query += " LIMIT %s OFFSET %s"
-        query_params.append(page_size)  # LIMIT 값 (page_size)
-        query_params.append(offset)  # OFFSET 값 (건너뛸 데이터 수)
+        # LIMIT과 OFFSET 추가
+        data_query += " LIMIT %s OFFSET %s"
+        query_params.append(page_size)
+        query_params.append(offset)
 
-        # 쿼리 실행
-        cursor = connection.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(query, query_params)
+        print(data_query)
+        # 데이터 조회 쿼리 실행
+        cursor.execute(data_query, query_params)
         result = cursor.fetchall()
-        print(query)
 
-        return result
-    
+        return result, total_items  # 데이터와 총 개수 반환
+
     finally:
         if cursor:
             cursor.close()
         connection.close()  # 연결 종료
 
-    
-# CRUD 레이어에서 필터 조건에 맞는 총 데이터 개수를 가져오는 함수
-def get_total_item_count(filters: dict):
-    connection = get_db_connection()
-    cursor = connection.cursor(pymysql.cursors.DictCursor)  # DictCursor 사용
-
-    try:
-        query = """
-            SELECT 
-                loc_store.loc_store_id, loc_store.store_name, loc_store.branch_name, loc_store.road_name_address,
-                loc_store.large_category_name, loc_store.medium_category_name, loc_store.small_category_name,
-                loc_store.industry_name, loc_store.building_name, loc_store.new_postal_code, loc_store.dong_info, loc_store.floor_info,
-                loc_store.unit_info, loc_store.info_year, loc_store.info_quarter, loc_store.CREATED_AT, loc_store.UPDATED_AT,
-                city.city_name AS city_name, 
-                district.district_name AS district_name, 
-                sub_district.sub_district_name AS sub_district_name
-            FROM loc_store
-            JOIN city ON loc_store.city_id = city.city_id
-            JOIN district ON loc_store.district_id = district.district_id
-            JOIN sub_district ON loc_store.sub_district_id = sub_district.sub_district_id
-            WHERE 1=1
-        """
-        
-        # 필터 적용 부분
-        query_params = []
-
-        if filters.get("city") is not None:
-            query += " AND loc_store.city_id = %s"
-            query_params.append(filters["city"])
-
-        if filters.get("district") is not None:
-            query += " AND loc_store.district_id = %s"
-            query_params.append(filters["district"])
-
-        if filters.get("subDistrict") is not None:
-            query += " AND loc_store.sub_district_id = %s"
-            query_params.append(filters["subDistrict"])
-        
-        if filters.get("infoYear") is not None:
-            query += " AND loc_store.info_year = %s"
-            query_params.append(filters["subDistrict"])
-
-        if filters.get("infoQuarter") is not None:
-            query += " AND loc_store.info_quarter = %s"
-            query_params.append(filters["subDistrict"])
-                
-        if filters.get("storeName") is not None:
-            query += " AND loc_store.store_name LIKE %s"
-            query_params.append(f"%{filters['storeName']}%")
-
-        # 기준이 되는 연도와 분기
-        threshold_year = 2023
-        threshold_quarter = 3
-
-        # selectedQuarterMin 값이 infoYear와 infoQuarter로 들어온 경우 비교
-        selected_year_min = filters.get("infoYear")
-        selected_quarter_min = filters.get("infoQuarter")
-
-
-        # selectedQuarterMin 값이 '2023.3/4'보다 클 경우에만 실행
-        if selected_year_min is not None and selected_quarter_min is not None:
-            if (selected_year_min > threshold_year) or (selected_year_min == threshold_year and selected_quarter_min >= threshold_quarter):
-                if filters.get('mainCategory') is not None:
-                    query += " AND loc_store.large_category_code = %s "
-                    query_params.append(filters["mainCategory"])
-
-                if filters.get('subCategory') is not None:
-                    query += " AND loc_store.medium_category_code = %s "
-                    query_params.append(filters["subCategory"])
-
-                if filters.get('detailCategory') is not None:
-                    query += " AND loc_store.small_category_code = %s "
-                    query_params.append(filters["detailCategory"])
-
-
-        # 총 데이터 개수 쿼리 실행
-        cursor = connection.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(query, query_params)
-        total_items = cursor.fetchall()
-
-        print(type(total_items))
-
-        return total_items
-
-    finally:
-        cursor.close()
-        connection.close()
 
 
 
 
 
-def check_previous_quarter_data_exists(connection, previous_quarter):
+def check_previous_quarter_data_exists(connection, year, quarter):
     """저번 분기의 데이터가 DB에 있는지 확인하는 함수"""
     
     # SQL 쿼리 작성 (저번 분기의 데이터가 존재하는지 확인)
-    query = "SELECT COUNT(*) AS count FROM loc_store WHERE Y_Q = %s"
+    query = "SELECT COUNT(*) AS count FROM local_store WHERE local_year = %s AND local_quarter = %s"
     
     with connection.cursor() as cursor:
-        cursor.execute(query, (previous_quarter,))
+        cursor.execute(query, (year, quarter))
         result = cursor.fetchone()
 
     # count 값이 0이면 데이터가 없는 것
@@ -216,9 +136,9 @@ def insert_data_to_loc_store(connection, data):
     try:
         with connection.cursor() as cursor:
             sql = """
-            INSERT INTO loc_store (
+            INSERT INTO local_store (
                 CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID,  
-                StoreBusinessNumber, store_name, branch_name,
+                STORE_BUSINESS_NUMBER, store_name, branch_name,
                 large_category_code, large_category_name,
                 medium_category_code, medium_category_name,
                 small_category_code, small_category_name,
@@ -232,7 +152,7 @@ def insert_data_to_loc_store(connection, data):
                 building_sub_number, building_management_number, building_name,
                 road_name_address, old_postal_code, new_postal_code,
                 dong_info, floor_info, unit_info,
-                longitude, latitude, Y_Q,
+                longitude, latitude, local_year, local_quarter,
                 CREATED_AT, UPDATED_AT
             ) VALUES (
                 %s, %s, %s, 
@@ -250,7 +170,7 @@ def insert_data_to_loc_store(connection, data):
                 %s, %s, %s, 
                 %s, %s, %s, 
                 %s, %s, %s, 
-                %s, %s, %s, 
+                %s, %s, %s, %s,
                 NOW(), NOW()
             )
             """
@@ -261,7 +181,7 @@ def insert_data_to_loc_store(connection, data):
                     data['CITY_ID'],
                     data['DISTRICT_ID'],
                     data['SUB_DISTRICT_ID'],
-                    data['StoreBusinessNumber'],
+                    data['STORE_BUSINESS_NUMBER'],
                     data['store_name'],
                     data['branch_name'],
                     data['large_category_code'],
@@ -300,7 +220,8 @@ def insert_data_to_loc_store(connection, data):
                     data['unit_info'],
                     data['longitude'],
                     data['latitude'],
-                    data['Y_Q']
+                    data['local_year'],
+                    data['local_quarter']
                 ))
 
                 connection.commit()
@@ -310,6 +231,6 @@ def insert_data_to_loc_store(connection, data):
                 raise
 
     except pymysql.MySQLError as e:
-        print(f"Error inserting data into loc_store: {e}")
+        print(f"Error inserting data into local_store: {e}")
         connection.rollback()
         raise

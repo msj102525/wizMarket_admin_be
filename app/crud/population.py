@@ -39,6 +39,7 @@ def download_data_ex(filters):
 
          # 나이 컬럼들을 동적으로 선택
         age_columns = []
+        print(filters)
         if filters.get('ageGroupMin') or filters.get('ageGroupMax'):
             # ageGroupMin 및 ageGroupMax 처리
             if filters.get('ageGroupMin'):
@@ -54,13 +55,18 @@ def download_data_ex(filters):
             # 최소 나이부터 최대 나이까지의 범위에 해당하는 컬럼을 동적으로 생성
             min_age = min(min_age_range)
             max_age = max(max_age_range)
+            print(min_age, max_age)
 
             # 선택된 나이 범위에 해당하는 모든 컬럼 추가
-            age_columns = [f"p.age_{i}" for i in range(min_age, max_age + 1)]
+            age_columns = [f"p.age_{i}" for i in range(min_age, min(max_age + 1, 110))]
+
+            if max_age >= 110:
+                age_columns.append("p.age_110_over")  # age_110_over 추가
 
         else:
             # 나이 필터가 없으면 모든 나이대 컬럼을 추가
-            age_columns = [f"p.age_{i}" for i in range(0, 111)]  # age_0 ~ age_110
+            age_columns = [f"p.age_{i}" for i in range(0, 110)]  # age_0 ~ age_109
+            age_columns.append("p.age_110_over")  # age_110_over 추가
 
         # 나이 컬럼을 쿼리에 추가
         if age_columns:
