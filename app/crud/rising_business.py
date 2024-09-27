@@ -26,8 +26,8 @@ def insert_rising_business(data_list: List[RisingBusinessInsert]):
             cursor = connection.cursor()
 
             insert_query = """
-            INSERT INTO RISING_BUSINESS (city_id, district_id, sub_district_id, biz_main_category_id, biz_sub_category_id, biz_detail_category_id, growth_rate, sub_district_rank, y_m)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+            INSERT INTO RISING_BUSINESS (city_id, district_id, sub_district_id, biz_main_category_id, biz_sub_category_id, biz_detail_category_id, growth_rate, sub_district_rank)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
             """
 
             for data in data_list:
@@ -40,7 +40,6 @@ def insert_rising_business(data_list: List[RisingBusinessInsert]):
                     data.biz_detail_category_id,
                     data.growth_rate if data.growth_rate is not None else 0.0,
                     data.sub_district_rank if data.sub_district_rank is not None else 0,
-                    data.y_m,
                 )
                 logger.info(f"Executing query: {insert_query % values}")
                 cursor.execute(insert_query, values)
@@ -82,6 +81,7 @@ def select_all_rising_business_by_region_id(
                     BDC.BIZ_DETAIL_CATEGORY_NAME,
                     rb.growth_rate,
                     rb.sub_district_rank,
+                    rb.Y_M,
                     rb.CREATED_AT,
                     rb.UPDATED_AT
                 FROM
@@ -127,6 +127,7 @@ def select_all_rising_business_by_region_id(
                         if row.get("sub_district_rank") is not None
                         else 0
                     ),
+                    y_m=row.get("Y_M"),
                     created_at=row.get("CREATED_AT"),
                     updated_at=row.get("UPDATED_AT"),
                 )

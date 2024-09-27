@@ -35,15 +35,8 @@ class RisingBusinessInsert(BaseModel):
     growth_rate: float
     sub_district_rank: int
 
-    y_m: date = None 
-
     class Config:
         from_attributes = True
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        if self.y_m is None:
-            self.y_m = date.today().replace(day=1) - timedelta(days=1)  # 1달 전으로 설정
 
 
 class RisingBusinessOutput(BaseModel):
@@ -58,6 +51,7 @@ class RisingBusinessOutput(BaseModel):
 
     growth_rate: Optional[float] = None
     sub_district_rank: Optional[int] = None
+    
 
     created_at: datetime
     updated_at: datetime
