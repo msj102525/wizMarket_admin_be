@@ -1,11 +1,15 @@
+import logging
+from typing import List
 import pymysql
-from app.db.connect import get_db_connection
+from app.db.connect import close_connection, close_cursor, get_db_connection
+from app.schemas.loc_store import LocalStoreSubdistrict
+
 # crud/loc_store.py
+
 
 def parse_quarter(quarter_str):
     year, quarter = quarter_str.split(".")
     return int(year), int(quarter)
-
 
 
 def get_filtered_loc_store(filters: dict):
@@ -38,30 +42,29 @@ def get_filtered_loc_store(filters: dict):
         if filters.get("subDistrict") is not None:
             count_query += " AND local_store.sub_district_id = %s"
             query_params.append(filters["subDistrict"])
-        
+
         if filters.get("mainCategory") is not None:
             count_query += " AND local_store.large_category_code = %s"
             query_params.append(filters["mainCategory"])
-        
-        
+
         if filters.get("subCategory") is not None:
             count_query += " AND local_store.medium_category_code = %s"
             query_params.append(filters["subCategory"])
-        
+
         if filters.get("detailCategory") is not None:
             count_query += " AND local_store.small_category_code = %s"
             query_params.append(filters["detailCategory"])
-        
 
         # 백엔드에서 검색 쿼리 처리
-        if filters.get('storeName'):
-            if filters.get('matchType') == '=':
+        if filters.get("storeName"):
+            if filters.get("matchType") == "=":
                 count_query += " AND local_store.store_name = %s"
-                query_params.append(filters['storeName'])  # 정확히 일치
+                query_params.append(filters["storeName"])  # 정확히 일치
             else:
                 count_query += " AND local_store.store_name LIKE %s"
-                query_params.append(f"{filters['storeName']}%")  # '바%'로 시작하는 상호 검색
-
+                query_params.append(
+                    f"{filters['storeName']}%"
+                )  # '바%'로 시작하는 상호 검색
 
         # 총 개수 계산 쿼리 실행
         cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -84,9 +87,11 @@ def get_filtered_loc_store(filters: dict):
             JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
             WHERE 1=1
         """
-        
+
         # 동일한 필터 조건 적용
-        data_query += count_query[count_query.find('WHERE 1=1') + len('WHERE 1=1'):]  # 필터 조건 재사용
+        data_query += count_query[
+            count_query.find("WHERE 1=1") + len("WHERE 1=1") :
+        ]  # 필터 조건 재사용
         data_query += " ORDER BY local_store.store_name"
 
         # 페이징 처리
@@ -112,24 +117,18 @@ def get_filtered_loc_store(filters: dict):
         connection.close()  # 연결 종료
 
 
-
-
-
-
 def check_previous_quarter_data_exists(connection, year, quarter):
     """저번 분기의 데이터가 DB에 있는지 확인하는 함수"""
-    
+
     # SQL 쿼리 작성 (저번 분기의 데이터가 존재하는지 확인)
     query = "SELECT COUNT(*) AS count FROM local_store WHERE local_year = %s AND local_quarter = %s"
-    
+
     with connection.cursor() as cursor:
         cursor.execute(query, (year, quarter))
         result = cursor.fetchone()
 
     # count 값이 0이면 데이터가 없는 것
     return result[0] > 0
-
-
 
 
 def insert_data_to_loc_store(connection, data):
@@ -177,52 +176,55 @@ def insert_data_to_loc_store(connection, data):
 
             # 디버깅을 위해 각 항목을 개별적으로 테스트
             try:
-                cursor.execute(sql, (
-                    data['CITY_ID'],
-                    data['DISTRICT_ID'],
-                    data['SUB_DISTRICT_ID'],
-                    data['STORE_BUSINESS_NUMBER'],
-                    data['store_name'],
-                    data['branch_name'],
-                    data['large_category_code'],
-                    data['large_category_name'],
-                    data['medium_category_code'],
-                    data['medium_category_name'],
-                    data['small_category_code'],
-                    data['small_category_name'],
-                    data['industry_code'],
-                    data['industry_name'],
-                    data['province_code'],
-                    data['province_name'],
-                    data['district_code'],
-                    data['district_name'],
-                    data['administrative_dong_code'],
-                    data['administrative_dong_name'],
-                    data['legal_dong_code'],
-                    data['legal_dong_name'],
-                    data['lot_number_code'],
-                    data['land_category_code'],
-                    data['land_category_name'],
-                    data['lot_main_number'],
-                    data['lot_sub_number'],
-                    data['lot_address'],
-                    data['road_name_code'],
-                    data['road_name'],
-                    data['building_main_number'],
-                    data['building_sub_number'],
-                    data['building_management_number'],
-                    data['building_name'],
-                    data['road_name_address'],
-                    data['old_postal_code'],
-                    data['new_postal_code'],
-                    data['dong_info'],
-                    data['floor_info'],
-                    data['unit_info'],
-                    data['longitude'],
-                    data['latitude'],
-                    data['local_year'],
-                    data['local_quarter']
-                ))
+                cursor.execute(
+                    sql,
+                    (
+                        data["CITY_ID"],
+                        data["DISTRICT_ID"],
+                        data["SUB_DISTRICT_ID"],
+                        data["STORE_BUSINESS_NUMBER"],
+                        data["store_name"],
+                        data["branch_name"],
+                        data["large_category_code"],
+                        data["large_category_name"],
+                        data["medium_category_code"],
+                        data["medium_category_name"],
+                        data["small_category_code"],
+                        data["small_category_name"],
+                        data["industry_code"],
+                        data["industry_name"],
+                        data["province_code"],
+                        data["province_name"],
+                        data["district_code"],
+                        data["district_name"],
+                        data["administrative_dong_code"],
+                        data["administrative_dong_name"],
+                        data["legal_dong_code"],
+                        data["legal_dong_name"],
+                        data["lot_number_code"],
+                        data["land_category_code"],
+                        data["land_category_name"],
+                        data["lot_main_number"],
+                        data["lot_sub_number"],
+                        data["lot_address"],
+                        data["road_name_code"],
+                        data["road_name"],
+                        data["building_main_number"],
+                        data["building_sub_number"],
+                        data["building_management_number"],
+                        data["building_name"],
+                        data["road_name_address"],
+                        data["old_postal_code"],
+                        data["new_postal_code"],
+                        data["dong_info"],
+                        data["floor_info"],
+                        data["unit_info"],
+                        data["longitude"],
+                        data["latitude"],
+                        data["local_year"],
+                        data["local_quarter"],
+                    ),
+                )
 
                 connection.commit()
 
@@ -234,3 +236,76 @@ def insert_data_to_loc_store(connection, data):
         print(f"Error inserting data into local_store: {e}")
         connection.rollback()
         raise
+
+
+# top3 를 위한 매장번호로 구 가져오기
+def select_top3_rising_business_by_store_business_number(
+    store_business_id: str,
+) -> List[LocalStoreSubdistrict]:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+    results: List[LocalStoreSubdistrict] = []
+
+    print(f"top3: s_b_id: {store_business_id}")
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT 
+                    rb.RISING_BUSINESS_ID,
+                    CI.CITY_NAME,
+                    DI.DISTRICT_NAME,
+                    SD.SUB_DISTRICT_NAME,
+                    BMC.BIZ_MAIN_CATEGORY_NAME,
+                    BSC.BIZ_SUB_CATEGORY_NAME,
+                    BDC.BIZ_DETAIL_CATEGORY_NAME,
+                    rb.growth_rate,
+                    rb.sub_district_rank,
+                    rb.Y_M,
+                    rb.CREATED_AT,
+                    rb.UPDATED_AT
+                FROM
+                    rising_business rb
+                        JOIN
+                    CITY CI ON rb.CITY_ID = CI.CITY_ID
+                        JOIN
+                    DISTRICT DI ON rb.DISTRICT_ID = DI.DISTRICT_ID
+                        JOIN
+                    SUB_DISTRICT SD ON rb.SUB_DISTRICT_ID = SD.SUB_DISTRICT_ID
+                        JOIN
+                    BIZ_MAIN_CATEGORY BMC ON rb.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
+                        JOIN
+                    BIZ_SUB_CATEGORY BSC ON rb.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
+                        JOIN
+                    BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
+                WHERE 
+                    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
+                AND 
+                    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
+                ORDER BY 
+                    rb.GROWTH_RATE DESC
+                LIMIT 3;
+                ;
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query)
+
+            results = cursor.fetchall()
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_top3_rising_business_by_store_business_number: {e}"
+        )
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results

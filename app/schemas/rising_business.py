@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 from datetime import date, datetime, timedelta
 
 
@@ -51,10 +51,14 @@ class RisingBusinessOutput(BaseModel):
 
     growth_rate: Optional[float] = None
     sub_district_rank: Optional[int] = None
-    
 
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class RisingBusinessNationwideTop5AndSubDistrictTop3(BaseModel):
+    nationwide_top5: List[RisingBusinessOutput]
+    sub_district_top3_data: List[RisingBusinessOutput]

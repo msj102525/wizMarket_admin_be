@@ -9,6 +9,8 @@ from app.crud.district import get_district_id
 from app.crud.rising_business import (
     select_all_rising_business_by_dynamic_query as crud_select_all_rising_business_by_dynamic_query,
     select_all_rising_business_by_region_id,
+    select_top5_rising_business as crud_select_top5_rising_business,
+    select_top3_rising_business_by_store_business_number as crud_select_top3_rising_business_by_store_business_number,
 )
 from app.crud.sub_district import get_sub_district_id_by
 from app.schemas.rising_business import (
@@ -87,5 +89,21 @@ def select_all_rising_business_by_dynamic_query(
             rank_max=rank_max,
         )
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+def select_top5_rising_business() -> List[RisingBusinessOutput]:
+    try:
+        return crud_select_top5_rising_business()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+def select_top3_rising_business_by_store_business_number(
+    store_business_id: str,
+) -> List[RisingBusinessOutput]:
+    try:
+        return crud_select_top3_rising_business_by_store_business_number(store_business_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

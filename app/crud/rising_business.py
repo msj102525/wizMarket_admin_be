@@ -278,7 +278,7 @@ def select_all_rising_business_by_dynamic_query(
     return results
 
 
-# top5
+# 전국 top5
 def select_top5_rising_business() -> List[RisingBusinessOutput]:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -298,6 +298,7 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
                     BDC.BIZ_DETAIL_CATEGORY_NAME,
                     rb.growth_rate,
                     rb.sub_district_rank,
+                    rb.Y_M,
                     rb.CREATED_AT,
                     rb.UPDATED_AT
                 FROM
@@ -314,10 +315,13 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
                     BIZ_SUB_CATEGORY BSC ON rb.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
                         JOIN
                     BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
-                -- WHERE YEAR(rb.CREATED_AT) = YEAR(CURDATE())
-                -- AND MONTH(rb.CREATED_AT) = MONTH(CURDATE())
-                ORDER BY rb.GROWTH_RATE DESC
-                LIMIT 5
+                WHERE 
+                    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
+                AND 
+                    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
+                ORDER BY 
+                    rb.GROWTH_RATE DESC
+                LIMIT 5;
                 ;
             """
 
@@ -345,13 +349,13 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
                         if row.get("sub_district_rank") is not None
                         else 0
                     ),
+                    y_m=row.get("Y_M"),
                     created_at=row.get("CREATED_AT"),
                     updated_at=row.get("UPDATED_AT"),
                 )
                 results.append(rising_business_ouput)
 
-            print(results)
-            # return results
+            return results
     except pymysql.MySQLError as e:
         logger.error(f"MySQL Error: {e}")
         rollback(connection)
@@ -367,5 +371,103 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
     return results
 
 
-if __name__ == "__main__":
-    select_top5_rising_business()
+# 동기준 top3
+def select_top3_rising_business_by_store_business_number(
+    store_business_id: str,
+) -> List[RisingBusinessOutput]:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+    results: List[RisingBusinessOutput] = []
+
+    print(f"top3: s_b_id: {store_business_id}")
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT 
+                    rb.RISING_BUSINESS_ID,
+                    CI.CITY_NAME,
+                    DI.DISTRICT_NAME,
+                    SD.SUB_DISTRICT_NAME,
+                    BMC.BIZ_MAIN_CATEGORY_NAME,
+                    BSC.BIZ_SUB_CATEGORY_NAME,
+                    BDC.BIZ_DETAIL_CATEGORY_NAME,
+                    rb.growth_rate,
+                    rb.sub_district_rank,
+                    rb.Y_M,
+                    rb.CREATED_AT,
+                    rb.UPDATED_AT
+                FROM
+                    rising_business rb
+                        JOIN
+                    CITY CI ON rb.CITY_ID = CI.CITY_ID
+                        JOIN
+                    DISTRICT DI ON rb.DISTRICT_ID = DI.DISTRICT_ID
+                        JOIN
+                    SUB_DISTRICT SD ON rb.SUB_DISTRICT_ID = SD.SUB_DISTRICT_ID
+                        JOIN
+                    BIZ_MAIN_CATEGORY BMC ON rb.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
+                        JOIN
+                    BIZ_SUB_CATEGORY BSC ON rb.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
+                        JOIN
+                    BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
+                WHERE
+                    rb.sub_district_id = %s
+                AND 
+                    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
+                AND 
+                    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
+                ORDER BY 
+                    rb.GROWTH_RATE DESC
+                LIMIT 3;
+                ;
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(store_business_id,)}")
+            cursor.execute(select_query, (store_business_id,))
+
+            rows = cursor.fetchall()
+
+            for row in rows:
+                rising_business_ouput = RisingBusinessOutput(
+                    rising_business_id=row.get("RISING_BUSINESS_ID"),
+                    city_name=row.get("CITY_NAME"),
+                    district_name=row.get("DISTRICT_NAME"),
+                    sub_district_name=row.get("SUB_DISTRICT_NAME"),
+                    biz_main_category_name=row.get("BIZ_MAIN_CATEGORY_NAME"),
+                    biz_sub_category_name=row.get("BIZ_SUB_CATEGORY_NAME"),
+                    biz_detail_category_name=row.get("BIZ_DETAIL_CATEGORY_NAME"),
+                    growth_rate=(
+                        row.get("growth_rate")
+                        if row.get("growth_rate") is not None
+                        else 0.0
+                    ),
+                    sub_district_rank=(
+                        row.get("sub_district_rank")
+                        if row.get("sub_district_rank") is not None
+                        else 0
+                    ),
+                    y_m=row.get("Y_M"),
+                    created_at=row.get("CREATED_AT"),
+                    updated_at=row.get("UPDATED_AT"),
+                )
+                results.append(rising_business_ouput)
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+        rollback(connection)
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_top3_rising_business_by_store_business_number: {e}"
+        )
+        rollback(connection)
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results
