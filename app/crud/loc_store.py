@@ -62,14 +62,10 @@ def get_filtered_loc_store(filters: dict):
                 query_params.append(filters["storeName"])  # 정확히 일치
             else:
                 count_query += " AND local_store.store_name LIKE %s"
-<<<<<<< HEAD
+
                 query_params.append(
                     f"{filters['storeName']}%"
                 )  # '바%'로 시작하는 상호 검색
-=======
-                query_params.append(f"%{filters['storeName']}%")  # '바%'로 시작하는 상호 검색
-
->>>>>>> be7da9ea03cac87a91f6708ba899d9d2a5d63993
 
         # 총 개수 계산 쿼리 실행
         cursor = connection.cursor(pymysql.cursors.DictCursor)
