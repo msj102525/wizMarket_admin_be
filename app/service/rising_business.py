@@ -6,6 +6,9 @@ from app.crud.biz_detail_category import (
 )
 from app.crud.city import get_or_create_city_id
 from app.crud.district import get_district_id
+from app.crud.loc_store import (
+    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
+)
 from app.crud.rising_business import (
     select_all_rising_business_by_dynamic_query as crud_select_all_rising_business_by_dynamic_query,
     select_all_rising_business_by_region_id,
@@ -104,6 +107,18 @@ def select_top3_rising_business_by_store_business_number(
     store_business_id: str,
 ) -> List[RisingBusinessOutput]:
     try:
-        return crud_select_top3_rising_business_by_store_business_number(store_business_id)
+        sub_district_id = (
+            crud_select_local_store_sub_distirct_id_by_store_business_number(
+                store_business_id
+            )
+        )
+
+        if sub_district_id is None:
+            raise HTTPException(status_code=404, detail="Sub-district ID not found.")
+        return crud_select_top3_rising_business_by_store_business_number(
+            sub_district_id
+        )
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

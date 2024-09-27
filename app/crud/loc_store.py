@@ -240,63 +240,35 @@ def insert_data_to_loc_store(connection, data):
 
 
 # top3 를 위한 매장번호로 구 가져오기
-def select_top3_rising_business_by_store_business_number(
+def select_local_store_sub_distirct_id_by_store_business_number(
     store_business_id: str,
-) -> List[LocalStoreSubdistrict]:
+) -> int:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     logger = logging.getLogger(__name__)
-    results: List[LocalStoreSubdistrict] = []
 
-    print(f"top3: s_b_id: {store_business_id}")
+    print(f"top3: store_business_id: {store_business_id}")
 
     try:
         if connection.open:
 
             select_query = """
-                SELECT 
-                    rb.RISING_BUSINESS_ID,
-                    CI.CITY_NAME,
-                    DI.DISTRICT_NAME,
-                    SD.SUB_DISTRICT_NAME,
-                    BMC.BIZ_MAIN_CATEGORY_NAME,
-                    BSC.BIZ_SUB_CATEGORY_NAME,
-                    BDC.BIZ_DETAIL_CATEGORY_NAME,
-                    rb.growth_rate,
-                    rb.sub_district_rank,
-                    rb.Y_M,
-                    rb.CREATED_AT,
-                    rb.UPDATED_AT
+                SELECT
+                    LOCAL_STORE_ID,
+                    STORE_BUSINESS_NUMBER,
+                    SUB_DISTRICT_ID
                 FROM
-                    rising_business rb
-                        JOIN
-                    CITY CI ON rb.CITY_ID = CI.CITY_ID
-                        JOIN
-                    DISTRICT DI ON rb.DISTRICT_ID = DI.DISTRICT_ID
-                        JOIN
-                    SUB_DISTRICT SD ON rb.SUB_DISTRICT_ID = SD.SUB_DISTRICT_ID
-                        JOIN
-                    BIZ_MAIN_CATEGORY BMC ON rb.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
-                        JOIN
-                    BIZ_SUB_CATEGORY BSC ON rb.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
-                        JOIN
-                    BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
-                WHERE 
-                    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
-                AND 
-                    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
-                ORDER BY 
-                    rb.GROWTH_RATE DESC
-                LIMIT 3;
+                    LOCAL_STORE
+                WHERE STORE_BUSINESS_NUMBER = %s
                 ;
             """
 
             # logger.info(f"Executing query: {select_query % tuple(params)}")
-            cursor.execute(select_query)
+            cursor.execute(select_query, (store_business_id,))
 
-            results = cursor.fetchall()
+            results: LocalStoreSubdistrict = cursor.fetchone()
 
-            return results
+            return results.get("SUB_DISTRICT_ID")
     except pymysql.MySQLError as e:
         logger.error(f"MySQL Error: {e}")
     except Exception as e:

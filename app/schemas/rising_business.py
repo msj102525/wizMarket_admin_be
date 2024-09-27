@@ -52,6 +52,7 @@ class RisingBusinessOutput(BaseModel):
     growth_rate: Optional[float] = None
     sub_district_rank: Optional[int] = None
 
+    y_m: date
     created_at: datetime
     updated_at: datetime
 

@@ -373,14 +373,14 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
 
 # 동기준 top3
 def select_top3_rising_business_by_store_business_number(
-    store_business_id: str,
+    sub_district_id: int,
 ) -> List[RisingBusinessOutput]:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     logger = logging.getLogger(__name__)
     results: List[RisingBusinessOutput] = []
 
-    print(f"top3: s_b_id: {store_business_id}")
+    print(f"top3: sub_district_id: {sub_district_id}")
 
     try:
         if connection.open:
@@ -425,8 +425,8 @@ def select_top3_rising_business_by_store_business_number(
                 ;
             """
 
-            # logger.info(f"Executing query: {select_query % tuple(store_business_id,)}")
-            cursor.execute(select_query, (store_business_id,))
+            # logger.info(f"Executing query: {select_query % tuple(sub_district_id,)}")
+            cursor.execute(select_query, (sub_district_id,))
 
             rows = cursor.fetchall()
 
