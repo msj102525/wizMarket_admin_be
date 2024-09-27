@@ -37,7 +37,7 @@ def get_filtered_locations(filters):
                    loc_info.loc_info_id,
                    loc_info.shop, loc_info.move_pop, loc_info.sales, loc_info.work_pop, 
                    loc_info.income, loc_info.spend, loc_info.house, loc_info.resident,
-                   loc_info.ref
+                   loc_info.y_m
             FROM loc_info
             JOIN city ON loc_info.city_id = city.city_id
             JOIN district ON loc_info.district_id = district.district_id

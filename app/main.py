@@ -22,6 +22,7 @@ from app.api.endpoints import population
 from app.api.endpoints import city
 from app.api.endpoints import loc_store
 from app.api.endpoints import business_area_category
+from app.api.endpoints import statistics
 
 app = FastAPI()
 
@@ -61,6 +62,8 @@ app.include_router(business_area_category.router, prefix="/business_area_categor
 app.include_router(category.router, prefix="/category")
 app.include_router(classification.router, prefix="/classification")
 app.include_router(report.router, prefix="/report")
+app.include_router(statistics.router, prefix="/statistics")
+
 
 if __name__ == "__main__":
     import uvicorn
