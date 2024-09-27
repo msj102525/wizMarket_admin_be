@@ -3,7 +3,7 @@ from app.crud.stat_item import insert_stat_item
 def insert_stat_item_from_loc_info():
     # 삽입할 데이터
     table_name = "loc_info"
-    column_name = "shop"
+    column_name = "resident"
     source = "sbiz"
 
     # stat_item 테이블에 데이터 삽입

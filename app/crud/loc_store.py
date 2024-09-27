@@ -60,7 +60,7 @@ def get_filtered_loc_store(filters: dict):
                 query_params.append(filters['storeName'])  # 정확히 일치
             else:
                 count_query += " AND local_store.store_name LIKE %s"
-                query_params.append(f"{filters['storeName']}%")  # '바%'로 시작하는 상호 검색
+                query_params.append(f"%{filters['storeName']}%")  # '바%'로 시작하는 상호 검색
 
 
         # 총 개수 계산 쿼리 실행
@@ -71,7 +71,7 @@ def get_filtered_loc_store(filters: dict):
         # 데이터를 가져오는 쿼리 (페이징 적용)
         data_query = """
             SELECT 
-                local_store.local_store_id, local_store.store_name, local_store.branch_name, local_store.road_name_address,
+                local_store.store_business_number, local_store.store_name, local_store.branch_name, local_store.road_name_address,
                 local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                 local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info, local_store.floor_info,
                 local_store.unit_info, local_store.local_year, local_store.local_quarter, local_store.CREATED_AT, local_store.UPDATED_AT,
