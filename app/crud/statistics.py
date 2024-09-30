@@ -55,11 +55,6 @@ def get_stat_data(filters_dict):
 
 
 
-
-
-
-
-
 ########## 모든 city_id 값 가져오기 ###################
 def get_all_city_ids():
     """
@@ -70,12 +65,10 @@ def get_all_city_ids():
     try:
         connection = get_db_connection()
         cursor = connection.cursor(pymysql.cursors.DictCursor)
-
         query = """
             SELECT DISTINCT city_id
             FROM loc_info
         """
-
         cursor.execute(query)
         result = cursor.fetchall()
 
@@ -87,7 +80,6 @@ def get_all_city_ids():
             close_cursor(cursor)
         if connection:
             close_connection(connection)
-
 
 
 ############ 전국 단위 모든 city_id, district_id ##############
@@ -152,9 +144,39 @@ def get_all_city_district_sub_district():
             close_connection(connection)
 
 
+
+########### stat_item_id 값 가져오기 ##############
+def get_stat_item_id():
+  
+    connection = None
+    cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        query = """
+            SELECT DISTINCT(stat_item_id)
+            FROM statistics;
+        """
+        cursor.execute(query)
+        stat_item_id_list = cursor.fetchall()
+
+        # city_id 목록을 반환
+        return stat_item_id_list
+
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+
+
+
+########### 
+
 def get_data_for_city_and_district(city_id, district_id):
     """
-    특정 city_id와 district_id에 대한 매장 수(shop count)를 가져옴
+    특정 city_id와 district_id에 대한 컬럼 수(count)를 가져옴
     여러 sub_district의 매장 수를 합산하여 반환
     """
     connection = None
@@ -165,7 +187,7 @@ def get_data_for_city_and_district(city_id, district_id):
 
         # city_id와 district_id에 해당하는 모든 sub_district_id의 매장 수를 가져오는 쿼리
         query = """
-            SELECT SUM(RESIDENT) AS total_shop_count
+            SELECT SUM(shop) AS total_count
             FROM loc_info
             WHERE city_id = %s AND district_id = %s
         """
@@ -174,9 +196,9 @@ def get_data_for_city_and_district(city_id, district_id):
         result = cursor.fetchone()
 
         # 매장 수가 존재하지 않으면 0으로 처리
-        total_shop_count = result['total_shop_count'] if result['total_shop_count'] is not None else 0
+        total_count = result['total_count'] if result['total_count'] is not None else 0
 
-        return total_shop_count
+        return total_count
 
     finally:
         if cursor:
@@ -197,13 +219,13 @@ def get_national_data():
 
         # 전국 단위 매장 데이터를 가져오는 쿼리
         query = """
-            SELECT resident
+            SELECT shop
             FROM loc_info
         """
         cursor.execute(query)
         result = cursor.fetchall()
 
-        # shop 데이터만 리스트로 반환
+        # 데이터만 리스트로 반환
         return [row[0] for row in result]
 
     finally:
@@ -225,14 +247,14 @@ def get_city_district_data(city_id, district_id):
 
         # 특정 시/군/구의 매장 데이터를 가져오는 쿼리
         query = """
-            SELECT resident
+            SELECT shop
             FROM loc_info
             WHERE city_id = %s AND district_id = %s
         """
         cursor.execute(query, (city_id, district_id))
         result = cursor.fetchall()
 
-        # shop 데이터만 리스트로 반환
+        # 데이터만 리스트로 반환
         return [row[0] for row in result]
 
     finally:
@@ -270,8 +292,8 @@ def get_all_city_district_pairs():
             close_connection(connection)
 
 
-############## 읍면동 단위 모든 shop 정보 가져오기 ################
-# 매장 수(shop)를 loc_info 테이블에서 가져오는 함수
+############## 읍면동 단위 모든 컬럼 정보 가져오기 ################
+# 컬럼 값 loc_info 테이블에서 가져오는 함수
 def get_j_score_national_data(national_data):
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -281,18 +303,18 @@ def get_j_score_national_data(national_data):
     try:
         for city_id, district_id, sub_district_id in national_data:
             query = """
-                SELECT resident
+                SELECT shop
                 FROM loc_info
                 WHERE city_id = %s AND district_id = %s AND sub_district_id = %s
             """
             cursor.execute(query, (city_id, district_id, sub_district_id))
-            result = cursor.fetchone()  # 해당 읍/면/동의 shop 데이터를 하나 가져옴
+            result = cursor.fetchone()  # 해당 읍/면/동의 컬럼 데이터를 하나 가져옴
 
             if result:
-                # 튜플 (city_id, district_id, sub_district_id, shop_count)를 리스트에 추가
-                j_score_data.append((city_id, district_id, sub_district_id, result['resident']))
+                # 튜플 (city_id, district_id, sub_district_id, 컬럼)를 리스트에 추가
+                j_score_data.append((city_id, district_id, sub_district_id, result['shop']))
             else:
-                # 만약 데이터가 없는 경우 shop_count를 0으로 설정
+                # 만약 데이터가 없는 경우 count를 0으로 설정
                 j_score_data.append((city_id, district_id, sub_district_id, 0))
 
     except Exception as e:
@@ -317,7 +339,7 @@ def insert_j_score_nation(data):
 
         query = """
             INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, ref, ref_date, stat_level)
-            VALUES (8, %s, %s, %s, %s, now(), 'sbiz', '2024-08-01', 전국)
+            VALUES (%s, %s, %s, %s, %s, now(), 'sbiz', '2024-08-01', 전국)
         """
         cursor.executemany(query, data)
         connection.commit()
@@ -351,7 +373,7 @@ def update_stat_nation(national_stats):
             STD_VAL = %s, 
             MAX_VALUE = %s, 
             MIN_VALUE = %s
-        WHERE STAT_ITEM_ID = 8;
+        WHERE STAT_ITEM_ID = %s;
         """
 
         # 딕셔너리에서 통계 값 추출
@@ -360,9 +382,10 @@ def update_stat_nation(national_stats):
         std_val = national_stats.get('stddev')
         max_val = national_stats.get('max')
         min_val = national_stats.get('min')
+        stat_item_id = national_stats.get('stat_item_id')
 
         # 쿼리 실행
-        cursor.execute(update_query, (avg_val, med_val, std_val, max_val, min_val))
+        cursor.execute(update_query, (avg_val, med_val, std_val, max_val, min_val, stat_item_id))
 
         # 변경사항 커밋
         connection.commit()
@@ -393,12 +416,13 @@ def insert_stat_region(city_district_stats_list) :
         # INSERT 쿼리 작성 (sub_district_id와 j_score는 지금 없으므로 NULL 또는 적절히 처리)
         query = """
             INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, AVG_VAL, MED_VAL, STD_VAL, MAX_VALUE, MIN_VALUE, stat_level, CREATED_AT, ref, ref_date)
-            VALUES (8, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'sbiz', '2024-08-01')
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '시군구', NOW(), 'sbiz', '2024-08-01')
         """
 
         # 데이터를 튜플 형식으로 변환 후 executemany로 여러 행을 한 번에 삽입
         data_to_insert = [
             (
+                item['stat_item_id'],
                 item['city_id'],
                 item['district_id'],
                 None,  # sub_district_id가 없으므로 None
@@ -406,8 +430,7 @@ def insert_stat_region(city_district_stats_list) :
                 item['statistics']['median'],
                 item['statistics']['stddev'],
                 item['statistics']['max'],
-                item['statistics']['min'],
-                '시군구'  # stat_level이 시군구 레벨이라는 가정
+                item['statistics']['min']
             )
             for item in city_district_stats_list
         ]
@@ -436,34 +459,39 @@ def update_j_score_data_region(j_score_data_region):
     connection = None
     cursor = None
     try:
+        # DB 연결
         connection = get_db_connection()
         cursor = connection.cursor()
 
+        # SQL 업데이트 쿼리
         query = """
             UPDATE statistics
             SET j_score = %s
             WHERE city_id = %s
             AND district_id = %s
-            AND sub_district_id is null
-            AND stat_item_id = 8
+            AND sub_district_id = %s
+            AND stat_item_id = %s
         """
 
         # 각 튜플에 대해 업데이트 쿼리를 실행
         for data in j_score_data_region:
-            city_id, district_id, _, j_score = data  # j_score가 마지막에 위치
-            cursor.execute(query, (j_score, city_id, district_id))
+            stat_item_id, city_id, district_id, sub_district_id, j_score = data  # 튜플에서 값 가져오기
+            cursor.execute(query, (j_score, city_id, district_id, sub_district_id, stat_item_id))
 
+        # 변경사항 커밋
         connection.commit()
-        print("J-score updated successfully.")
+        print(f"Successfully updated {cursor.rowcount} rows.")
 
     except Exception as e:
         print(f"Error updating j_score: {e}")
         if connection:
-            connection.rollback()
+            connection.rollback()  # 문제가 생기면 롤백
 
     finally:
         if cursor:
-            close_cursor(cursor)
+            close_cursor(cursor)  # 커서 닫기
         if connection:
-            close_connection(connection)
+            close_connection(connection)  # 연결 닫기
+
+
 
