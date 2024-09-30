@@ -458,7 +458,7 @@ def insert_population_data(connection, population_data: Population):
         cursor.execute(insert_query, population_data_tuple)
 
 
-def get_latest_filtered_population_data(sub_district_id: int) -> PopulationOutput:
+def get_latest_population_data_by_subdistrict_id(sub_district_id: int) -> PopulationOutput:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     logger = logging.getLogger(__name__)

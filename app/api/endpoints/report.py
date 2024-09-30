@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 
-from app.schemas.population import PopulationOutput
+from app.schemas.population import PopulationJScoreOutput, PopulationOutput
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
 )
 from app.service.population import (
-    select_population_by_store_business_number as service_select_population_by_store_business_number,
+    select_report_population_by_store_business_number as service_select_report_population_by_store_business_number,
 )
 from app.service.rising_business import (
     select_top3_rising_business_by_store_business_number as service_select_top3_rising_business_by_store_business_number,
@@ -60,11 +60,11 @@ def select_rising_business_top5_top3(store_business_id: str):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@router.get("/population", response_model=PopulationOutput)
+@router.get("/population", response_model=PopulationJScoreOutput)
 def select_population_report_data(store_business_id: str):
     try:
         sub_district_population_data = (
-            service_select_population_by_store_business_number(store_business_id)
+            service_select_report_population_by_store_business_number(store_business_id)
         )
 
         return sub_district_population_data
@@ -72,4 +72,4 @@ def select_population_report_data(store_business_id: str):
     except HTTPException as http_ex:
         raise http_ex
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
