@@ -95,7 +95,7 @@ def get_all_city_ids():
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         query = """
             SELECT DISTINCT city_id
-            FROM loc_info
+            FROM commercial_district
         """
         cursor.execute(query)
         result = cursor.fetchall()
@@ -124,7 +124,7 @@ def get_all_city_district_pairs():
         # 모든 city_id와 district_id 쌍을 가져오는 쿼리
         query = """
             SELECT DISTINCT city_id, district_id
-            FROM loc_info
+            FROM commercial_district
         """
 
         cursor.execute(query)
@@ -156,7 +156,7 @@ def get_all_city_district_sub_district():
         # 모든 city_id와 district_id 쌍을 가져오는 쿼리
         query = """
             SELECT DISTINCT city_id, district_id, sub_district_id
-            FROM loc_info
+            FROM commercial_district
         """
 
         cursor.execute(query)
@@ -218,8 +218,8 @@ def get_data_for_city_and_district(city_id, district_id):
 
         # city_id와 district_id에 해당하는 모든 sub_district_id의 매장 수를 가져오는 쿼리
         query = """
-            SELECT SUM(shop) AS total_count
-            FROM loc_info
+            SELECT SUM(market_size) AS total_count
+            FROM commercial_district
             WHERE city_id = %s AND district_id = %s
         """
 
@@ -251,8 +251,8 @@ def get_national_data():
 
         # 전국 단위 매장 데이터를 가져오는 쿼리
         query = """
-            SELECT shop
-            FROM loc_info
+            SELECT market_size
+            FROM commercial_district
         """
         cursor.execute(query)
         result = cursor.fetchall()
@@ -279,8 +279,8 @@ def get_city_district_data(city_id, district_id):
 
         # 특정 시/군/구의 매장 데이터를 가져오는 쿼리
         query = """
-            SELECT shop
-            FROM loc_info
+            SELECT market_size
+            FROM commercial_district
             WHERE city_id = %s AND district_id = %s
         """
         cursor.execute(query, (city_id, district_id))
@@ -309,7 +309,7 @@ def get_all_city_district_pairs():
         # 모든 시/군/구의 city_id, district_id 쌍을 가져오는 쿼리
         query = """
             SELECT DISTINCT city_id, district_id
-            FROM loc_info
+            FROM commercial_district
         """
         cursor.execute(query)
         result = cursor.fetchall()
@@ -325,7 +325,7 @@ def get_all_city_district_pairs():
 
 
 ############## 읍면동 단위 모든 컬럼 정보 가져오기 ################
-# 컬럼 값 loc_info 테이블에서 가져오는 함수
+# 컬럼 값 commercial_district 테이블에서 가져오는 함수
 def get_j_score_national_data(national_data):
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -335,8 +335,8 @@ def get_j_score_national_data(national_data):
     try:
         for city_id, district_id, sub_district_id in national_data:
             query = """
-                SELECT shop
-                FROM loc_info
+                SELECT market_size
+                FROM commercial_district
                 WHERE city_id = %s AND district_id = %s AND sub_district_id = %s
             """
             cursor.execute(query, (city_id, district_id, sub_district_id))
@@ -345,7 +345,7 @@ def get_j_score_national_data(national_data):
             if result:
 
                 # 튜플 (city_id, district_id, sub_district_id, 컬럼)를 리스트에 추가
-                j_score_data.append((city_id, district_id, sub_district_id, result['shop']))
+                j_score_data.append((city_id, district_id, sub_district_id, result['market_size']))
 
             else:
                 # 만약 데이터가 없는 경우 count를 0으로 설정
@@ -371,8 +371,8 @@ def insert_j_score_nation(data):
         cursor = connection.cursor()
 
         query = """
-            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, ref, ref_date, stat_level)
-            VALUES (%s, %s, %s, %s, %s, now(), 'sbiz', '2024-08-01', 전국)
+            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, reference_id, ref_date, stat_level)
+            VALUES (%s, %s, %s, %s, %s, now(), 1, '2024-08-01', '전국')
         """
         cursor.executemany(query, data)
         connection.commit()
@@ -448,8 +448,8 @@ def insert_stat_region(city_district_stats_list):
 
         # INSERT 쿼리 작성 (sub_district_id와 j_score는 지금 없으므로 NULL 또는 적절히 처리)
         query = """
-            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, AVG_VAL, MED_VAL, STD_VAL, MAX_VALUE, MIN_VALUE, stat_level, CREATED_AT, ref, ref_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '시군구', NOW(), 'sbiz', '2024-08-01')
+            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, AVG_VAL, MED_VAL, STD_VAL, MAX_VALUE, MIN_VALUE, stat_level, CREATED_AT, reference_id, ref_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, '시군구', NOW(), 1, '2024-08-01')
         """
 
         # 데이터를 튜플 형식으로 변환 후 executemany로 여러 행을 한 번에 삽입
@@ -501,14 +501,14 @@ def update_j_score_data_region(j_score_data_region):
             SET j_score = %s
             WHERE city_id = %s
             AND district_id = %s
-            AND sub_district_id = %s
+            AND sub_district_id is NULL
             AND stat_item_id = %s
         """
 
         # 각 튜플에 대해 업데이트 쿼리를 실행
         for data in j_score_data_region:
             stat_item_id, city_id, district_id, sub_district_id, j_score = data  # 튜플에서 값 가져오기
-            cursor.execute(query, (j_score, city_id, district_id, sub_district_id, stat_item_id))
+            cursor.execute(query, (j_score, city_id, district_id, stat_item_id))
 
         # 변경사항 커밋
         connection.commit()
