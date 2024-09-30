@@ -106,8 +106,8 @@ def get_j_score_national(stat_item_id):
         # j_score_data에 (city_id, district_id, sub_district_id, count, j_score) 형태로 추가
         j_score_data_nation.append((stat_item_id, city_id, district_id, sub_district_id, j_score))
 
-    print(j_score_data_nation)
-    # insert_j_score_nation(j_score_data_nation)
+    # print(j_score_data_nation)
+    insert_j_score_nation(j_score_data_nation)
 
     return j_score_data_nation
 
@@ -139,13 +139,13 @@ def get_city_district_and_national_statistics(stat_item_id):
 
     # 전국 단위 통계값 업데이트 
     national_stats = {'stat_item_id': stat_item_id, **national_stats}
-    print(national_stats)
-    # update_stat_nation(national_stats)
+    # print(national_stats)
+    update_stat_nation(national_stats)
 
     # 시/군/구 별 통계 값 인서트
     city_district_stats_list = [{'stat_item_id': stat_item_id, **entry} for entry in city_district_stats_list]
-    print(city_district_stats_list)
-    # insert_stat_region(city_district_stats_list)
+    # print(city_district_stats_list)
+    insert_stat_region(city_district_stats_list)
 
     return {
         "national_statistics": national_stats,
@@ -193,15 +193,15 @@ def get_j_score_for_region(stat_item_id):
         # j_score_data에 (city_id, district_id, count, j_score) 형태로 추가
         j_score_data_region.append((stat_item_id, city_id, district_id, None, j_score))
 
-    print(j_score_data_region)
-    # update_j_score_data_region(j_score_data_region)
+    # print(j_score_data_region)
+    update_j_score_data_region(j_score_data_region)
 
     return j_score_data_region
 
 
 # 테스트 실행 예시
 if __name__ == "__main__":
-    get_j_score_national(8)
-    get_city_district_and_national_statistics(8)
-    get_j_score_for_region(8)
+    get_j_score_national(9) # stat_item_id
+    get_city_district_and_national_statistics(9) # stat_item_id
+    get_j_score_for_region(9) # stat_item_id
     # fetch_stat_item_id()

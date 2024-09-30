@@ -1,7 +1,7 @@
 from app.db.connect import get_db_connection, close_connection, close_cursor, commit, rollback
 
 # stat_item 테이블에 데이터 삽입
-def insert_stat_item(table_name, column_name, source):
+def insert_stat_item(table_name, column_name, reference_id):
     connection = None
     cursor = None
     try:
@@ -11,17 +11,17 @@ def insert_stat_item(table_name, column_name, source):
 
         # stat_item 테이블에 데이터 삽입하는 SQL 쿼리 작성
         insert_query = """
-            INSERT INTO stat_item (table_name, column_name, source)
+            INSERT INTO stat_item (table_name, column_name, REFERENCE_ID)
             VALUES (%s, %s, %s)
         """
         
         # 데이터 삽입
-        cursor.execute(insert_query, (table_name, column_name, source))
+        cursor.execute(insert_query, (table_name, column_name, reference_id))
 
         # 커밋
         commit(connection)
 
-        print(f"Data inserted successfully into stat_item with table_name={table_name}, column_name={column_name}, source={source}")
+        print(f"Data inserted successfully into stat_item with table_name={table_name}, column_name={column_name}, reference_id={reference_id}")
     
     except Exception as e:
         print(f"Error inserting into stat_item: {e}")
