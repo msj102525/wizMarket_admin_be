@@ -170,6 +170,9 @@ class PopulationOutput(BaseModel):
     age_40s: int
     age_50s: int
     age_60_plus: int
+    male_population_percent: float  # 남자 인구 비율 추가
+    female_population_percent: float  # 여자 인구 비율 추가
 
     class Config:
         from_attributes = True
+

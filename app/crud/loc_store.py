@@ -239,7 +239,7 @@ def insert_data_to_loc_store(connection, data):
         raise
 
 
-# top3 를 위한 매장번호로 구 가져오기
+# 매장번호로 구 가져오기
 def select_local_store_sub_distirct_id_by_store_business_number(
     store_business_id: str,
 ) -> int:

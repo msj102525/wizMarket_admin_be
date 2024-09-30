@@ -1,3 +1,4 @@
+import logging
 import pymysql
 import pandas as pd
 from app.db.connect import (
@@ -460,7 +461,7 @@ def insert_population_data(connection, population_data: Population):
 def get_latest_filtered_population_data(sub_district_id: int) -> PopulationOutput:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-
+    logger = logging.getLogger(__name__)
     try:
         base_select = """
             p.POPULATION_ID AS pop_id,                
@@ -498,23 +499,65 @@ def get_latest_filtered_population_data(sub_district_id: int) -> PopulationOutpu
             JOIN sub_district ON p.SUB_DISTRICT_ID = sub_district.sub_district_id
             WHERE p.sub_district_id = %s
             ORDER BY p.reference_date DESC
-            LIMIT 1
+            LIMIT 2
         """
 
         cursor.execute(query, (sub_district_id,))
-        row = cursor.fetchone()  
+        rows = cursor.fetchall()  
 
-        if row:  
-            total_population = sum(
-                row.get(key.split(" AS ")[1], 0) for key in selected_age_groups
+        if rows:
+            combined_population = {
+                "pop_id": rows[0]["pop_id"],
+                "city_name": rows[0]["city_name"],
+                "district_name": rows[0]["district_name"],
+                "sub_district_name": rows[0]["sub_district_name"],
+                "male_population": 0,
+                "female_population": 0,
+                "total_population": 0,
+                "male_population_percent": 0,
+                "female_population_percent": 0,
+                "reference_date": rows[0]["reference_date"],
+                "age_under_10": 0,
+                "age_10s": 0,
+                "age_20s": 0,
+                "age_30s": 0,
+                "age_40s": 0,
+                "age_50s": 0,
+                "age_60_plus": 0,
+            }
+
+            for row in rows:
+                if row["male_population"] > 0:
+                    combined_population["male_population"] += row["male_population"]
+                if row["female_population"] > 0:
+                    combined_population["female_population"] += row["female_population"]
+
+            combined_population["total_population"] = (
+                combined_population["male_population"] + combined_population["female_population"]
             )
-            row["total_population"] = total_population
 
-            # PopulationOutput 인스턴스 생성
-            population_output = PopulationOutput(**row)
+            for key in selected_age_groups:
+                age_group_name = key.split(" AS ")[1]
+                combined_population[age_group_name] += row.get(age_group_name, 0)
+
+            # 소숫점 두 번째 자리에서 반올림
+            combined_population["male_population"] = round(combined_population["male_population"], 2)
+            combined_population["female_population"] = round(combined_population["female_population"], 2)
+            combined_population["total_population"] = round(combined_population["total_population"], 2)
+
+            # 남성과 여성 비율 계산
+            if combined_population["total_population"] > 0:
+                combined_population["male_population_percent"] = round((combined_population["male_population"] / combined_population["total_population"]) * 100, 1)
+                combined_population["female_population_percent"] = round((combined_population["female_population"] / combined_population["total_population"]) * 100, 1)
+
+            for key in selected_age_groups:
+                age_group_name = key.split(" AS ")[1]
+                combined_population[age_group_name] = round(combined_population[age_group_name], 2)
+
+            population_output = PopulationOutput(**combined_population)
             return population_output
-
-        return None  # 결과가 없을 경우 None 반환
+        
+        return None  
 
     finally:
         if cursor:

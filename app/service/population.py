@@ -276,7 +276,7 @@ if __name__ == "__main__":
     load_and_insert_population_data()
 
 
-def select_population_by_store_business_number(store_business_id: str):
+def select_population_by_store_business_number(store_business_id: str) -> PopulationOutput:
     try:
         sub_district_id: int = (
             crud_select_local_store_sub_distirct_id_by_store_business_number(
@@ -292,6 +292,8 @@ def select_population_by_store_business_number(store_business_id: str):
         filtered_population_data = crud_get_latest_filtered_population_data(
             sub_district_id
         )
+
+        # statistics_data = 
 
         return filtered_population_data
     except HTTPException as http_ex:

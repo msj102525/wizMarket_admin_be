@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 
+from app.schemas.population import PopulationOutput
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
 )
@@ -59,8 +60,7 @@ def select_rising_business_top5_top3(store_business_id: str):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-# @router.get("/population", response_model=RisingBusinessNationwideTop5AndSubDistrictTop3)
-@router.get("/population")
+@router.get("/population", response_model=PopulationOutput)
 def select_population_report_data(store_business_id: str):
     try:
         sub_district_population_data = (
