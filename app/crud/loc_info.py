@@ -42,8 +42,6 @@ def get_all_corr():
         cursor.execute(query, query_params)
         all_corr = cursor.fetchall()
 
-        print(query)
-
         return all_corr
 
     finally:
@@ -98,7 +96,6 @@ def get_filtered_locations(filters):
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
     cursor = None
-    print(filters)
     try:
         query = """
             SELECT 
@@ -203,8 +200,6 @@ def get_filtered_locations(filters):
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         result = cursor.fetchall()
-
-        print(query)
 
         return result
 

@@ -37,7 +37,6 @@ async def filter_location_info(filters: dict):
     filter_corr_matrix = df_filter.groupby('DISTRICT_NAME')[['SALES', 'SHOP', 'MOVE_POP', 'WORK_POP', 'INCOME', 'SPEND', 'HOUSE', 'RESIDENT']].corr()
 
     filter_corr_matrix = filter_corr_matrix.reset_index().to_dict(orient='records')
-    print(filter_corr_matrix)
     
     # 필요 시 추가적인 비즈니스 로직을 처리할 수 있음
     return filtered_locations, all_corr_matrix, filter_corr_matrix
