@@ -19,7 +19,7 @@ async def select_population(filters: PopulationSearch):
     try:
         # 필터 데이터를 서비스 레이어로 전달하여 결과 가져옴
         result = await filter_population_data(filters_dict)
-        print(result)
+        # print(result)
         return {"filtered_data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"검색 중 오류가 발생했습니다: {str(e)}")

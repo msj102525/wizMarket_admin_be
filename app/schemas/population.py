@@ -152,4 +152,24 @@ class PopulationSearch(BaseModel):
 
     startDate: Optional[str] = None
     endDate : Optional[str] = None
-    
+
+
+class PopulationOutput(BaseModel):
+    pop_id: int
+    city_name: str
+    district_name: str
+    sub_district_name: str
+    male_population: int
+    female_population: int
+    total_population: int
+    reference_date: datetime
+    age_under_10: int
+    age_10s: int
+    age_20s: int
+    age_30s: int
+    age_40s: int
+    age_50s: int
+    age_60_plus: int
+
+    class Config:
+        from_attributes = True
