@@ -82,12 +82,7 @@ def get_stat_data(filters_dict):
         connection.close()  # 연결 종료
 
 
-<<<<<<< HEAD
 
-
-
-=======
->>>>>>> 9e718d1f0af5b6d4234380c4f6e4a048857c9683
 ########## 모든 city_id 값 가져오기 ###################
 def get_all_city_ids():
     """
@@ -232,13 +227,8 @@ def get_data_for_city_and_district(city_id, district_id):
         result = cursor.fetchone()
 
         # 매장 수가 존재하지 않으면 0으로 처리
-<<<<<<< HEAD
+
         total_count = result['total_count'] if result['total_count'] is not None else 0
-=======
-        total_shop_count = (
-            result["total_shop_count"] if result["total_shop_count"] is not None else 0
-        )
->>>>>>> 9e718d1f0af5b6d4234380c4f6e4a048857c9683
 
         return total_count
 
@@ -353,15 +343,10 @@ def get_j_score_national_data(national_data):
             result = cursor.fetchone()  # 해당 읍/면/동의 컬럼 데이터를 하나 가져옴
 
             if result:
-<<<<<<< HEAD
+
                 # 튜플 (city_id, district_id, sub_district_id, 컬럼)를 리스트에 추가
                 j_score_data.append((city_id, district_id, sub_district_id, result['shop']))
-=======
-                # 튜플 (city_id, district_id, sub_district_id, shop_count)를 리스트에 추가
-                j_score_data.append(
-                    (city_id, district_id, sub_district_id, result["resident"])
-                )
->>>>>>> 9e718d1f0af5b6d4234380c4f6e4a048857c9683
+
             else:
                 # 만약 데이터가 없는 경우 count를 0으로 설정
                 j_score_data.append((city_id, district_id, sub_district_id, 0))
@@ -425,20 +410,12 @@ def update_stat_nation(national_stats):
         """
 
         # 딕셔너리에서 통계 값 추출
-<<<<<<< HEAD
         avg_val = national_stats.get('average')
         med_val = national_stats.get('median')
         std_val = national_stats.get('stddev')
         max_val = national_stats.get('max')
         min_val = national_stats.get('min')
         stat_item_id = national_stats.get('stat_item_id')
-=======
-        avg_val = national_stats.get("average")
-        med_val = national_stats.get("median")
-        std_val = national_stats.get("stddev")
-        max_val = national_stats.get("max")
-        min_val = national_stats.get("min")
->>>>>>> 9e718d1f0af5b6d4234380c4f6e4a048857c9683
 
         # 쿼리 실행
         cursor.execute(update_query, (avg_val, med_val, std_val, max_val, min_val, stat_item_id))
@@ -478,7 +455,6 @@ def insert_stat_region(city_district_stats_list):
         # 데이터를 튜플 형식으로 변환 후 executemany로 여러 행을 한 번에 삽입
         data_to_insert = [
             (
-<<<<<<< HEAD
                 item['stat_item_id'],
                 item['city_id'],
                 item['district_id'],
@@ -488,17 +464,6 @@ def insert_stat_region(city_district_stats_list):
                 item['statistics']['stddev'],
                 item['statistics']['max'],
                 item['statistics']['min']
-=======
-                item["city_id"],
-                item["district_id"],
-                None,  # sub_district_id가 없으므로 None
-                item["statistics"]["average"],
-                item["statistics"]["median"],
-                item["statistics"]["stddev"],
-                item["statistics"]["max"],
-                item["statistics"]["min"],
-                "시군구",  # stat_level이 시군구 레벨이라는 가정
->>>>>>> 9e718d1f0af5b6d4234380c4f6e4a048857c9683
             )
             for item in city_district_stats_list
         ]
