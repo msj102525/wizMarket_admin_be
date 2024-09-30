@@ -17,12 +17,13 @@ def get_stat_data(filters_dict):
                    city.city_name AS city_name, 
                    district.district_name AS district_name, 
                    sub_district.sub_district_name AS sub_district_name,
+                   statistics.sub_district_id,
                    stat_item.column_name as column_name,
                    AVG_VAL, MED_VAL, STD_VAL, MAX_VALUE, MIN_VALUE, J_SCORE
             FROM statistics
             JOIN city ON statistics.city_id = city.city_id
             JOIN district ON statistics.district_id = district.district_id
-            JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
+            LEFT JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
             JOIN stat_item ON statistics.STAT_ITEM_ID = stat_item.STAT_ITEM_ID
             WHERE 1=1
         """
@@ -164,7 +165,7 @@ def get_data_for_city_and_district(city_id, district_id):
 
         # city_id와 district_id에 해당하는 모든 sub_district_id의 매장 수를 가져오는 쿼리
         query = """
-            SELECT SUM(resident) AS total_shop_count
+            SELECT SUM(RESIDENT) AS total_shop_count
             FROM loc_info
             WHERE city_id = %s AND district_id = %s
         """
@@ -315,8 +316,8 @@ def insert_j_score_nation(data):
         cursor = connection.cursor()
 
         query = """
-            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, ref, ref_date)
-            VALUES (8, %s, %s, %s, %s, now(), 'sbiz', '2024-08-01')
+            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, ref, ref_date, stat_level)
+            VALUES (8, %s, %s, %s, %s, now(), 'sbiz', '2024-08-01', 전국)
         """
         cursor.executemany(query, data)
         connection.commit()
@@ -443,13 +444,14 @@ def update_j_score_data_region(j_score_data_region):
             SET j_score = %s
             WHERE city_id = %s
             AND district_id = %s
-            AND (sub_district_id = %s OR (sub_district_id IS NULL AND %s IS NULL))
+            AND sub_district_id is null
+            AND stat_item_id = 8
         """
 
         # 각 튜플에 대해 업데이트 쿼리를 실행
         for data in j_score_data_region:
-            city_id, district_id, sub_district_id, j_score = data
-            cursor.execute(query, (j_score, city_id, district_id, sub_district_id, sub_district_id))
+            city_id, district_id, _, j_score = data  # j_score가 마지막에 위치
+            cursor.execute(query, (j_score, city_id, district_id))
 
         connection.commit()
         print("J-score updated successfully.")

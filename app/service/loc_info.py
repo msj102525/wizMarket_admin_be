@@ -12,6 +12,7 @@ import os, time
 from tqdm import tqdm
 import sys
 from app.crud.loc_info import *
+import pandas as pd
 
 
 
@@ -19,9 +20,27 @@ from app.crud.loc_info import *
 async def filter_location_info(filters: dict):
     # 필터링 로직: 필요하면 여기서 추가적인 필터 처리를 할 수 있습니다.
     filtered_locations = get_filtered_locations(filters)
+    all_corr = get_all_corr()
+
+    # 필요한 항목들로 DataFrame 생성 (SALES와 다른 변수들)
+    df_all = pd.DataFrame(all_corr, columns=['SALES', 'SHOP', 'MOVE_POP', 'WORK_POP', 'INCOME', 'SPEND', 'HOUSE', 'RESIDENT'])
+
+    # 전체 상관분석 수행
+    all_corr_matrix = df_all.corr()
+
+    # 지역 내 상관 분석
+    filter_corr = get_filter_corr(filters)
+
+    # 지역 내 분석 수행
+    df_filter = pd.DataFrame(filter_corr)
+
+    filter_corr_matrix = df_filter.groupby('DISTRICT_NAME')[['SALES', 'SHOP', 'MOVE_POP', 'WORK_POP', 'INCOME', 'SPEND', 'HOUSE', 'RESIDENT']].corr()
+
+    filter_corr_matrix = filter_corr_matrix.reset_index().to_dict(orient='records')
+    print(filter_corr_matrix)
     
     # 필요 시 추가적인 비즈니스 로직을 처리할 수 있음
-    return filtered_locations
+    return filtered_locations, all_corr_matrix, filter_corr_matrix
 
 
 

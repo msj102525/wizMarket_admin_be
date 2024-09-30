@@ -168,6 +168,7 @@ def get_j_score_for_region():
         # j_score_data에 (city_id, district_id, shop_count, j_score) 형태로 추가
         j_score_data_region.append((city_id, district_id, None, j_score))
 
+    # print(j_score_data_region)
     update_j_score_data_region(j_score_data_region)
 
     return j_score_data_region
@@ -175,6 +176,6 @@ def get_j_score_for_region():
 
 # 테스트 실행 예시
 if __name__ == "__main__":
-    get_j_score_national()
-    get_city_district_and_national_statistics()
+    # get_j_score_national()
+    # get_city_district_and_national_statistics()
     get_j_score_for_region()

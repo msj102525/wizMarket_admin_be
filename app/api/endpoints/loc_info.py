@@ -14,7 +14,6 @@ async def filter_data(filters: FilterRequest):
     filters_dict = filters.dict(exclude_unset=True)
     print(filters_dict)
     # 필터 데이터를 서비스 레이어로 전달
-    result = await filter_location_info(filters_dict)
-    print(result)
+    result, all_corr_matrix, filter_corr_matrix = await filter_location_info(filters_dict)
 
-    return {"filtered_data": result}
+    return {"filtered_data": result, "all_corr" : all_corr_matrix, "filter_corr" : filter_corr_matrix}

@@ -20,6 +20,77 @@ def fetch_loc_info_by_ids(city_id: int, district_id: int, sub_district_id: int) 
         if connection:
             connection.close()
 
+def get_all_corr():
+    """주어진 필터 조건을 바탕으로 데이터를 조회하는 함수"""
+
+    # 여기서 직접 DB 연결을 설정
+    connection = get_db_connection()
+    cursor = None
+
+    try:
+        query = """
+            SELECT *
+            FROM loc_info
+            JOIN city ON loc_info.city_id = city.city_id
+            JOIN district ON loc_info.district_id = district.district_id
+            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+            WHERE 1=1
+        """
+        query_params = []
+
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query, query_params)
+        all_corr = cursor.fetchall()
+
+        print(query)
+
+        return all_corr
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
+
+
+
+def get_filter_corr(filters):
+    """주어진 필터 조건을 바탕으로 데이터를 조회하는 함수"""
+
+    # 여기서 직접 DB 연결을 설정
+    connection = get_db_connection()
+    cursor = None
+
+    try:
+        query = """
+            SELECT *
+            FROM loc_info
+            JOIN city ON loc_info.city_id = city.city_id
+            JOIN district ON loc_info.district_id = district.district_id
+            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+            WHERE 1=1
+        """
+        query_params = []
+
+        # 필터 값이 존재할 때만 쿼리에 조건 추가
+        if filters.get("city") is not None:
+            query += " AND loc_info.city_id = %s"
+            query_params.append(filters["city"])
+
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query, query_params)
+        filter_corr = cursor.fetchall()
+
+        return filter_corr
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
+
+
+
+################################################        
+
 
 def get_filtered_locations(filters):
     """주어진 필터 조건을 바탕으로 데이터를 조회하는 함수"""
