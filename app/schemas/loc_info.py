@@ -2,8 +2,9 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, date
 
+
 class LocationInfo(BaseModel):
-    loc_info_id: Optional[int] = None # Primary Key, Auto Increment
+    loc_info_id: Optional[int] = None  # Primary Key, Auto Increment
     city_id: int
     district_id: int
     sub_district_id: int
@@ -22,10 +23,12 @@ class LocationInfo(BaseModel):
     class Config:
         from_attributes = True
 
+
 class LocationRequest(BaseModel):
     city_name: str
     district_name: str
     sub_district_name: str
+
 
 class FilterRequest(BaseModel):
     city: Optional[int] = None  # 기본값 None을 설정
@@ -49,4 +52,14 @@ class FilterRequest(BaseModel):
     spendMax: Optional[int] = None
     houseMax: Optional[int] = None
     residentMax: Optional[int] = None
-    
+
+
+class LocationInfoReportOutput(BaseModel):
+    resident: Optional[int] = None
+    work_pop: Optional[int] = None
+    house: Optional[int] = None
+    shop: Optional[int] = None
+    income: Optional[int] = None
+
+    class Config:
+        from_attributes = True

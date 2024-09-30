@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from app.schemas.loc_info import LocationInfoReportOutput
+from app.schemas.statistics import LocStatisticsOutput
+
+
 class Population(BaseModel):
     pop_id: Optional[int] = None  # 자동 증가 필드
     city_id: int
@@ -134,12 +138,12 @@ class Population(BaseModel):
         from_attributes = True
 
 
-
 class PopulationRequest(BaseModel):
     city_name: str
     district_name: str
     sub_district_name: str
     start_year_month: str  # YYYY-MM-DD 형식의 문자열
+
 
 class PopulationSearch(BaseModel):
     city: Optional[int] = None  # 기본값 None을 설정
@@ -151,7 +155,7 @@ class PopulationSearch(BaseModel):
     ageGroupMax: Optional[str] = None
 
     startDate: Optional[str] = None
-    endDate : Optional[str] = None
+    endDate: Optional[str] = None
 
 
 class PopulationOutput(BaseModel):
@@ -176,3 +180,11 @@ class PopulationOutput(BaseModel):
     class Config:
         from_attributes = True
 
+
+class PopulationJScoreOutput(BaseModel):
+    population_data: PopulationOutput
+    j_score_data: LocStatisticsOutput
+    loc_info_data: LocationInfoReportOutput
+
+    class Config:
+        from_attributes = True

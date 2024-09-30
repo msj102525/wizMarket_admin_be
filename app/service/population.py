@@ -4,17 +4,24 @@ import os
 from app.crud.population import *
 import re
 from dotenv import load_dotenv
-from app.schemas.population import Population, PopulationSearch
+from app.crud.statistics import (
+    select_nationwide_jscore_by_stat_item_id_and_sub_district_id,
+    select_state_item_id,
+)
+from app.schemas.loc_info import LocationInfoReportOutput
+from app.schemas.population import Population, PopulationJScoreOutput, PopulationSearch
 from app.schemas.city import City
 from app.schemas.district import District
+from app.schemas.statistics import LocStatisticsOutput, StatisticsJscoreOutput
 from app.schemas.sub_district import SubDistrict
 from app.db.connect import *
 from datetime import datetime, timedelta
 from app.crud.population import (
-    get_latest_filtered_population_data as crud_get_latest_filtered_population_data,
+    get_latest_population_data_by_subdistrict_id as crud_get_latest_population_data_by_subdistrict_id,
 )
 
 from app.crud.loc_store import (
+    select_loc_info_report_data_by_sub_district_id as crud_select_loc_info_report_data_by_sub_district_id,
     select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
 )
 
@@ -276,7 +283,9 @@ if __name__ == "__main__":
     load_and_insert_population_data()
 
 
-def select_population_by_store_business_number(store_business_id: str) -> PopulationOutput:
+def select_report_population_by_store_business_number(
+    store_business_id: str,
+) -> PopulationJScoreOutput:
     try:
         sub_district_id: int = (
             crud_select_local_store_sub_distirct_id_by_store_business_number(
@@ -284,18 +293,74 @@ def select_population_by_store_business_number(store_business_id: str) -> Popula
             )
         )
 
-        # print(sub_district_id)
-
         if sub_district_id is None:
             raise HTTPException(status_code=404, detail="Sub-district ID not found.")
 
-        filtered_population_data = crud_get_latest_filtered_population_data(
+        # 최신 인구 데이터 조회
+        population_data = crud_get_latest_population_data_by_subdistrict_id(
             sub_district_id
         )
 
-        # statistics_data = 
+        # 통계 항목 ID 조회
+        resident_stat_item_id: int = select_state_item_id("loc_info", "resident")
+        work_pop_stat_item_id: int = select_state_item_id("loc_info", "work_pop")
+        house_stat_item_id: int = select_state_item_id("loc_info", "house")
+        shop_stat_item_id: int = select_state_item_id("loc_info", "shop")
+        income_stat_item_id: int = select_state_item_id("loc_info", "income")
 
-        return filtered_population_data
+        # J-score 조회 및 반올림 처리
+        resident_jscore: float = round(
+            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+                resident_stat_item_id, sub_district_id
+            ),
+            1,
+        )
+        work_pop_jscore: float = round(
+            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+                work_pop_stat_item_id, sub_district_id
+            ),
+            1,
+        )
+        house_jscore: float = round(
+            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+                house_stat_item_id, sub_district_id
+            ),
+            1,
+        )
+        shop_jscore: float = round(
+            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+                shop_stat_item_id, sub_district_id
+            ),
+            1,
+        )
+        income_jscore: float = round(
+            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+                income_stat_item_id, sub_district_id
+            ),
+            1,
+        )
+
+        j_score_data = LocStatisticsOutput(
+            resident_jscore=resident_jscore,
+            work_pop_jscore=work_pop_jscore,
+            house_jscore=house_jscore,
+            shop_jscore=shop_jscore,
+            income_jscore=income_jscore,
+        )
+
+        loc_info_data: LocationInfoReportOutput = (
+            crud_select_loc_info_report_data_by_sub_district_id(sub_district_id)
+        )
+
+        print(loc_info_data)
+
+        population_j_score_data = PopulationJScoreOutput(
+            population_data=population_data,
+            j_score_data=j_score_data,
+            loc_info_data=loc_info_data,
+        )
+
+        return population_j_score_data
     except HTTPException as http_ex:
         raise http_ex
     except Exception as e:

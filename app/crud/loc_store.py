@@ -2,6 +2,7 @@ import logging
 from typing import List
 import pymysql
 from app.db.connect import close_connection, close_cursor, get_db_connection
+from app.schemas.loc_info import LocationInfoReportOutput
 from app.schemas.loc_store import LocalStoreSubdistrict
 
 # crud/loc_store.py
@@ -247,7 +248,7 @@ def select_local_store_sub_distirct_id_by_store_business_number(
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     logger = logging.getLogger(__name__)
 
-    print(f"top3: store_business_id: {store_business_id}")
+    print(f"store_business_id: {store_business_id}")
 
     try:
         if connection.open:
@@ -282,3 +283,42 @@ def select_local_store_sub_distirct_id_by_store_business_number(
             close_connection(connection)
 
     return results
+
+
+# 읍/면/동 id로 주거인구, 직장인구, 세대수, 업소수, 소득 조회
+def select_loc_info_report_data_by_sub_district_id(
+    sub_district_id: int,
+) -> LocationInfoReportOutput:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        select_query = """
+            SELECT 
+                RESIDENT, -- 주거인구
+                WORK_POP, -- 직장인구
+                HOUSE, -- 세대수
+                SHOP, -- 업소수
+                INCOME -- 소득
+            FROM loc_info
+            WHERE sub_district_id = %s;
+        """
+
+        cursor.execute(select_query, (sub_district_id,))
+        row = cursor.fetchone()
+
+        if row:
+            return LocationInfoReportOutput(
+                resident=row["RESIDENT"],
+                work_pop=row["WORK_POP"],
+                house=row["HOUSE"],
+                shop=row["SHOP"],
+                income=row["INCOME"],
+            )
+        else:
+            return None  # 데이터가 없을 경우
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
