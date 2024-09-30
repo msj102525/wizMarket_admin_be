@@ -315,7 +315,9 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
                     BIZ_SUB_CATEGORY BSC ON rb.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
                         JOIN
                     BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
-                WHERE 
+                WHERE
+                    rb.growth_rate <= 1000
+                AND 
                     YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
                 AND 
                     MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
