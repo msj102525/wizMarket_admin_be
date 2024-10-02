@@ -2,8 +2,7 @@ import numpy as np
 from app.crud.statistics import *
 
 
-
-################## 조회 #############################
+################## 입지 정보 통계 값 조회 #############################
 
 def select_stat_data(filters_dict):
     result = get_stat_data(filters_dict)
@@ -92,10 +91,10 @@ def get_j_score_national(stat_item_id):
     
     j_score_data_nation = []
 
-    for city_id, district_id, sub_district_id, shop in data:
-        if shop > 0:
+    for city_id, district_id, sub_district_id, j_column in data:
+        if j_column > 0:
             # 해당 매장 수의 순위
-            rank = ranked_counts.index(shop) + 1
+            rank = ranked_counts.index(j_column) + 1
             totals = len(counts)
 
             # j_score 계산
@@ -199,9 +198,53 @@ def get_j_score_for_region(stat_item_id):
     return j_score_data_region
 
 
+##################### 전국 범위 동별 mz 세대 인구 j_score 구해서 인서트 ########################
+def calculate_weighted_jscore(stat_item_id):
+    
+    # 1. 전국 지역 id 값 가져오기
+    national_data = get_all_city_district_sub_district()
+
+    # 2. 전국 지역 id 값으로 mz 세대 인구 읍면동 별 값 가져오기
+    data = get_j_score_national_data_mz(national_data)
+
+    # 3. 전국의 동별 mz 세대 인구 j_score 값 계산
+    counts = [item[-1] if item[-1] is not None else 0 for item in data]  # None 값을 0으로 변환
+
+    # 데이터 기준으로 순위 계산
+    ranked_counts = sorted(counts, reverse=True)  # 내림차순으로 정렬
+
+    j_score_data_nation_mz = []
+
+    for city_id, district_id, sub_district_id_mz, j_column in data:
+        # None 값을 0으로 처리
+        j_column = j_column if j_column is not None else 0
+
+        if j_column > 0:
+            # 해당 mz_population의 순위
+            rank = ranked_counts.index(j_column) + 1
+            totals = len(counts)
+
+            # j_score 계산
+            j_score = 10 * ((totals + 1 - rank) / totals)
+        else:
+            j_score = 0  # mz_population이 0인 경우 j_score도 0
+
+        # j_score_data에 (stat_item_id, city_id, district_id, sub_district_id, j_score) 형태로 추가
+        j_score_data_nation_mz.append((stat_item_id, city_id, district_id, sub_district_id_mz, j_score))
+
+    insert_j_score_nation(j_score_data_nation_mz)
+    # print(j_score_data_nation_mz)
+    
+    return(j_score_data_nation_mz)
+
+
 # 테스트 실행 예시
 if __name__ == "__main__":
-    get_j_score_national(9) # stat_item_id
-    get_city_district_and_national_statistics(9) # stat_item_id
-    get_j_score_for_region(9) # stat_item_id
-    # fetch_stat_item_id()
+    # 입지 정보 통계값, j_score 테이블에 넣기
+    # get_j_score_national(9) # stat_item_id
+    # get_city_district_and_national_statistics(9) # stat_item_id
+    # get_j_score_for_region(9) # stat_item_id
+
+####################################################
+    # mz 인구 j_score 값 테이블에 넣기
+    calculate_weighted_jscore(14) # stat_item_id

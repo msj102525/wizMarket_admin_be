@@ -8,7 +8,7 @@ def insert_stat_item_from_loc_info(
     # 삽입할 데이터
     table_name = table_name
     column_name = column_name
-    reference_id = 1
+    reference_id = 5
 
     # stat_item 테이블에 데이터 삽입
     insert_stat_item(table_name, column_name, reference_id)
@@ -16,4 +16,4 @@ def insert_stat_item_from_loc_info(
 
 # 함수 실행
 if __name__ == "__main__":
-    insert_stat_item_from_loc_info("commercial_district", "average_payment")
+    insert_stat_item_from_loc_info("population", "mz_population")
