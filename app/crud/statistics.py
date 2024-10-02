@@ -731,8 +731,12 @@ def get_living_env(sub_district_id):
         # 쿼리 실행
         query_statistics = """
             SELECT 
+                    city_name, district_name, sub_district_name,
                    work_pop, resident
             FROM loc_info
+            JOIN city ON loc_info.city_id = city.city_id
+            JOIN district ON loc_info.district_id = district.district_id
+            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
             WHERE loc_info.sub_district_id = %s
         """
         cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -747,6 +751,60 @@ def get_living_env(sub_district_id):
         connection.close()  # 연결 종료
 
 
+######## 인근 유동 인구 #############
+def get_move_pop_and_j_score(sub_district_id):
+    connection = get_db_connection()
+    cursor = None
+
+    try:
+        # 첫 번째 쿼리: 이동 인구 정보
+        query_move_pop = """
+            SELECT 
+                city_name, district_name, sub_district_name,
+                move_pop, y_m
+            FROM loc_info
+            JOIN city ON loc_info.city_id = city.city_id
+            JOIN district ON loc_info.district_id = district.district_id
+            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+            WHERE loc_info.sub_district_id = %s
+        """
+
+        # 두 번째 쿼리: J_SCORE 정보
+        query_j_score = """
+            SELECT 
+                city_name, district_name, sub_district_name,
+                j_score
+            FROM statistics
+            JOIN city ON statistics.city_id = city.city_id
+            JOIN district ON statistics.district_id = district.district_id
+            JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
+            WHERE statistics.stat_item_id = 2 AND sub_district.SUB_DISTRICT_ID = %s
+        """
+
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+        # 첫 번째 쿼리 실행
+        cursor.execute(query_move_pop, (sub_district_id,))
+        move_pop_result = cursor.fetchall()
+
+        # 두 번째 쿼리 실행
+        cursor.execute(query_j_score, (sub_district_id,))
+        j_score_result = cursor.fetchall()
+
+        # 결과를 함께 반환
+        return {
+            "move_pop_data": move_pop_result,
+            "j_score_data": j_score_result
+        }
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
+
+
+
+####################################################
 # 전국 jscore 조회
 def select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
     stat_item_id: int, sub_district_id: int
