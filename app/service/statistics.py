@@ -72,24 +72,64 @@ def fetch_move_pop(sub_district_id):
 
     # move_pop_data와 j_score_data를 딕셔너리에서 추출
     result = data["move_pop_data"]
+    list = data["move_pop_list"]
     j_score_data = data["j_score_data"]
     
-    if result and len(result) > 0:  # 이동 인구 데이터가 있는 경우
-        move_pop = result[0].get("move_pop", 0)  # move_pop 값을 가져옴
+    # 1. 일 평균 구하기
+    move_pop = result[0].get("move_pop", 0)  # move_pop 값을 가져옴
 
-        # 일 평균 이동 인구 계산 (30일 기준)
-        days_in_month = 30
-        daily_average_move_pop = move_pop / days_in_month if move_pop > 0 else 0
-        daily_average_move_pop = int(daily_average_move_pop)  # 소수점 버리기
+    # 일 평균 이동 인구 계산 (30일 기준)
+    days_in_month = 30
+    daily_average_move_pop = move_pop / days_in_month if move_pop > 0 else 0
+    daily_average_move_pop = int(daily_average_move_pop)  # 소수점 버리기
 
-        # 일 평균값을 result에 추가
-        result[0]['daily_average_move_pop'] = daily_average_move_pop
+    # 일 평균값을 result에 추가
+    result[0]['daily_average_move_pop'] = daily_average_move_pop
     
+    # 2. 시/도 내에서 선택한 동의 유동인구가 낮은지 높은지 판단
+    city_name = result[0]['city_name']
+    sub_district_name = result[0]['sub_district_name']
+    move_pop_value = result[0]['move_pop']
+
+    # 같은 city_name에 속하고, sub_district_name이 다른 항목들을 필터링
+    same_city_data = [item for item in list if item['city_name'] == city_name and item['sub_district_name'] != sub_district_name]
+    move_pop_values = sorted([item['move_pop'] for item in same_city_data])
+
+    # 33% 기준으로 구간 나누기
+    total_count = len(move_pop_values)
+    lower_threshold = total_count // 3  # 하위 33% 경계
+    upper_threshold = total_count * 2 // 3  # 상위 33% 경계
+
+    # 현재 result의 move_pop 값이 어느 구간에 속하는지 판단
+    if move_pop_value <= move_pop_values[lower_threshold]:  # 하위 33% 구간
+        move_pop_comparison = "lower 33%"
+    elif move_pop_value >= move_pop_values[upper_threshold]:  # 상위 33% 구간
+        move_pop_comparison = "upper 33%"
+    else:
+        move_pop_comparison = "middle 33%"  # 중간 33% 구간
+    
+    result[0]['move_pop_comparison'] = move_pop_comparison
+
+    # 3. 시/도 내의 유동인구 평균 값
+    # list에서 city_name이 같은 데이터들의 move_pop 값 추출
+    city_move_pop_values = [item['move_pop'] for item in list if item['city_name'] == city_name]
+
+    # 평균값 계산
+    if len(city_move_pop_values) > 0:
+        city_move_pop_average = sum(city_move_pop_values) / len(city_move_pop_values)
+    else:
+        city_move_pop_average = 0
+
+    # 평균값을 result에 추가
+    result[0]['city_move_pop_average'] = city_move_pop_average
+    
+    # 4. 해당 동의 j_score 값 result 에 추가
+    j_score = j_score_data[0].get("j_score", 0) 
+    result[0]['j_score'] = j_score
+
     print(result)
-    print(j_score_data)
 
-    return result, j_score_data
-
+    return result
 
 
 ################## 입지 정보 통계 값 조회 #############################
