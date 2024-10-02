@@ -179,6 +179,7 @@ def select_all_rising_business_by_dynamic_query(
                     BDC.BIZ_DETAIL_CATEGORY_NAME,
                     rb.growth_rate,
                     rb.sub_district_rank,
+                    rb.y_m,
                     rb.CREATED_AT,
                     rb.UPDATED_AT
                 FROM
@@ -257,6 +258,7 @@ def select_all_rising_business_by_dynamic_query(
                         if row.get("sub_district_rank") is not None
                         else 0
                     ),
+                    y_m=row.get("y_m"),
                     created_at=row.get("CREATED_AT"),
                     updated_at=row.get("UPDATED_AT"),
                 )
@@ -317,10 +319,10 @@ def select_top5_rising_business() -> List[RisingBusinessOutput]:
                     BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
                 WHERE
                     rb.growth_rate <= 1000
-                AND 
-                    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
-                AND 
-                    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
+                -- AND 
+                --    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
+                -- AND 
+                --    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
                 ORDER BY 
                     rb.GROWTH_RATE DESC
                 LIMIT 5;
@@ -417,10 +419,10 @@ def select_top3_rising_business_by_store_business_number(
                     BIZ_DETAIL_CATEGORY BDC ON rb.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
                 WHERE
                     rb.sub_district_id = %s
-                AND 
-                    YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
-                AND 
-                    MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
+                -- AND 
+                    -- YEAR(rb.Y_M) = YEAR(CURDATE() - INTERVAL 1 MONTH)
+                -- AND 
+                    -- MONTH(rb.Y_M) = MONTH(CURDATE() - INTERVAL 1 MONTH) 
                 ORDER BY 
                     rb.GROWTH_RATE DESC
                 LIMIT 3;
