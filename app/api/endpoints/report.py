@@ -100,9 +100,8 @@ def select_loc_info_report_data(store_business_id: str):
         raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
 
 
-# @router.get("/location/average/jscore", response_model=LocInfoStatisticsDataRefOutput)
-@router.get("/location/average/jscore")
-def select_loc_info_avg_j_score(store_business_id: str) -> LocInfoAvgJscoreOutput:
+@router.get("/location/average/jscore", response_model=LocInfoAvgJscoreOutput)
+def select_loc_info_avg_j_score(store_business_id: str):
     # print(store_business_id)
     try:
         loc_info_avg_j_score = service_select_avg_j_score(store_business_id)
