@@ -38,15 +38,57 @@ def select_avg_j_score(sub_district_id):
     del final_item['table_name']
     final_item['weighted_avg_val'] = weighted_avg_val
 
-    print(final_item)
+    # print(final_item)
 
     return final_item
 
 ################# 동 주거 환경 ################### 
+# 리포트 보여주기 
+# div x.x 동 주거 환경 :  ~~ % 차지
+# 시/도명 시/군/구명 읍/면/동명
+
 def fetch_living_env(sub_district_id):
     result = get_living_env(sub_district_id)
+    work_pop = result[0]['work_pop']
+    resident = result[0]['resident']
+
+    # resident의 비율을 계산
+    total_population = work_pop + resident
+    resident_percentage = (resident / total_population) * 100 if total_population > 0 else 0
+    resident_percentage = int(resident_percentage) 
+
+    # 결과에 resident_percentage 추가
+    result[0]['resident_percentage'] = resident_percentage
+
     print(result)
     return result
+
+################# 매장 인근 (xx동) 유동 인구 ################### 
+# 리포트 보여주기 
+# div x.x 동 주거 환경 :  ~~ % 차지
+# 시/도명 시/군/구명 읍/면/동명
+def fetch_move_pop(sub_district_id):
+    data = get_move_pop_and_j_score(sub_district_id)
+
+    # move_pop_data와 j_score_data를 딕셔너리에서 추출
+    result = data["move_pop_data"]
+    j_score_data = data["j_score_data"]
+    
+    if result and len(result) > 0:  # 이동 인구 데이터가 있는 경우
+        move_pop = result[0].get("move_pop", 0)  # move_pop 값을 가져옴
+
+        # 일 평균 이동 인구 계산 (30일 기준)
+        days_in_month = 30
+        daily_average_move_pop = move_pop / days_in_month if move_pop > 0 else 0
+        daily_average_move_pop = int(daily_average_move_pop)  # 소수점 버리기
+
+        # 일 평균값을 result에 추가
+        result[0]['daily_average_move_pop'] = daily_average_move_pop
+    
+    print(result)
+    print(j_score_data)
+
+    return result, j_score_data
 
 
 
@@ -378,12 +420,13 @@ if __name__ == "__main__":
 
 ####################################################
     # mz 인구 통계 값, j_score 값 테이블에 넣기
-    get_j_score_national_mz_population(14)    # stat_item_id
-    get_city_district_and_national_statistics_mz_population(14)       # stat_item_id
-    get_j_score_for_region_mz_population(14)  # stat_item_id
+    # get_j_score_national_mz_population(14)    # stat_item_id
+    # get_city_district_and_national_statistics_mz_population(14)       # stat_item_id
+    # get_j_score_for_region_mz_population(14)  # stat_item_id
 
 ###################################################
     # 입지 정보 j_score 가중치 평균 구하기
     # select_avg_j_score(50)  # sub_distric_id
     # fetch_living_env(50)    # sub_distric_id
+    fetch_move_pop(50)  # sub_distric_id
    
