@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import date, datetime
 import os, time
 from tqdm import tqdm
 import sys
@@ -22,7 +22,8 @@ from app.crud.statistics import (
     select_nationwide_jscore_by_stat_item_id_and_sub_district_id as crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id,
     select_state_item_id as crud_select_state_item_id,
 )
-from app.schemas.statistics import LocInfoStatisticsOutput
+from app.schemas.loc_store import LocalStoreSubdistrict
+from app.schemas.statistics import DataRefDateSubDistrictName, LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
 
 
 async def filter_location_info(filters: dict):
@@ -286,19 +287,21 @@ def process_keywords_from_excel():
 
 def select_report_loc_info_by_store_business_number(
     store_business_id: str,
-) -> LocInfoStatisticsOutput:
+) -> LocInfoStatisticsDataRefOutput:
 
     try:
-        # sub_district_id 조회
-        sub_district_id: int = (
+        local_store_sub_district_data: LocalStoreSubdistrict = (
             crud_select_local_store_sub_distirct_id_by_store_business_number(
                 store_business_id
             )
         )
 
+        sub_district_id = local_store_sub_district_data.get("SUB_DISTRICT_ID")
+        sub_district_name = local_store_sub_district_data.get("SUB_DISTRICT_NAME")
+
         # sub_district_id가 None일 경우 오류 처리
         if sub_district_id is None:
-            raise HTTPException(status_code=404, detail="Sub-district ID not found.")
+            raise HTTPException(status_code=500, detail="Sub-district ID not found.")
 
         # 각 통계 항목 ID 조회 및 출력
         mz_pupulation_stat_item_id: int = crud_select_state_item_id(
@@ -334,51 +337,63 @@ def select_report_loc_info_by_store_business_number(
         mz_population_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 mz_pupulation_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         shop_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 shop_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         move_pop_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 move_pop_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         resident_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 resident_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         house_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 house_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         income_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 income_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         spend_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 spend_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         sales_jscore: float = round(
             crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 sales_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
+        data_ref_date: date = (
+            crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+                mz_pupulation_stat_item_id, sub_district_id
+            ).get("REF_DATE")
+        )
+
+        data_ref = DataRefDateSubDistrictName(
+            sub_district_name = sub_district_name,
+            reference_date = data_ref_date
+        )
+
+        # print(data_ref)
 
         # 각 stat_item_id와 jscore 출력
         # print(f"mz_population_jscore: {mz_population_jscore}")
@@ -401,7 +416,12 @@ def select_report_loc_info_by_store_business_number(
             sales_jscore=sales_jscore,
         )
 
-        return loc_info_report_data
+        loc_info_report_output = LocInfoStatisticsDataRefOutput(
+            loc_info = loc_info_report_data,
+            data_ref = data_ref
+        )
+
+        return loc_info_report_output
 
     except HTTPException as http_ex:
         raise http_ex

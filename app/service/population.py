@@ -5,10 +5,11 @@ from app.crud.population import *
 import re
 from dotenv import load_dotenv
 from app.crud.statistics import (
-    select_nationwide_jscore_by_stat_item_id_and_sub_district_id,
+    select_nationwide_jscore_by_stat_item_id_and_sub_district_id as crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id,
     select_state_item_id,
 )
 from app.schemas.loc_info import LocationInfoReportOutput
+from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.population import Population, PopulationJScoreOutput, PopulationSearch
 from app.schemas.city import City
 from app.schemas.district import District
@@ -287,11 +288,13 @@ def select_report_population_by_store_business_number(
     store_business_id: str,
 ) -> PopulationJScoreOutput:
     try:
-        sub_district_id: int = (
+        local_store_sub_district_data: LocalStoreSubdistrict = (
             crud_select_local_store_sub_distirct_id_by_store_business_number(
                 store_business_id
             )
         )
+
+        sub_district_id = local_store_sub_district_data.get("SUB_DISTRICT_ID")
 
         if sub_district_id is None:
             raise HTTPException(status_code=404, detail="Sub-district ID not found.")
@@ -310,33 +313,33 @@ def select_report_population_by_store_business_number(
 
         # J-score 조회 및 반올림 처리
         resident_jscore: float = round(
-            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+            crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 resident_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         work_pop_jscore: float = round(
-            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+            crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 work_pop_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         house_jscore: float = round(
-            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+            crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 house_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         shop_jscore: float = round(
-            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+            crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 shop_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
         income_jscore: float = round(
-            select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
+            crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
                 income_stat_item_id, sub_district_id
-            ),
+            ).get("J_SCORE"),
             1,
         )
 

@@ -16,6 +16,7 @@ from app.crud.rising_business import (
     select_top3_rising_business_by_store_business_number as crud_select_top3_rising_business_by_store_business_number,
 )
 from app.crud.sub_district import get_sub_district_id_by
+from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.rising_business import (
     RisingBusinessOutput,
 )
@@ -107,11 +108,13 @@ def select_top3_rising_business_by_store_business_number(
     store_business_id: str,
 ) -> List[RisingBusinessOutput]:
     try:
-        sub_district_id = (
+        local_store_sub_district_data: LocalStoreSubdistrict = (
             crud_select_local_store_sub_distirct_id_by_store_business_number(
                 store_business_id
             )
         )
+
+        sub_district_id = local_store_sub_district_data.get("SUB_DISTRICT_ID")
 
         if sub_district_id is None:
             raise HTTPException(status_code=404, detail="Sub-district ID not found.")

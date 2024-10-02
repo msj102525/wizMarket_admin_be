@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date, datetime
 
 
 class Statistics(BaseModel):
@@ -22,6 +22,7 @@ class Statistics(BaseModel):
 
 
 class StatisticsJscoreOutput(BaseModel):
+    ref_date: date | None = None
     j_score: float | None = None
 
     class Config:
@@ -48,6 +49,21 @@ class LocInfoStatisticsOutput(BaseModel):
     income_jscore: float  # 평균 소득
     spend_jscore: float  # 평균 소비
     sales_jscore: float  # 매장평균매출
+
+    class Config:
+        from_attributes = True
+
+
+class DataRefDateSubDistrictName(BaseModel):
+    sub_district_name: str
+    reference_date: date
+
+    class Config:
+        from_attributes = True
+
+class LocInfoStatisticsDataRefOutput(BaseModel):
+    loc_info: LocInfoStatisticsOutput
+    data_ref: DataRefDateSubDistrictName
 
     class Config:
         from_attributes = True

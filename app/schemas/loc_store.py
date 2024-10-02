@@ -19,6 +19,7 @@ class LocalStoreSubdistrict(BaseModel):
     local_store_id: int
     store_business_number: str
     sub_district_id: int
+    sub_district_name: str
 
     class Config:
         from_attributes = True

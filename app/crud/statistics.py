@@ -759,12 +759,16 @@ def select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
     try:
         select_query = """
             SELECT 
-                J_SCORE
+                J_SCORE,
+                REF_DATE
             FROM
                 statistics
             WHERE STAT_ITEM_ID = %s
             AND
-                SUB_DISTRICT_ID = %s;
+                SUB_DISTRICT_ID = %s
+            ORDER BY REF_DATE DESC
+            LIMIT 1
+            ;
         """
 
         cursor.execute(select_query, (stat_item_id, sub_district_id))
@@ -774,7 +778,7 @@ def select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
 
         # print(row)
 
-        return row["J_SCORE"]
+        return row
 
     finally:
         if cursor:

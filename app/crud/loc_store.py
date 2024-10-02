@@ -243,10 +243,10 @@ def insert_data_to_loc_store(connection, data):
         raise
 
 
-# 매장번호로 구 가져오기
+# 매장번호로 읍면동 id, 읍면동 이름 가져오기
 def select_local_store_sub_distirct_id_by_store_business_number(
     store_business_id: str,
-) -> int:
+) -> LocalStoreSubdistrict:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     logger = logging.getLogger(__name__)
@@ -260,9 +260,11 @@ def select_local_store_sub_distirct_id_by_store_business_number(
                 SELECT
                     LOCAL_STORE_ID,
                     STORE_BUSINESS_NUMBER,
-                    SUB_DISTRICT_ID
+                    ls.SUB_DISTRICT_ID,
+                    sd.SUB_DISTRICT_NAME
                 FROM
-                    LOCAL_STORE
+                    LOCAL_STORE ls
+                JOIN SUB_DISTRICT sd ON sd.SUB_DISTRICT_ID = ls.SUB_DISTRICT_ID
                 WHERE STORE_BUSINESS_NUMBER = %s
                 ;
             """
@@ -272,7 +274,7 @@ def select_local_store_sub_distirct_id_by_store_business_number(
 
             results: LocalStoreSubdistrict = cursor.fetchone()
 
-            return results.get("SUB_DISTRICT_ID")
+            return results
     except pymysql.MySQLError as e:
         logger.error(f"MySQL Error: {e}")
     except Exception as e:

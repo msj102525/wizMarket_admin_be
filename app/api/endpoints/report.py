@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 
 from app.schemas.population import PopulationJScoreOutput, PopulationOutput
-from app.schemas.statistics import LocInfoStatisticsOutput
+from app.schemas.statistics import LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
 )
@@ -79,7 +79,7 @@ def select_population_report_data(store_business_id: str):
         raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
 
 
-@router.get("/location/info", response_model=LocInfoStatisticsOutput)
+@router.get("/location/info", response_model=LocInfoStatisticsDataRefOutput)
 def select_loc_info_report_data(store_business_id: str):
     # print(store_business_id)
     try:
