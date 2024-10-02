@@ -21,6 +21,9 @@ def get_filtered_loc_store(filters: dict):
 
     try:
         # 총 개수 구하기 위한 쿼리
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SET SESSION MAX_EXECUTION_TIME=10000;")  # 10초로 제한
+
         count_query = """
             SELECT COUNT(*) as total
             FROM local_store
