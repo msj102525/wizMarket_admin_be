@@ -1,22 +1,37 @@
 import numpy as np
+from app.crud.loc_store import (
+    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
+)
 from app.crud.statistics import *
+from app.schemas.loc_store import LocalStoreSubdistrict
+from app.schemas.statistics import LocInfoAvgJscoreOutput
 
-################# 입지 정보 동 기준 가중치 평균 j_score 값 계산 ################### 
-# 리포트 보여주기 
+
+################# 입지 정보 동 기준 가중치 평균 j_score 값 계산 ###################
+# 리포트 보여주기
 # div 입지분석 : x.x p
 # 시/도명 시/군/구명 읍/면/동명
 # '전자정부 상권정보' ref_date
-def select_avg_j_score(sub_district_id):
-    # 1. 해당 동의 필요한 j_score 목록 가져오기 
+def select_avg_j_score(store_business_id: str) -> LocInfoAvgJscoreOutput:
+
+    local_store_sub_district_data: LocalStoreSubdistrict = (
+        crud_select_local_store_sub_distirct_id_by_store_business_number(
+            store_business_id
+        )
+    )
+
+    sub_district_id = local_store_sub_district_data.get("SUB_DISTRICT_ID")
+
+    # 1. 해당 동의 필요한 j_score 목록 가져오기
     result = get_weighted_jscore(sub_district_id)
     # result 리스트에서 J_SCORE 값만 추출
-    j_scores = [item['J_SCORE'] for item in result]
+    j_scores = [item["J_SCORE"] for item in result]
 
     # 2. 가중치 값 적용
     shop_k = 1
     move_pop_k = 2.5
     sales_k = 1.5
-    work_pop_k= 1.5
+    work_pop_k = 1.5
     income_k = 1.5
     spend_k = 1.5
     house_k = 1
@@ -24,47 +39,62 @@ def select_avg_j_score(sub_district_id):
     mz_population_k = 1.5
 
     # 3. 가중치 값 적용 후 평균 계산
-    weights = [shop_k, move_pop_k, sales_k, work_pop_k, income_k, spend_k, house_k, resident_k, mz_population_k]
+    weights = [
+        shop_k,
+        move_pop_k,
+        sales_k,
+        work_pop_k,
+        income_k,
+        spend_k,
+        house_k,
+        resident_k,
+        mz_population_k,
+    ]
     weighted_sum = sum(j_score * weight for j_score, weight in zip(j_scores, weights))
     total_weight = sum(weights)
-    
+
     weighted_avg_val = weighted_sum / total_weight if total_weight != 0 else 0
-    print(weighted_avg_val)
+    # print(weighted_avg_val)
 
     # 4. 이쁘게 포장
     final_item = result[0]
-    del final_item['column_name']
-    del final_item['J_SCORE']
-    del final_item['table_name']
-    final_item['weighted_avg_val'] = weighted_avg_val
+    del final_item["column_name"]
+    del final_item["J_SCORE"]
+    del final_item["table_name"]
+    final_item["weighted_avg_val"] = weighted_avg_val
 
     # print(final_item)
 
     return final_item
 
-################# 동 주거 환경 ################### 
-# 리포트 보여주기 
+
+################# 동 주거 환경 ###################
+# 리포트 보여주기
 # div x.x 동 주거 환경 :  ~~ % 차지
 # 시/도명 시/군/구명 읍/면/동명
 
+
 def fetch_living_env(sub_district_id):
     result = get_living_env(sub_district_id)
-    work_pop = result[0]['work_pop']
-    resident = result[0]['resident']
+    work_pop = result[0]["work_pop"]
+    resident = result[0]["resident"]
 
     # resident의 비율을 계산
     total_population = work_pop + resident
-    resident_percentage = (resident / total_population) * 100 if total_population > 0 else 0
-    resident_percentage = int(resident_percentage) 
+    resident_percentage = (
+        (resident / total_population) * 100 if total_population > 0 else 0
+    )
+    resident_percentage = int(resident_percentage)
 
     # 결과에 resident_percentage 추가
-    result[0]['resident_percentage'] = resident_percentage
+    result[0]["resident_percentage"] = resident_percentage
 
     print(result)
     return result
 
-################# 매장 인근 (xx동) 유동 인구 ################### 
-# 리포트 보여주기 
+
+################# 매장 인근 (xx동) 유동 인구 ###################
+# 리포트 보여주기
 # div x.x 동 주거 환경 :  ~~ % 차지
 # 시/도명 시/군/구명 읍/면/동명
 def fetch_move_pop(sub_district_id):
@@ -74,7 +104,7 @@ def fetch_move_pop(sub_district_id):
     result = data["move_pop_data"]
     list = data["move_pop_list"]
     j_score_data = data["j_score_data"]
-    
+
     # 1. 일 평균 구하기
     move_pop = result[0].get("move_pop", 0)  # move_pop 값을 가져옴
 
@@ -84,16 +114,21 @@ def fetch_move_pop(sub_district_id):
     daily_average_move_pop = int(daily_average_move_pop)  # 소수점 버리기
 
     # 일 평균값을 result에 추가
-    result[0]['daily_average_move_pop'] = daily_average_move_pop
-    
+    result[0]["daily_average_move_pop"] = daily_average_move_pop
+
     # 2. 시/도 내에서 선택한 동의 유동인구가 낮은지 높은지 판단
-    city_name = result[0]['city_name']
-    sub_district_name = result[0]['sub_district_name']
-    move_pop_value = result[0]['move_pop']
+    city_name = result[0]["city_name"]
+    sub_district_name = result[0]["sub_district_name"]
+    move_pop_value = result[0]["move_pop"]
 
     # 같은 city_name에 속하고, sub_district_name이 다른 항목들을 필터링
-    same_city_data = [item for item in list if item['city_name'] == city_name and item['sub_district_name'] != sub_district_name]
-    move_pop_values = sorted([item['move_pop'] for item in same_city_data])
+    same_city_data = [
+        item
+        for item in list
+        if item["city_name"] == city_name
+        and item["sub_district_name"] != sub_district_name
+    ]
+    move_pop_values = sorted([item["move_pop"] for item in same_city_data])
 
     # 33% 기준으로 구간 나누기
     total_count = len(move_pop_values)
@@ -107,12 +142,14 @@ def fetch_move_pop(sub_district_id):
         move_pop_comparison = "upper 33%"
     else:
         move_pop_comparison = "middle 33%"  # 중간 33% 구간
-    
-    result[0]['move_pop_comparison'] = move_pop_comparison
+
+    result[0]["move_pop_comparison"] = move_pop_comparison
 
     # 3. 시/도 내의 유동인구 평균 값
     # list에서 city_name이 같은 데이터들의 move_pop 값 추출
-    city_move_pop_values = [item['move_pop'] for item in list if item['city_name'] == city_name]
+    city_move_pop_values = [
+        item["move_pop"] for item in list if item["city_name"] == city_name
+    ]
 
     # 평균값 계산
     if len(city_move_pop_values) > 0:
@@ -121,11 +158,11 @@ def fetch_move_pop(sub_district_id):
         city_move_pop_average = 0
 
     # 평균값을 result에 추가
-    result[0]['city_move_pop_average'] = city_move_pop_average
-    
+    result[0]["city_move_pop_average"] = city_move_pop_average
+
     # 4. 해당 동의 j_score 값 result 에 추가
-    j_score = j_score_data[0].get("j_score", 0) 
-    result[0]['j_score'] = j_score
+    j_score = j_score_data[0].get("j_score", 0)
+    result[0]["j_score"] = j_score
 
     print(result)
 
@@ -134,15 +171,18 @@ def fetch_move_pop(sub_district_id):
 
 ################## 입지 정보 통계 값 조회 #############################
 
+
 def select_stat_data(filters_dict):
     result = get_stat_data(filters_dict)
     return result
+
 
 ################# 시/도, 시/군/구 id 값 가져오기 ############################
 
 # 전역 변수 선언
 city_ids_cache = None
-city_district_pairs_cache =None
+city_district_pairs_cache = None
+
 
 def fetch_city():
     global city_ids_cache
@@ -151,6 +191,7 @@ def fetch_city():
         city_ids_cache = get_all_city_ids()  # DB에서 한 번만 가져옴
     return city_ids_cache
 
+
 def fetch_city_district_pairs():
     """
     city_district_pairs를 전역 변수에 캐싱하여 한 번만 가져오는 함수
@@ -158,18 +199,22 @@ def fetch_city_district_pairs():
     global city_district_pairs_cache
     if city_district_pairs_cache is None:
         print("Fetching city_district_pairs from DB...")
-        city_district_pairs_cache = get_all_city_district_pairs()  # DB에서 한 번만 가져옴
+        city_district_pairs_cache = (
+            get_all_city_district_pairs()
+        )  # DB에서 한 번만 가져옴
     return city_district_pairs_cache
+
 
 ################# stat_item_id 값 가져오기 ########################
 
 stat_item_id_list = None
 
+
 def fetch_stat_item_id():
     global stat_item_id_list
     if stat_item_id_list is None:
         stat_item_id_list = get_stat_item_id()
-    
+
     print(stat_item_id_list)
 
     return stat_item_id_list
@@ -186,7 +231,7 @@ def calculate_statistics(data):
             "median": None,
             "stddev": None,
             "max": None,
-            "min": None
+            "min": None,
         }
 
     avg_value = np.mean(data)
@@ -200,7 +245,7 @@ def calculate_statistics(data):
         "median": median_value,
         "stddev": stddev_value,
         "max": max_value,
-        "min": min_value
+        "min": min_value,
     }
 
 
@@ -216,7 +261,7 @@ def get_j_score_national(stat_item_id):
 
     # 데이터 기준으로 순위 계산
     ranked_counts = sorted(counts, reverse=True)  # 내림차순으로 정렬
-    
+
     j_score_data_nation = []
 
     for city_id, district_id, sub_district_id, j_column in data:
@@ -231,14 +276,14 @@ def get_j_score_national(stat_item_id):
             j_score = 0  # 매장 수가 0인 경우 j_score도 0
 
         # j_score_data에 (city_id, district_id, sub_district_id, count, j_score) 형태로 추가
-        j_score_data_nation.append((stat_item_id, city_id, district_id, sub_district_id, j_score))
+        j_score_data_nation.append(
+            (stat_item_id, city_id, district_id, sub_district_id, j_score)
+        )
 
     # print(j_score_data_nation)
     insert_j_score_nation(j_score_data_nation)
 
     return j_score_data_nation
-
-
 
 
 ################### 전국 통계 값 업데이트 후 지역 통계 값 인서트 ####################
@@ -258,28 +303,30 @@ def get_city_district_and_national_statistics(stat_item_id):
     for city_id, district_id in city_district_pairs:
         city_district_data = get_city_district_data(city_id, district_id)
         city_district_stats = calculate_statistics(city_district_data)
-        city_district_stats_list.append({
-            "city_id": city_id,
-            "district_id": district_id,
-            "statistics": city_district_stats
-        })
+        city_district_stats_list.append(
+            {
+                "city_id": city_id,
+                "district_id": district_id,
+                "statistics": city_district_stats,
+            }
+        )
 
-    # 전국 단위 통계값 업데이트 
-    national_stats = {'stat_item_id': stat_item_id, **national_stats}
+    # 전국 단위 통계값 업데이트
+    national_stats = {"stat_item_id": stat_item_id, **national_stats}
     # print(national_stats)
     update_stat_nation(national_stats)
 
     # 시/군/구 별 통계 값 인서트
-    city_district_stats_list = [{'stat_item_id': stat_item_id, **entry} for entry in city_district_stats_list]
+    city_district_stats_list = [
+        {"stat_item_id": stat_item_id, **entry} for entry in city_district_stats_list
+    ]
     # print(city_district_stats_list)
     insert_stat_region(city_district_stats_list)
 
     return {
         "national_statistics": national_stats,
-        "city_district_statistics": city_district_stats_list
+        "city_district_statistics": city_district_stats_list,
     }
-
-
 
 
 ############# 모든 지역 내 시군구 j_score 계산 후 업데이트 ##############
@@ -328,9 +375,10 @@ def get_j_score_for_region(stat_item_id):
 
 #################################################### 인구 관련 통계 ###############################################
 
+
 ##################### 전국 범위 동별 mz 세대 인구 j_score 구해서 인서트 ########################
 def get_j_score_national_mz_population(stat_item_id):
-    
+
     # 1. 전국 지역 id 값 가져오기
     national_data = get_all_city_district_sub_district()
 
@@ -338,7 +386,9 @@ def get_j_score_national_mz_population(stat_item_id):
     data = get_j_score_national_data_mz(national_data)
 
     # 3. 전국의 동별 mz 세대 인구 j_score 값 계산
-    counts = [item[-1] if item[-1] is not None else 0 for item in data]  # None 값을 0으로 변환
+    counts = [
+        item[-1] if item[-1] is not None else 0 for item in data
+    ]  # None 값을 0으로 변환
 
     # 데이터 기준으로 순위 계산
     ranked_counts = sorted(counts, reverse=True)  # 내림차순으로 정렬
@@ -360,12 +410,14 @@ def get_j_score_national_mz_population(stat_item_id):
             j_score = 0  # mz_population이 0인 경우 j_score도 0
 
         # j_score_data에 (stat_item_id, city_id, district_id, sub_district_id, j_score) 형태로 추가
-        j_score_data_nation_mz.append((stat_item_id, city_id, district_id, sub_district_id_mz, j_score))
+        j_score_data_nation_mz.append(
+            (stat_item_id, city_id, district_id, sub_district_id_mz, j_score)
+        )
 
     insert_j_score_nation(j_score_data_nation_mz)
     # print(j_score_data_nation_mz)
-    
-    return(j_score_data_nation_mz)
+
+    return j_score_data_nation_mz
 
 
 ################### mz 세대 인구 수 전국 통계 값 업데이트 후 지역 통계 값 인서트 ####################
@@ -385,25 +437,29 @@ def get_city_district_and_national_statistics_mz_population(stat_item_id):
     for city_id, district_id in city_district_pairs:
         city_district_data = get_city_district_data_mz_population(city_id, district_id)
         city_district_stats = calculate_statistics(city_district_data)
-        city_district_stats_list.append({
-            "city_id": city_id,
-            "district_id": district_id,
-            "statistics": city_district_stats
-        })
+        city_district_stats_list.append(
+            {
+                "city_id": city_id,
+                "district_id": district_id,
+                "statistics": city_district_stats,
+            }
+        )
 
-    # 전국 단위 통계값 업데이트 
-    national_stats = {'stat_item_id': stat_item_id, **national_stats}
+    # 전국 단위 통계값 업데이트
+    national_stats = {"stat_item_id": stat_item_id, **national_stats}
     # print(national_stats)
     update_stat_nation(national_stats)
 
     # 시/군/구 별 통계 값 인서트
-    city_district_stats_list = [{'stat_item_id': stat_item_id, **entry} for entry in city_district_stats_list]
+    city_district_stats_list = [
+        {"stat_item_id": stat_item_id, **entry} for entry in city_district_stats_list
+    ]
     # print(city_district_stats_list)
     insert_stat_region(city_district_stats_list)
 
     return {
         "national_statistics": national_stats,
-        "city_district_statistics": city_district_stats_list
+        "city_district_statistics": city_district_stats_list,
     }
 
 
@@ -450,7 +506,6 @@ def get_j_score_for_region_mz_population(stat_item_id):
     return j_score_data_region
 
 
-
 # 테스트 실행 예시
 if __name__ == "__main__":
     # 입지 정보 통계값, j_score 테이블에 넣기
@@ -458,15 +513,14 @@ if __name__ == "__main__":
     # get_city_district_and_national_statistics(9) # stat_item_id
     # get_j_score_for_region(9) # stat_item_id
 
-####################################################
+    ####################################################
     # mz 인구 통계 값, j_score 값 테이블에 넣기
     # get_j_score_national_mz_population(14)    # stat_item_id
     # get_city_district_and_national_statistics_mz_population(14)       # stat_item_id
     # get_j_score_for_region_mz_population(14)  # stat_item_id
 
-###################################################
+    ###################################################
     # 입지 정보 j_score 가중치 평균 구하기
     # select_avg_j_score(50)  # sub_distric_id
     # fetch_living_env(50)    # sub_distric_id
     fetch_move_pop(50)  # sub_distric_id
-   

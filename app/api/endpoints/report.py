@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 
 from app.schemas.population import PopulationJScoreOutput, PopulationOutput
-from app.schemas.statistics import LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
+from app.schemas.statistics import (
+    LocInfoAvgJscoreOutput,
+    LocInfoStatisticsDataRefOutput,
+    LocInfoStatisticsOutput,
+)
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
 )
@@ -22,6 +26,7 @@ from app.schemas.rising_business import (
     RisingBusinessNationwideTop5AndSubDistrictTop3,
     RisingBusinessOutput,
 )
+from app.service.statistics import select_avg_j_score as service_select_avg_j_score
 
 
 router = APIRouter()
@@ -88,6 +93,23 @@ def select_loc_info_report_data(store_business_id: str):
         )
 
         return sub_district_population_data
+
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+
+
+# @router.get("/location/average/jscore", response_model=LocInfoStatisticsDataRefOutput)
+@router.get("/location/average/jscore")
+def select_loc_info_avg_j_score(store_business_id: str) -> LocInfoAvgJscoreOutput:
+    # print(store_business_id)
+    try:
+        loc_info_avg_j_score = service_select_avg_j_score(store_business_id)
+
+        # print(loc_info_avg_j_score)
+
+        return loc_info_avg_j_score
 
     except HTTPException as http_ex:
         raise http_ex

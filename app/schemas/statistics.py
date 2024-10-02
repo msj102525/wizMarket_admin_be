@@ -67,3 +67,15 @@ class LocInfoStatisticsDataRefOutput(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LocInfoAvgJscoreOutput(BaseModel):
+    city_name: str
+    district_name: str
+    sub_district_name: str
+    sub_district_id: int
+    ref_date: date
+    weighted_avg_val: float
+
+    class Config:
+        from_attributes = True
