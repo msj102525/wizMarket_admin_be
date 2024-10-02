@@ -4,7 +4,7 @@ from app.crud.loc_store import (
 )
 from app.crud.statistics import *
 from app.schemas.loc_store import LocalStoreSubdistrict
-from app.schemas.statistics import LocInfoAvgJscoreOutput
+from app.schemas.statistics import LocInfoAvgJscoreOutput, PopulationCompareResidentWorkPop
 
 
 ################# 입지 정보 동 기준 가중치 평균 j_score 값 계산 ###################
@@ -74,22 +74,34 @@ def select_avg_j_score(store_business_id: str) -> LocInfoAvgJscoreOutput:
 # 시/도명 시/군/구명 읍/면/동명
 
 
-def fetch_living_env(sub_district_id):
+def fetch_living_env(store_business_id: str) -> PopulationCompareResidentWorkPop:
+    local_store_sub_district_data: LocalStoreSubdistrict = (
+        crud_select_local_store_sub_distirct_id_by_store_business_number(
+            store_business_id
+        )
+    )
+    sub_district_id = local_store_sub_district_data.get("SUB_DISTRICT_ID")
+
     result = get_living_env(sub_district_id)
-    work_pop = result[0]["work_pop"]
-    resident = result[0]["resident"]
+    work_pop = result["work_pop"]
+    resident = result["resident"]
 
     # resident의 비율을 계산
     total_population = work_pop + resident
     resident_percentage = (
         (resident / total_population) * 100 if total_population > 0 else 0
     )
+    work_pop_percentage = (
+        (work_pop / total_population) * 100 if total_population > 0 else 0
+    )
     resident_percentage = int(resident_percentage)
+    work_pop_percentage = int(work_pop_percentage)
 
     # 결과에 resident_percentage 추가
-    result[0]["resident_percentage"] = resident_percentage
+    result["resident_percentage"] = resident_percentage
+    result["work_pop_percentage"] = work_pop_percentage
 
-    print(result)
+    # print(result)
     return result
 
 

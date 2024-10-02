@@ -6,6 +6,7 @@ from app.schemas.statistics import (
     LocInfoAvgJscoreOutput,
     LocInfoStatisticsDataRefOutput,
     LocInfoStatisticsOutput,
+    PopulationCompareResidentWorkPop,
 )
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
@@ -26,7 +27,10 @@ from app.schemas.rising_business import (
     RisingBusinessNationwideTop5AndSubDistrictTop3,
     RisingBusinessOutput,
 )
-from app.service.statistics import select_avg_j_score as service_select_avg_j_score
+from app.service.statistics import (
+    fetch_living_env as service_fetch_living_env,
+    select_avg_j_score as service_select_avg_j_score,
+)
 
 
 router = APIRouter()
@@ -109,6 +113,22 @@ def select_loc_info_avg_j_score(store_business_id: str):
         # print(loc_info_avg_j_score)
 
         return loc_info_avg_j_score
+
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+
+
+@router.get("/population/compare", response_model=PopulationCompareResidentWorkPop)
+def select_population_compare_resident_work(store_business_id: str):
+    # print(store_business_id)
+    try:
+        compare_resident_work_data = service_fetch_living_env(store_business_id)
+
+        # print(loc_info_avg_j_score)
+
+        return compare_resident_work_data
 
     except HTTPException as http_ex:
         raise http_ex

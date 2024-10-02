@@ -61,6 +61,7 @@ class DataRefDateSubDistrictName(BaseModel):
     class Config:
         from_attributes = True
 
+
 class LocInfoStatisticsDataRefOutput(BaseModel):
     loc_info: LocInfoStatisticsOutput
     data_ref: DataRefDateSubDistrictName
@@ -76,6 +77,19 @@ class LocInfoAvgJscoreOutput(BaseModel):
     sub_district_id: int
     ref_date: date
     weighted_avg_val: float
+
+    class Config:
+        from_attributes = True
+
+
+class PopulationCompareResidentWorkPop(BaseModel):
+    city_name: str
+    district_name: str
+    sub_district_name: str
+    work_pop: int
+    resident: int
+    resident_percentage: int
+    work_pop_percentage: int
 
     class Config:
         from_attributes = True

@@ -741,7 +741,7 @@ def get_living_env(sub_district_id):
         """
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query_statistics, (sub_district_id,))
-        statistics_result = cursor.fetchall()
+        statistics_result = cursor.fetchone()
 
         return statistics_result  # 딕셔너리가 아닌 쿼리 결과를 바로 반환
 
