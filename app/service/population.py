@@ -352,8 +352,6 @@ def select_report_population_by_store_business_number(
             crud_select_loc_info_report_data_by_sub_district_id(sub_district_id)
         )
 
-        print(loc_info_data)
-
         population_j_score_data = PopulationJScoreOutput(
             population_data=population_data,
             j_score_data=j_score_data,

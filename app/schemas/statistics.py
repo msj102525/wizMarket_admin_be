@@ -37,4 +37,17 @@ class LocStatisticsOutput(BaseModel):
 
     class Config:
         from_attributes = True
-        
+
+
+class LocInfoStatisticsOutput(BaseModel):
+    mz_population_jscore: float  # mz 인구
+    shop_jscore: float  # 업소수
+    move_pop_jscore: float  # 유동인구
+    resident_jscore: float  # 주거인구
+    house_jscore: float  # 세대수
+    income_jscore: float  # 평균 소득
+    spend_jscore: float  # 평균 소비
+    sales_jscore: float  # 매장평균매출
+
+    class Config:
+        from_attributes = True

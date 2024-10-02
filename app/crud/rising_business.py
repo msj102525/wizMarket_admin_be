@@ -384,7 +384,7 @@ def select_top3_rising_business_by_store_business_number(
     logger = logging.getLogger(__name__)
     results: List[RisingBusinessOutput] = []
 
-    print(f"top3: sub_district_id: {sub_district_id}")
+    # print(f"top3: sub_district_id: {sub_district_id}")
 
     try:
         if connection.open:

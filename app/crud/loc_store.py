@@ -248,7 +248,7 @@ def select_local_store_sub_distirct_id_by_store_business_number(
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     logger = logging.getLogger(__name__)
 
-    print(f"store_business_id: {store_business_id}")
+    # print(f"store_business_id: {store_business_id}")
 
     try:
         if connection.open:

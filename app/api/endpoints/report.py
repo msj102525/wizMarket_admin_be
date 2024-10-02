@@ -2,8 +2,12 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 
 from app.schemas.population import PopulationJScoreOutput, PopulationOutput
+from app.schemas.statistics import LocInfoStatisticsOutput
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
+)
+from app.service.loc_info import (
+    select_report_loc_info_by_store_business_number as service_select_report_loc_info_by_store_business_number,
 )
 from app.service.population import (
     select_report_population_by_store_business_number as service_select_report_population_by_store_business_number,
@@ -65,6 +69,22 @@ def select_population_report_data(store_business_id: str):
     try:
         sub_district_population_data = (
             service_select_report_population_by_store_business_number(store_business_id)
+        )
+
+        return sub_district_population_data
+
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+
+
+@router.get("/location/info", response_model=LocInfoStatisticsOutput)
+def select_loc_info_report_data(store_business_id: str):
+    # print(store_business_id)
+    try:
+        sub_district_population_data = (
+            service_select_report_loc_info_by_store_business_number(store_business_id)
         )
 
         return sub_district_population_data
