@@ -4,43 +4,6 @@ from app.schemas.statistics import StatisticsJscoreOutput
 
 
 
-################# 전국 범위 동별 j_score 가중치 적용 평균 구하기 #############
-def get_weighted_jscore(sub_district_id):
-    # DB 연결 설정
-    connection = get_db_connection()
-    cursor = None
-
-    try:
-        # 쿼리 실행
-        query_statistics = """
-            SELECT 
-                   city.city_name AS city_name, 
-                   district.district_name AS district_name, 
-                   sub_district.sub_district_name AS sub_district_name,
-                   sub_district.sub_district_id AS sub_district_id,
-                   stat_item.table_name AS table_name,
-                   stat_item.column_name AS column_name,
-                   J_SCORE
-            FROM statistics
-            JOIN city ON statistics.city_id = city.city_id
-            JOIN district ON statistics.district_id = district.district_id
-            LEFT JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
-            JOIN stat_item ON statistics.STAT_ITEM_ID = stat_item.STAT_ITEM_ID
-            WHERE statistics.sub_district_id = %s
-            AND (stat_item.STAT_ITEM_ID BETWEEN 1 AND 8 OR stat_item.STAT_ITEM_ID = 14)
-        """
-        cursor = connection.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(query_statistics, (sub_district_id,))
-        statistics_result = cursor.fetchall()
-
-        return statistics_result  # 딕셔너리가 아닌 쿼리 결과를 바로 반환
-
-    finally:
-        if cursor:
-            cursor.close()
-        connection.close()  # 연결 종료
-
-
 
 ################## stat_item id 조회 ##################
 def select_state_item_id(table_name: str, column_name: str) -> int:
@@ -163,7 +126,7 @@ def get_all_city_district_pairs():
         # 모든 city_id와 district_id 쌍을 가져오는 쿼리
         query = """
             SELECT DISTINCT city_id, district_id
-            FROM commercial_district
+            FROM district
         """
 
         cursor.execute(query)
@@ -288,7 +251,7 @@ def get_national_data():
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        # 전국 단위 매장 데이터를 가져오는 쿼리
+        # 전국 데이터를 가져오는 쿼리
         query = """
             SELECT market_size
             FROM commercial_district
@@ -335,33 +298,6 @@ def get_city_district_data(city_id, district_id):
             close_connection(connection)
 
 
-def get_all_city_district_pairs():
-    """
-    모든 시/군/구의 city_id와 district_id 쌍을 가져오는 함수
-    """
-    connection = None
-    cursor = None
-    try:
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
-        # 모든 시/군/구의 city_id, district_id 쌍을 가져오는 쿼리
-        query = """
-            SELECT DISTINCT city_id, district_id
-            FROM commercial_district
-        """
-        cursor.execute(query)
-        result = cursor.fetchall()
-
-        # city_id, district_id 쌍을 리스트로 반환
-        return [(row[0], row[1]) for row in result]
-
-    finally:
-        if cursor:
-            close_cursor(cursor)
-        if connection:
-            close_connection(connection)
-
 
 ############## 읍면동 단위 모든 컬럼 정보 가져오기 ################
 # 컬럼 값 commercial_district 테이블에서 가져오는 함수
@@ -400,7 +336,6 @@ def get_j_score_national_data(national_data):
 
 
 ############ 전국 j_score 데이터 넣기 ##################
-
 
 def insert_j_score_nation(data):
     connection = None
@@ -474,8 +409,6 @@ def update_stat_nation(national_stats):
 
 
 ############## 지역별 통계 인서트 ###################
-
-
 def insert_stat_region(city_district_stats_list):
     connection = None
     cursor = None
@@ -565,7 +498,7 @@ def update_j_score_data_region(j_score_data_region):
             close_connection(connection)  # 연결 닫기
 
 
-################# 전국 범위 동별 mz 세대 인구 값 가져오기 #############
+######################## 전국 범위 동별 mz 세대 인구 값 가져오기 ##############################
 def get_j_score_national_data_mz(national_data):
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -605,6 +538,169 @@ def get_j_score_national_data_mz(national_data):
 
     return mz_population_data  
 
+
+################### 전국 mz 세대 인구 값 가져오기 ##################
+def get_national_data_mz_population():
+    """
+    전국 단위 mz 세대 인구수 데이터를 가져오는 함수
+    """
+    connection = None
+    cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        # 전국 데이터를 가져오는 쿼리
+        query = """
+            SELECT 
+            SUM(age_14 + age_15 + age_16 + age_17 + age_18 + 
+                    age_19 + age_20 + age_21 + age_22 + age_23 + 
+                    age_24 + age_25 + age_26 + age_27 + age_28 + age_29) AS mz_population
+            FROM population
+            group by sub_district_id
+        """
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+        # 데이터만 리스트로 반환
+        return [row[0] for row in result]
+
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+############ 특정 시/군/구의 mz 세대 인구 데이터를 가져오는 함수 ##############
+def get_city_district_data_mz_population(city_id, district_id):
+    """
+    특정 시/군/구의 mz 세대 인구 데이터를 가져오는 함수
+    """
+    connection = None
+    cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        # 특정 시/군/구의 매장 데이터를 가져오는 쿼리
+        query = """
+            SELECT 
+            SUM(age_14 + age_15 + age_16 + age_17 + age_18 + 
+                    age_19 + age_20 + age_21 + age_22 + age_23 + 
+                    age_24 + age_25 + age_26 + age_27 + age_28 + age_29) AS mz_population
+            FROM population
+            WHERE city_id = %s AND district_id = %s
+            group by sub_district_id
+        """
+        cursor.execute(query, (city_id, district_id))
+        result = cursor.fetchall()
+
+        # 데이터만 리스트로 반환
+        return [row[0] for row in result]
+
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+########## mz 세대 인구 데이터 j_score 업데이트 #################
+def get_data_for_city_and_district_mz_population(city_id, district_id):
+    """
+    특정 city_id와 district_id에 대한 컬럼 수(count)를 가져옴
+    여러 sub_district의 매장 수를 합산하여 반환
+    """
+    connection = None
+    cursor = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+        # city_id와 district_id에 해당하는 모든 sub_district_id의 매장 수를 가져오는 쿼리
+        query = """
+            SELECT
+            SUM(age_14 + age_15 + age_16 + age_17 + age_18 + 
+                    age_19 + age_20 + age_21 + age_22 + age_23 + 
+                    age_24 + age_25 + age_26 + age_27 + age_28 + age_29) AS mz_population
+            FROM population
+            WHERE city_id = %s AND district_id = %s
+        """
+
+        cursor.execute(query, (city_id, district_id))
+        result = cursor.fetchone()
+
+        # 매장 수가 존재하지 않으면 0으로 처리
+        total_count = result['mz_population'] if result['mz_population'] is not None else 0
+        return total_count
+
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+####################################### 리포트 부분 ###########################################
+
+################# 전국 범위 동별 j_score 가중치 적용 평균 구하기 #####################
+def get_weighted_jscore(sub_district_id):
+    # DB 연결 설정
+    connection = get_db_connection()
+    cursor = None
+
+    try:
+        # 쿼리 실행
+        query_statistics = """
+            SELECT 
+                   city.city_name AS city_name, 
+                   district.district_name AS district_name, 
+                   sub_district.sub_district_name AS sub_district_name,
+                   sub_district.sub_district_id AS sub_district_id,
+                   stat_item.table_name AS table_name,
+                   stat_item.column_name AS column_name,
+                   J_SCORE, ref_date
+            FROM statistics
+            JOIN city ON statistics.city_id = city.city_id
+            JOIN district ON statistics.district_id = district.district_id
+            LEFT JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
+            JOIN stat_item ON statistics.STAT_ITEM_ID = stat_item.STAT_ITEM_ID
+            WHERE statistics.sub_district_id = %s
+            AND (stat_item.STAT_ITEM_ID BETWEEN 1 AND 8 OR stat_item.STAT_ITEM_ID = 14)
+        """
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query_statistics, (sub_district_id,))
+        statistics_result = cursor.fetchall()
+
+        return statistics_result  # 딕셔너리가 아닌 쿼리 결과를 바로 반환
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
+
+########### 동별 주거 환경 ###########
+def get_living_env(sub_district_id):
+    # DB 연결 설정
+    connection = get_db_connection()
+    cursor = None
+
+    try:
+        # 쿼리 실행
+        query_statistics = """
+            SELECT 
+                   work_pop, resident
+            FROM loc_info
+            WHERE loc_info.sub_district_id = %s
+        """
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query_statistics, (sub_district_id,))
+        statistics_result = cursor.fetchall()
+
+        return statistics_result  # 딕셔너리가 아닌 쿼리 결과를 바로 반환
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
 
 
 # 전국 jscore 조회
