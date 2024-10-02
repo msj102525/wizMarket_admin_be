@@ -768,8 +768,21 @@ def get_move_pop_and_j_score(sub_district_id):
             JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
             WHERE loc_info.sub_district_id = %s
         """
+        
+        # 두 번째 쿼리: 속한 시/도의 값 불러오기
+        query_move_pop_list = """
+            SELECT 
+                city.city_name, district.district_name, sub_district.sub_district_name,
+                loc_info.move_pop
+            FROM loc_info
+            JOIN city ON loc_info.city_id = city.city_id
+            JOIN district ON loc_info.district_id = district.district_id
+            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+            WHERE loc_info.city_id = (SELECT sub_district.city_id FROM sub_district WHERE sub_district.sub_district_id = %s)
+        """
 
-        # 두 번째 쿼리: J_SCORE 정보
+
+        # 세 번째 쿼리: J_SCORE 정보
         query_j_score = """
             SELECT 
                 city_name, district_name, sub_district_name,
@@ -780,7 +793,6 @@ def get_move_pop_and_j_score(sub_district_id):
             JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
             WHERE statistics.stat_item_id = 2 AND sub_district.SUB_DISTRICT_ID = %s
         """
-
         cursor = connection.cursor(pymysql.cursors.DictCursor)
 
         # 첫 번째 쿼리 실행
@@ -788,12 +800,18 @@ def get_move_pop_and_j_score(sub_district_id):
         move_pop_result = cursor.fetchall()
 
         # 두 번째 쿼리 실행
+        cursor.execute(query_move_pop_list, (sub_district_id,))
+        move_pop_list = cursor.fetchall()
+
+        # 세 번째 쿼리 실행
         cursor.execute(query_j_score, (sub_district_id,))
         j_score_result = cursor.fetchall()
 
+        
         # 결과를 함께 반환
         return {
             "move_pop_data": move_pop_result,
+            "move_pop_list": move_pop_list,
             "j_score_data": j_score_result
         }
 
