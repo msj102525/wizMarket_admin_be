@@ -1,6 +1,42 @@
 import numpy as np
 from app.crud.statistics import *
 
+################# 입지 정보 동 기준 가중치 평균 j_score 값 계산 ##################
+def select_avg_j_score(sub_district_id):
+    # 1. 해당 동의 필요한 j_score 목록 가져오기 
+    result = get_weighted_jscore(sub_district_id)
+    # result 리스트에서 J_SCORE 값만 추출
+    j_scores = [item['J_SCORE'] for item in result]
+
+    # 2. 가중치 값 적용
+    shop_k = 1
+    move_pop_k = 2.5
+    sales_k = 1.5
+    work_pop_k= 1.5
+    income_k = 1.5
+    spend_k = 1.5
+    house_k = 1
+    resident_k = 1
+    mz_population_k = 1.5
+
+    # 3. 가중치 값 적용 후 평균 계산
+    weights = [shop_k, move_pop_k, sales_k, work_pop_k, income_k, spend_k, house_k, resident_k, mz_population_k]
+    weighted_sum = sum(j_score * weight for j_score, weight in zip(j_scores, weights))
+    total_weight = sum(weights)
+    
+    weighted_avg_val = weighted_sum / total_weight if total_weight != 0 else 0
+    print(weighted_avg_val)
+
+    # 4. 이쁘게 포장
+    final_item = result[0]
+    del final_item['column_name']
+    del final_item['J_SCORE']
+    del final_item['table_name']
+    final_item['weighted_avg_val'] = weighted_avg_val
+
+    print(final_item)
+
+    return final_item
 
 ################## 입지 정보 통계 값 조회 #############################
 
@@ -247,4 +283,9 @@ if __name__ == "__main__":
 
 ####################################################
     # mz 인구 j_score 값 테이블에 넣기
-    calculate_weighted_jscore(14) # stat_item_id
+    # calculate_weighted_jscore(14) # stat_item_id
+
+
+###################################################
+    # 입지 정보 j_score 가중치 평균 구하기
+    select_avg_j_score(50)  # sub_distric_id

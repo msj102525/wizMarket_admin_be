@@ -27,7 +27,7 @@ def get_weighted_jscore(sub_district_id):
             LEFT JOIN sub_district ON statistics.sub_district_id = sub_district.sub_district_id
             JOIN stat_item ON statistics.STAT_ITEM_ID = stat_item.STAT_ITEM_ID
             WHERE statistics.sub_district_id = %s
-            AND stat_item.STAT_ITEM_ID BETWEEN 1 AND 8
+            AND (stat_item.STAT_ITEM_ID BETWEEN 1 AND 8 OR stat_item.STAT_ITEM_ID = 14)
         """
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query_statistics, (sub_district_id,))
