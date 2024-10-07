@@ -31,6 +31,8 @@ DROP TABLE IF EXISTS `CRIME`;
 
 DROP TABLE IF EXISTS `CLASSIFICATION`;
 
+DROP TABLE IF EXISTS `POPULATION_INFO`;
+
 DROP TABLE IF EXISTS `BUSINESS_AREA_CATEGORY`;
 
 DROP TABLE IF EXISTS `REFERENCE`;
@@ -467,6 +469,32 @@ CREATE TABLE
         CONSTRAINT `fk_reference_category` FOREIGN KEY (`REFERENCE_ID`) REFERENCES `reference` (`REFERENCE_ID`) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
+
+CREATE TABLE 
+    `POPULATION_INFO` (
+        `POP_INFO_ID` INT NOT NULL AUTO_INCREMENT COMMENT '인구 정보 ID', 
+        `CITY_ID` INT NOT NULL COMMENT '시/도 ID',                     
+        `DISTRICT_ID` INT NOT NULL COMMENT '시/군/구 ID',                
+        `SUB_DISTRICT_ID` INT NOT NULL COMMENT '읍/면/동 ID',         
+        `GENDER_ID` INT NOT NULL COMMENT '성별 ID',              
+        `REFERENCE_ID` INT NOT NULL COMMENT '출처 ID',   
+        `REF_DATE` INT NOT NULL COMMENT '기준 날짜',   
+        `AGE_UNDER_10s` INT NULL COMMENT '10대 미만',                  
+        `AGE_10s` INT NULL COMMENT '10대',                        
+        `AGE_20s` INT NULL COMMENT '20대',                         
+        `AGE_30s` INT NULL COMMENT '30대',                        
+        `AGE_40s` INT NULL COMMENT '40대',                         
+        `AGE_50s` INT NULL COMMENT '50대',                         
+        `AGE_PLUS_60s` INT NULL COMMENT '60대 이상',                   
+        PRIMARY KEY (`POP_INFO_ID`),                
+        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY`(`CITY_ID`),  
+        FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT`(`DISTRICT_ID`),  
+        FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT`(`SUB_DISTRICT_ID`),  
+        FOREIGN KEY (`GENDER_ID`) REFERENCES `GENDER`(`GENDER_ID`),  
+        FOREIGN KEY (`REFERENCE_ID`) REFERENCES `REFERENCE`(`REFERENCE_ID`)  
+    );
+
+
 --- 참조 테이블 디폴트 값 인서트
 INSERT INTO
     `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
@@ -487,6 +515,23 @@ VALUES
     (
         '상권정보분류표',
         'https://sg.sbiz.or.kr/godo/noticeInfo/announcementView.sg?id=4570&page=1'
+    );
+
+
+INSERT INTO
+    `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
+VALUES
+    (
+        'sibz',
+        'https://sg.sbiz.or.kr/godo/index.sg'
+    );
+
+INSERT INTO
+    `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
+VALUES
+    (
+        '공공데이터',
+        'https://www.data.go.kr'
     );
 
 

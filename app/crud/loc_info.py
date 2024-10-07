@@ -201,6 +201,22 @@ def get_filtered_locations(filters):
         cursor.execute(query, query_params)
         result = cursor.fetchall()
 
+        for item in result:
+            # 8개의 값이 모두 0인 경우에만 '정보 없음'으로 변환
+            if (
+                item['shop'] == 0 and item['move_pop'] == 0 and item['sales'] == 0 and
+                item['work_pop'] == 0 and item['income'] == 0 and item['spend'] == 0 and
+                item['house'] == 0 and item['resident'] == 0
+            ):
+                item['shop'] = '정보 없음'
+                item['move_pop'] = '정보 없음'
+                item['sales'] = '정보 없음'
+                item['work_pop'] = '정보 없음'
+                item['income'] = '정보 없음'
+                item['spend'] = '정보 없음'
+                item['house'] = '정보 없음'
+                item['resident'] = '정보 없음'
+
         return result
 
     finally:
