@@ -158,16 +158,7 @@ def fetch_move_pop(sub_district_id):
     result[0]["move_pop_comparison"] = move_pop_comparison
 
     # 3. 시/도 내의 유동인구 평균 값
-    # list에서 city_name이 같은 데이터들의 move_pop 값 추출
-    city_move_pop_values = [
-        item["move_pop"] for item in list if item["city_name"] == city_name
-    ]
-
-    # 평균값 계산
-    if len(city_move_pop_values) > 0:
-        city_move_pop_average = sum(city_move_pop_values) / len(city_move_pop_values)
-    else:
-        city_move_pop_average = 0
+    city_move_pop_average = data["move_pop_city_stat"]
 
     # 평균값을 result에 추가
     result[0]["city_move_pop_average"] = city_move_pop_average
@@ -292,8 +283,8 @@ def get_j_score_national(stat_item_id):
             (stat_item_id, city_id, district_id, sub_district_id, j_score)
         )
 
-    # print(j_score_data_nation)
-    insert_j_score_nation(j_score_data_nation)
+    print(j_score_data_nation)
+    # insert_j_score_nation(j_score_data_nation)
 
     return j_score_data_nation
 
@@ -307,10 +298,37 @@ def get_city_district_and_national_statistics(stat_item_id):
     national_data = get_national_data()
     national_stats = calculate_statistics(national_data)
 
-    # 2. 모든 시/군/구(city_id, district_id) 쌍을 가져옴
+    # 2. 전국 단위 통계값 업데이트
+    national_stats = {"stat_item_id": stat_item_id, **national_stats}
+    # print(national_stats)
+    # update_stat_nation(national_stats)
+
+    # 3. 모든 시/도 값 가져옴
+    city_value = fetch_city()
+
+    # 4. 시/도 별 통계 계산
+    city_stat_list = []
+    for city_id in city_value:
+        city_data = get_city_data(city_id)
+        city_stats = calculate_statistics(city_data)
+        city_stat_list.append(
+            {
+                "city_id": city_id,
+                "statistics": city_stats,
+            }
+        )
+    city_stat_list = [
+        {"stat_item_id": stat_item_id, **entry} for entry in city_stat_list
+    ]
+
+    # 5. 시/도 별 통계 값 인서트
+    insert_stat_city(city_stat_list)
+    
+
+    # 6. 모든 시/군/구(city_id, district_id) 쌍을 가져옴
     city_district_pairs = fetch_city_district_pairs()
 
-    # 3. 시/군/구별 통계 계산
+    # 7. 시/군/구별 통계 계산
     city_district_stats_list = []
     for city_id, district_id in city_district_pairs:
         city_district_data = get_city_district_data(city_id, district_id)
@@ -323,20 +341,17 @@ def get_city_district_and_national_statistics(stat_item_id):
             }
         )
 
-    # 전국 단위 통계값 업데이트
-    national_stats = {"stat_item_id": stat_item_id, **national_stats}
-    # print(national_stats)
-    update_stat_nation(national_stats)
-
-    # 시/군/구 별 통계 값 인서트
+    # 8. 시/군/구 별 통계 값 인서트
     city_district_stats_list = [
         {"stat_item_id": stat_item_id, **entry} for entry in city_district_stats_list
     ]
     # print(city_district_stats_list)
-    insert_stat_region(city_district_stats_list)
+    # insert_stat_region(city_district_stats_list)
+    
 
     return {
         "national_statistics": national_stats,
+        "city_stat_list" : city_stat_list,
         "city_district_statistics": city_district_stats_list,
     }
 
@@ -521,8 +536,8 @@ def get_j_score_for_region_mz_population(stat_item_id):
 # 테스트 실행 예시
 if __name__ == "__main__":
     # 입지 정보 통계값, j_score 테이블에 넣기
-    # get_j_score_national(9) # stat_item_id
-    # get_city_district_and_national_statistics(9) # stat_item_id
+    # get_j_score_national(1) # stat_item_id
+    # get_city_district_and_national_statistics(8) # stat_item_id
     # get_j_score_for_region(9) # stat_item_id
 
     ####################################################

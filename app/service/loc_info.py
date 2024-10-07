@@ -74,11 +74,19 @@ async def filter_location_info(filters: dict):
     return filtered_locations, all_corr_matrix, filter_corr_matrix
 
 
+
+
+###### 크롤링 #########
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../"))
 from app.db.connect import get_db_connection, close_connection
 
+# 1. 가지고 있는 지역 id값 모두 조회
+def fetch_all_region_id():
+    all_region_list = get_all_region_id()
+    return all_region_list
 
-def crawl_keyword(keyword: str, connection, insert_count):
+
+def crawl_keyword(region_data, connection, insert_count):
     driver_path = os.path.join(
         os.path.dirname(__file__), "../", "drivers", "chromedriver.exe"
     )
@@ -101,10 +109,10 @@ def crawl_keyword(keyword: str, connection, insert_count):
         driver.execute_script("arguments[0].click();", radio_button)
 
         search_box = driver.find_element(By.ID, "searchAddress")
-        search_box.send_keys(keyword)
+        search_box.send_keys(region_data['keyword'])
         search_box.send_keys(Keys.RETURN)
 
-        last_keyword = keyword.split()[-1]
+        last_keyword = region_data['keyword'].split()[-1]
 
         print(f"마지막 동 단위 단어 : {last_keyword}")
         time.sleep(0.3)
@@ -131,46 +139,32 @@ def crawl_keyword(keyword: str, connection, insert_count):
             data = parse_html(div_content)
         else:
             data = {
-                "location": None,
-                "business": None,
-                "person": None,
-                "price": None,
-                "wrcppl": None,
-                "earn": None,
-                "cnsmp": None,
-                "hhCnt": None,
-                "rsdppl": None,
+                "shop": None,
+                "move_pop": None,
+                "sales": None,
+                "work_pop": None,
+                "income": None,
+                "spend": None,
+                "house": None,
+                "resident": None,
             }
 
-        year_month = datetime.now().strftime("%Y%m")
-
+        year_month = datetime(2024, 10, 2).date()
         try:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT 1 FROM movepopdata WHERE keyword = %s", (keyword,)
+                insert_record(
+                    "loc_info",
+                    connection,
+                    insert_count,
+                    city_id=region_data['city_id'],
+                    district_id=region_data['district_id'],
+                    sub_district_id=region_data['sub_district_id'],
+                    keyword=region_data['keyword'],
+                    y_m=year_month,
+                    **data,
                 )
-                if cursor.fetchone():
-                    # 이미 존재하는 경우 업데이트
-                    sql = """
-                       UPDATE movepopdata SET 
-                       location=%s, business=%s, person=%s, price=%s, wrcppl=%s, 
-                       earn=%s, cnsmp=%s, hhCnt=%s, rsdppl=%s, yearmonth=%s
-                       WHERE keyword = %s
-                       """
-                    cursor.execute(sql, (*data.values(), year_month, keyword))
-                    connection.commit()
-                    print(f"{insert_count}번째 update 성공")
-                else:
-                    # 존재하지 않는 경우 삽입
-                    insert_record(
-                        "movepopdata",
-                        connection,
-                        insert_count,
-                        keyword=keyword,
-                        yearmonth=year_month,
-                        **data,
-                    )
-                    connection.commit()
+                connection.commit()
+                    
         except Exception as e:
             print(f"Error inserting or updating data: {e}")
             connection.rollback()
@@ -188,25 +182,27 @@ def parse_html(html_content):
 
     soup = BeautifulSoup(html_content, "html.parser")
     data = {
-        "location": soup.find("span").text,
-        "business": soup.find("strong", {"data-name": "business"}).text,
-        "person": soup.find("strong", {"data-name": "person"}).text,
-        "price": soup.find("strong", {"data-name": "price"}).text,
-        "wrcppl": soup.find("strong", {"data-name": "wrcppl"}).text,
-        "earn": soup.find("strong", {"data-name": "earn"}).text,
-        "cnsmp": soup.find("strong", {"data-name": "cnsmp"}).text,
-        "hhCnt": soup.find("strong", {"data-name": "hhCnt"}).text,
-        "rsdppl": soup.find("strong", {"data-name": "rsdppl"}).text,
+        "shop": soup.find("strong", {"data-name": "business"}).text if soup.find("strong", {"data-name": "business"}) else None,
+        "move_pop": soup.find("strong", {"data-name": "person"}).text if soup.find("strong", {"data-name": "person"}) else None,
+        "sales": soup.find("strong", {"data-name": "price"}).text if soup.find("strong", {"data-name": "price"}) else None,
+        "work_pop": soup.find("strong", {"data-name": "wrcppl"}).text if soup.find("strong", {"data-name": "wrcppl"}) else None,
+        "income": soup.find("strong", {"data-name": "earn"}).text if soup.find("strong", {"data-name": "earn"}) else None,
+        "spend": soup.find("strong", {"data-name": "cnsmp"}).text if soup.find("strong", {"data-name": "cnsmp"}) else None,
+        "house": soup.find("strong", {"data-name": "hhCnt"}).text if soup.find("strong", {"data-name": "hhCnt"}) else None,
+        "resident": soup.find("strong", {"data-name": "rsdppl"}).text if soup.find("strong", {"data-name": "rsdppl"}) else None,
     }
     return data
 
 
-def insert_record(table_name: str, connection, insert_count, **kwargs):
+
+def insert_record(table_name: str, connection, insert_count, city_id, district_id, sub_district_id, **kwargs):
     try:
         with connection.cursor() as cursor:
-            columns = ", ".join(kwargs.keys())
-            placeholders = ", ".join(["%s"] * len(kwargs))
-            values = tuple(kwargs.values())
+            # city_id, district_id, sub_district_id는 고정 컬럼
+            columns = "city_id, district_id, sub_district_id, " + ", ".join(kwargs.keys())
+            placeholders = "%s, %s, %s, " + ", ".join(["%s"] * len(kwargs))
+            values = (city_id, district_id, sub_district_id) + tuple(kwargs.values())
+            
             sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
             cursor.execute(sql, values)
         connection.commit()
@@ -224,65 +220,86 @@ def insert_record(table_name: str, connection, insert_count, **kwargs):
         raise e
 
 
-def read_keywords_from_excel(file_path):
+# 5. 엑셀 파일에서 값 꺼내서 키워드 화, 매핑
+def read_keywords_from_excel(file_path, all_region_list):
+    print(file_path, 'asd')
     workbook = load_workbook(filename=file_path)
     sheet = workbook.active
-    keywords = [row[0].value for row in sheet.iter_rows(min_row=1) if row[0].value]
+    keywords = []
+
+    # 엑셀 파일에서 시도명, 시군구명, 읍면동명을 읽어와 매칭
+    for row in sheet.iter_rows(min_row=1):  # 1행부터 시작
+        city_name = row[0].value  # 시도명
+        district_name = row[1].value  # 시군구명
+        sub_district_name = row[2].value  # 읍면동명
+        print(city_name)
+
+        if city_name and district_name and sub_district_name:
+            # all_region_list에서 매칭되는 id 값을 찾음
+            matching_region = next(
+                (region for region in all_region_list 
+                 if region['city_name'] == city_name 
+                 and region['district_name'] == district_name 
+                 and region['sub_district_name'] == sub_district_name),
+                None
+            )
+
+            if matching_region:
+                # 매칭된 지역의 id 값을 추출하고 리스트에 저장
+                keywords.append({
+                    'city_id': matching_region['city_id'],
+                    'district_id': matching_region['district_id'],
+                    'sub_district_id': matching_region['sub_district_id'],
+                    'keyword': f"{city_name} {district_name} {sub_district_name}"
+                })
+            else:
+                print(f"Region not found for: {city_name} {district_name} {sub_district_name}")
+    
+
     return keywords
 
 
-def process_file(file_path):
+
+def process_file(file_path, all_region_list):
     connection = get_db_connection()
     insert_count = 0
+
     try:
-        keywords = read_keywords_from_excel(file_path)
-        for keyword in tqdm(
+        # all_region_list를 전달하여 지역 ID 값과 매핑된 키워드를 얻음
+        keywords = read_keywords_from_excel(file_path, all_region_list)
+
+        for keyword_data in tqdm(
             keywords, desc=f"Processing {os.path.basename(file_path)}"
         ):  # tqdm을 사용하여 진행 상황 표시
-            with connection.cursor() as cursor:
-                # DB에서 해당 키워드가 있는지, 그리고 earn이 NULL인지 확인
-                cursor.execute(
-                    "SELECT earn FROM movepopdata WHERE keyword = %s", (keyword,)
-                )
-                result = cursor.fetchone()
-
-                if result:
-                    if result[0] is None:  # earn이 NULL인 경우
-                        print(
-                            f"Keyword {keyword} exists but earn is NULL. Updating data..."
-                        )
-                        crawl_keyword(keyword, connection, insert_count)
-                        continue
-                    else:
-                        print(
-                            f"Keyword {keyword} already exists with non-null earn. Skipping..."
-                        )
-                        continue  # earn이 NULL이 아니면 다음 키워드로 넘어감
-
-            # 키워드가 존재하지 않는 경우 새로운 데이터를 삽입
-            print(f"Keyword {keyword} does not exist. Inserting data...")
+            # 각 키워드에 대해 무조건 새로운 데이터를 삽입하거나 갱신
             insert_count += 1
-            crawl_keyword(keyword, connection, insert_count)
+            
+            # keyword_data는 city_id, district_id, sub_district_id, keyword를 포함
+            crawl_keyword(keyword_data, connection, insert_count)
 
     finally:
         close_connection(connection)
     print(f"Finished processing {os.path.basename(file_path)}")
 
 
+
 def process_keywords_from_excel():
     print("Starting to process keywords from Excel")
+    all_region_list = fetch_all_region_id()
     directory = "C:/formovedata"
-    excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [3, 4, 5, 6]]
+    excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
     # excel_files = [os.path.join(directory, f"list.xlsx")]
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        executor.map(process_file, excel_files)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(lambda file: process_file(file, all_region_list), excel_files)
 
     print("Finished processing all files")
 
 
-# if __name__=="__main__":
-#     process_keywords_from_excel()
+if __name__=="__main__":
+    process_keywords_from_excel()
+    # fetch_all_region_id()
+    # read_keywords_from_excel("C:\\formovedata\\SplitFile_1.xlsx")
 
 
 def select_report_loc_info_by_store_business_number(
@@ -427,3 +444,5 @@ def select_report_loc_info_by_store_business_number(
         raise http_ex
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
