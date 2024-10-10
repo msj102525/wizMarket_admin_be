@@ -235,8 +235,8 @@ def select_commercial_district_by_dynamic_query(
     operating_cost_max: Optional[int] = None,
     food_cost_min: Optional[int] = None,
     food_cost_max: Optional[int] = None,
-    employee_cost_min: Optional[int] = None,
-    employee_cost_max: Optional[int] = None,
+    employee_cost_min: Optional[int] = None,  # 인건비X -> 평균 결제
+    employee_cost_max: Optional[int] = None,  # 인건비X -> 평균 결제
     rental_cost_min: Optional[int] = None,
     rental_cost_max: Optional[int] = None,
     avg_profit_min: Optional[int] = None,
@@ -369,11 +369,17 @@ def select_commercial_district_by_dynamic_query(
             if food_cost_max is not None:
                 select_query += " AND cd.FOOD_COST <= %s"
                 params.append(food_cost_max)
-            if employee_cost_min is not None:
-                select_query += " AND cd.EMPLOYEE_COST >= %s"
+            # if employee_cost_min is not None:
+            #     select_query += " AND cd.EMPLOYEE_COST >= %s"
+            #     params.append(employee_cost_min)
+            # if employee_cost_max is not None:
+            #     select_query += " AND cd.EMPLOYEE_COST <= %s"
+            #     params.append(employee_cost_max)
+            if employee_cost_min is not None:  # 인건비X -> 평균 결제
+                select_query += " AND cd.AVERAGE_PAYMENT >= %s"
                 params.append(employee_cost_min)
-            if employee_cost_max is not None:
-                select_query += " AND cd.EMPLOYEE_COST <= %s"
+            if employee_cost_max is not None:  # 인건비X -> 평균 결제
+                select_query += " AND cd.AVERAGE_PAYMENT <= %s"
                 params.append(employee_cost_max)
             if rental_cost_min is not None:
                 select_query += " AND cd.RENTAL_COST >= %s"

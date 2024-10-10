@@ -48,8 +48,8 @@ def select_commercial_district_by_dynamic_query(
     operating_cost_max: Optional[int] = None,
     food_cost_min: Optional[int] = None,
     food_cost_max: Optional[int] = None,
-    employee_cost_min: Optional[int] = None,
-    employee_cost_max: Optional[int] = None,
+    employee_cost_min: Optional[int] = None, # 인건비X -> 평균 결제
+    employee_cost_max: Optional[int] = None, # 인건비X -> 평균 결제
     rental_cost_min: Optional[int] = None,
     rental_cost_max: Optional[int] = None,
     avg_profit_min: Optional[int] = None,
