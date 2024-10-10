@@ -469,31 +469,29 @@ CREATE TABLE
         CONSTRAINT `fk_reference_category` FOREIGN KEY (`REFERENCE_ID`) REFERENCES `reference` (`REFERENCE_ID`) ON DELETE CASCADE ON UPDATE CASCADE
     );
 
-
-CREATE TABLE 
+CREATE TABLE
     `POPULATION_INFO` (
-        `POP_INFO_ID` INT NOT NULL AUTO_INCREMENT COMMENT '인구 정보 ID', 
-        `CITY_ID` INT NOT NULL COMMENT '시/도 ID',                     
-        `DISTRICT_ID` INT NOT NULL COMMENT '시/군/구 ID',                
-        `SUB_DISTRICT_ID` INT NOT NULL COMMENT '읍/면/동 ID',         
-        `GENDER_ID` INT NOT NULL COMMENT '성별 ID',              
-        `REFERENCE_ID` INT NOT NULL COMMENT '출처 ID',   
-        `REF_DATE` INT NOT NULL COMMENT '기준 날짜',   
-        `AGE_UNDER_10s` INT NULL COMMENT '10대 미만',                  
-        `AGE_10s` INT NULL COMMENT '10대',                        
-        `AGE_20s` INT NULL COMMENT '20대',                         
-        `AGE_30s` INT NULL COMMENT '30대',                        
-        `AGE_40s` INT NULL COMMENT '40대',                         
-        `AGE_50s` INT NULL COMMENT '50대',                         
-        `AGE_PLUS_60s` INT NULL COMMENT '60대 이상',                   
-        PRIMARY KEY (`POP_INFO_ID`),                
-        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY`(`CITY_ID`),  
-        FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT`(`DISTRICT_ID`),  
-        FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT`(`SUB_DISTRICT_ID`),  
-        FOREIGN KEY (`GENDER_ID`) REFERENCES `GENDER`(`GENDER_ID`),  
-        FOREIGN KEY (`REFERENCE_ID`) REFERENCES `REFERENCE`(`REFERENCE_ID`)  
+        `POP_INFO_ID` INT NOT NULL AUTO_INCREMENT COMMENT '인구 정보 ID',
+        `CITY_ID` INT NOT NULL COMMENT '시/도 ID',
+        `DISTRICT_ID` INT NOT NULL COMMENT '시/군/구 ID',
+        `SUB_DISTRICT_ID` INT NOT NULL COMMENT '읍/면/동 ID',
+        `GENDER_ID` INT NOT NULL COMMENT '성별 ID',
+        `REFERENCE_ID` INT NOT NULL COMMENT '출처 ID',
+        `REF_DATE` INT NOT NULL COMMENT '기준 날짜',
+        `AGE_UNDER_10s` INT NULL COMMENT '10대 미만',
+        `AGE_10s` INT NULL COMMENT '10대',
+        `AGE_20s` INT NULL COMMENT '20대',
+        `AGE_30s` INT NULL COMMENT '30대',
+        `AGE_40s` INT NULL COMMENT '40대',
+        `AGE_50s` INT NULL COMMENT '50대',
+        `AGE_PLUS_60s` INT NULL COMMENT '60대 이상',
+        PRIMARY KEY (`POP_INFO_ID`),
+        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
+        FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
+        FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`),
+        FOREIGN KEY (`GENDER_ID`) REFERENCES `GENDER` (`GENDER_ID`),
+        FOREIGN KEY (`REFERENCE_ID`) REFERENCES `REFERENCE` (`REFERENCE_ID`)
     );
-
 
 --- 참조 테이블 디폴트 값 인서트
 INSERT INTO
@@ -517,56 +515,60 @@ VALUES
         'https://sg.sbiz.or.kr/godo/noticeInfo/announcementView.sg?id=4570&page=1'
     );
 
+INSERT INTO
+    `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
+VALUES
+    ('sibz', 'https://sg.sbiz.or.kr/godo/index.sg');
 
 INSERT INTO
     `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
 VALUES
-    (
-        'sibz',
-        'https://sg.sbiz.or.kr/godo/index.sg'
-    );
-
-INSERT INTO
-    `REFERENCE` (`REFERENCE_NAME`, `REFERENCE_URL`)
-VALUES
-    (
-        '공공데이터',
-        'https://www.data.go.kr'
-    );
-
+    ('공공데이터', 'https://www.data.go.kr');
 
 -- STAT_ITEM 테이블 생성
-CREATE TABLE STAT_ITEM (
-    `STAT_ITEM_ID` INT AUTO_INCREMENT PRIMARY KEY,    -- PK, 자동 증가
-    `TABLE_NAME` VARCHAR(255) NOT NULL COMMENT '테이블명', -- 테이블명
-    `COLUMN_NAME` VARCHAR(255) NOT NULL COMMENT '컬럼명', -- 컬럼명
-    `REFERENC_ID` INT COMMENT '출처 ID', -- 출처
-    `CREATED_AT` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the record was created' -- 생성 시간
-    FOREIGN KEY (`REFERENC_ID`) REFERENCES `REFERENC` (`REFERENC_ID`)
-) COMMENT='Table storing statistical item details';
+CREATE TABLE
+    STAT_ITEM (
+        `STAT_ITEM_ID` INT AUTO_INCREMENT PRIMARY KEY, -- PK, 자동 증가
+        `TABLE_NAME` VARCHAR(255) NOT NULL COMMENT '테이블명', -- 테이블명
+        `COLUMN_NAME` VARCHAR(255) NOT NULL COMMENT '컬럼명', -- 컬럼명
+        `REFERENC_ID` INT COMMENT '출처 ID', -- 출처
+        `DETAIL_CATEGORY_ID` INT COMMENT '소분류 ID', -- 소분류ID
+        `CREATED_AT` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the record was created' -- 생성 시간
+        FOREIGN KEY (`REFERENC_ID`) REFERENCES `REFERENC` (`REFERENC_ID`)
+    ) COMMENT = 'Table storing statistical item details';
 
 -- STATISTICS 테이블 생성
-CREATE TABLE STATISTICS (
-    `STATISTICS_ID` INT AUTO_INCREMENT PRIMARY KEY,   -- PK, 자동 증가
-    `STAT_ITEM_ID` INT NOT NULL COMMENT 'Foreign key referencing STAT_ITEM',  -- STAT_ITEM 테이블 참조하는 외래키
-    `CITY_ID` INT NULL COMMENT '시도 ID',
-    `DISTRICT_ID` INT NULL COMMENT '시군구 ID',
-    `SUB_DISTIRCT_ID` INT NULL COMMENT '읍면동 ID',
-    `AVG_VAL` DOUBLE COMMENT '평균 값', -- 평균
-    `MED_VAL` DOUBLE COMMENT '중위수', -- 중위수
-    `STD_VAL` DOUBLE COMMENT '표준편차', -- 표준편차
-    `MAX_VALUE` DOUBLE COMMENT '최대값', -- 최대값
-    `MIN_VALUE` DOUBLE COMMENT '최소값', -- 최소값
-    `J_SCORE` DOUBLE COMMENT 'J-score', -- j_score
-    `CREATED_AT` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the record was created', -- 생성 시간
-    `REFERENC_ID` INT COMMENT '출처 ID', -- 출처
-    FOREIGN KEY (`STAT_ITEM_ID`) REFERENCES STAT_ITEM(`STAT_ITEM_ID`),
-    FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
-    FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
-    FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`),
-    FOREIGN KEY (`REFERENC_ID`) REFERENCES `REFERENC` (`REFERENC_ID`)
-) COMMENT='Table storing statistical results';
+CREATE TABLE
+    STATISTICS (
+        `STATISTICS_ID` INT AUTO_INCREMENT PRIMARY KEY, -- PK, 자동 증가
+        `STAT_ITEM_ID` INT NOT NULL COMMENT 'Foreign key referencing STAT_ITEM', -- STAT_ITEM 테이블 참조하는 외래키
+        `CITY_ID` INT NULL COMMENT '시도 ID',
+        `DISTRICT_ID` INT NULL COMMENT '시군구 ID',
+        `SUB_DISTIRCT_ID` INT NULL COMMENT '읍면동 ID',
+        `AVG_VAL` DOUBLE COMMENT '평균 값', -- 평균
+        `MED_VAL` DOUBLE COMMENT '중위수', -- 중위수
+        `STD_VAL` DOUBLE COMMENT '표준편차', -- 표준편차
+        `MAX_VALUE` DOUBLE COMMENT '최대값', -- 최대값
+        `MIN_VALUE` DOUBLE COMMENT '최소값', -- 최소값
+        `J_SCORE` DOUBLE COMMENT 'J-score', -- j_score
+        `CREATED_AT` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the record was created', -- 생성 시간
+        `REFERENC_ID` INT COMMENT '출처 ID', -- 출처
+        FOREIGN KEY (`STAT_ITEM_ID`) REFERENCES STAT_ITEM (`STAT_ITEM_ID`),
+        FOREIGN KEY (`CITY_ID`) REFERENCES `CITY` (`CITY_ID`),
+        FOREIGN KEY (`DISTRICT_ID`) REFERENCES `DISTRICT` (`DISTRICT_ID`),
+        FOREIGN KEY (`SUB_DISTRICT_ID`) REFERENCES `SUB_DISTRICT` (`SUB_DISTRICT_ID`),
+        FOREIGN KEY (`REFERENC_ID`) REFERENCES `REFERENC` (`REFERENC_ID`)
+    ) COMMENT = 'Table storing statistical results';
 
+-- DETAIL_CATEGORY_MAPPING 테이블 생성
+CREATE TABLE
+    DETAIL_CATEGORY_MAPPING (
+        `DETAIL_CATEGORY_MAPPING_ID` INT AUTO_INCREMENT PRIMARY KEY COMMENT 'PK_DCMID',
+        `REFERENCE_ID` INT NOT NULL COMMENT 'FK_RID',
+        `BUSINESS_AREA_CATEGORY_ID` INT NOT NULL COMMENT '매핑될 ID',
+        `DETAIL_CATEGORY_ID` INT NOT NULL COMMENT '소분류ID',
+        FOREIGN KEY (`REFERENCE_ID`) REFERENCES `REFERENCE` (`REFERENCE_ID`)
+    );
 
 -- 외래 키 제약 조건을 다시 활성화
 SET

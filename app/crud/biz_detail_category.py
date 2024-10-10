@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 
-from fastapi import HTTPException
+from fastapi import HTTPException, logger
 import pymysql
 from app.db.connect import (
     get_db_connection,
@@ -11,6 +11,7 @@ from app.db.connect import (
     rollback,
 )
 from app.schemas.biz_detail_category import (
+    BizDetailCategoryId,
     BizDetailCategoryOutput,
 )
 from app.schemas.category import CategoryListOutput
@@ -294,3 +295,43 @@ def select_all_biz_category_by_dynamic_query(
             close_connection(connection)
 
     return results
+
+
+def select_all_biz_detail_category_id() -> BizDetailCategoryId:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    results: List[BizDetailCategoryId] = []
+    try:
+        if connection.open:
+            select_query = """
+                SELECT
+                    BIZ_DETAIL_CATEGORY_ID
+                FROM
+                    BIZ_DETAIL_CATEGORY
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query)
+
+            rows = cursor.fetchall()
+
+            for row in rows:
+                results.append(row.get("BIZ_DETAIL_CATEGORY_ID"))
+
+            return results
+
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+        rollback(connection)
+    except Exception as e:
+        logger.error(f"Unexpected Error: {e}")
+        rollback(connection)
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+
+if __name__ == "__main__":
+    select_all_biz_detail_category_id()

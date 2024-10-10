@@ -17,3 +17,9 @@ class BizDetailCategoryOutput(BaseModel):
 
     class Config:
         from_attributes = True
+
+class BizDetailCategoryId(BaseModel):
+    biz_detail_category_id: int
+
+    class Config:
+        from_attributes = True

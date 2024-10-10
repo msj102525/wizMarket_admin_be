@@ -251,6 +251,8 @@ def select_commercial_district_by_dynamic_query(
         if connection.open:
             select_query = """
                 SELECT 
+                CD.BIZ_DETAIL_CATEGORY_ID,
+                CD.SUB_DISTRICT_ID,
                 CD.COMMERCIAL_DISTRICT_ID,
                 CI.CITY_NAME,
                 DI.DISTRICT_NAME,
@@ -450,6 +452,7 @@ def select_commercial_district_by_dynamic_query(
                     created_at=row.get("CREATED_AT"),
                     updated_at=row.get("UPDATED_AT"),
                 )
+                print(row)
                 results.append(commercial_district_output)
 
             return results

@@ -1,10 +1,18 @@
 import numpy as np
+from tqdm import tqdm
 from app.crud.loc_store import (
     select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
 )
+from app.crud.stat_item import (
+    select_detail_category_id_by_stat_item_id as crud_select_detail_category_id_by_stat_item_id,
+    select_stat_item_info_by_stat_item_id as crud_select_stat_item_info_by_stat_item_id,
+)
 from app.crud.statistics import *
 from app.schemas.loc_store import LocalStoreSubdistrict
-from app.schemas.statistics import LocInfoAvgJscoreOutput, PopulationCompareResidentWorkPop
+from app.schemas.statistics import (
+    LocInfoAvgJscoreOutput,
+    PopulationCompareResidentWorkPop,
+)
 
 
 ################# 입지 정보 동 기준 가중치 평균 j_score 값 계산 ###################
@@ -323,7 +331,6 @@ def get_city_district_and_national_statistics(stat_item_id):
 
     # 5. 시/도 별 통계 값 인서트
     insert_stat_city(city_stat_list)
-    
 
     # 6. 모든 시/군/구(city_id, district_id) 쌍을 가져옴
     city_district_pairs = fetch_city_district_pairs()
@@ -347,11 +354,10 @@ def get_city_district_and_national_statistics(stat_item_id):
     ]
     # print(city_district_stats_list)
     # insert_stat_region(city_district_stats_list)
-    
 
     return {
         "national_statistics": national_stats,
-        "city_stat_list" : city_stat_list,
+        "city_stat_list": city_stat_list,
         "city_district_statistics": city_district_stats_list,
     }
 
@@ -533,6 +539,97 @@ def get_j_score_for_region_mz_population(stat_item_id):
     return j_score_data_region
 
 
+def get_j_score_national_commercial_distirct(stat_item_id):
+    national_data = get_all_city_district_sub_district()
+
+    detail_category_id = crud_select_detail_category_id_by_stat_item_id(stat_item_id)
+
+    # data는 city_id, district_id, sub_district_id, count로 구성된 리스트
+    data = get_j_score_national_data_by_detail_categroy_id(
+        national_data, detail_category_id
+    )
+
+    print(data)
+
+    # 원하는 컬럼만 추출하여 별도의 리스트 생성
+    counts = [item[-1] for item in data]
+
+    # 데이터 기준으로 순위 계산
+    ranked_counts = sorted(counts, reverse=True)  # 내림차순으로 정렬
+
+    j_score_data_nation = []
+
+    for city_id, district_id, sub_district_id, j_column in data:
+        if j_column > 0:
+            # 해당 매장 수의 순위
+            rank = ranked_counts.index(j_column) + 1
+            totals = len(counts)
+
+            # j_score 계산
+            j_score = 10 * ((totals + 1 - rank) / totals)
+
+        # j_score_data에 (city_id, district_id, sub_district_id, count, j_score) 형태로 추가
+        j_score_data_nation.append(
+            (
+                stat_item_id,
+                city_id,
+                district_id,
+                sub_district_id,
+                j_score,
+                1,
+                "2024-08-01",
+            )
+        )
+
+    # print(j_score_data_nation)
+    insert_j_score_nation(j_score_data_nation)
+
+    get_city_district_and_national_statistics_commercial_district(stat_item_id)
+
+    return j_score_data_nation
+
+
+def get_city_district_and_national_statistics_commercial_district(stat_item_id):
+    # 1. 전국 데이터를 가져와 통계 계산
+    stat_item_info = crud_select_stat_item_info_by_stat_item_id(stat_item_id)
+
+    national_data = get_national_data_by_detail_category(
+        stat_item_info.column_name,
+        stat_item_info.table_name,
+        stat_item_info.biz_detail_category_id,
+    )
+
+    national_stats = calculate_statistics(national_data)
+
+    # 2. 전국 단위 통계값 업데이트
+    national_stats = {"stat_item_id": stat_item_id, **national_stats}
+
+    # print(national_stats)
+    update_stat_nation(national_stats)
+
+    return {
+        "national_statistics": national_stats,
+    }
+
+
+def loop_commercial_district_statistics():
+    statistics_start_id, statistics_end_id = 19, 2045
+    for idx in tqdm(
+        range(statistics_start_id, statistics_end_id + 1), desc="Processing"
+    ):
+        tqdm.write(f"Currently processing idx: {idx}")
+        get_j_score_national_commercial_distirct(idx)
+
+
+# def loop_avg_commercial_district_statistics():
+#     statistics_start_id, statistics_end_id = 20, 2045
+#     for idx in tqdm(
+#         range(statistics_start_id, statistics_end_id + 1), desc="Processing"
+#     ):
+#         tqdm.write(f"Currently processing idx: {idx}")
+#         get_city_district_and_national_statistics_commercial_district(idx)
+
+
 # 테스트 실행 예시
 if __name__ == "__main__":
     # 입지 정보 통계값, j_score 테이블에 넣기
@@ -550,4 +647,11 @@ if __name__ == "__main__":
     # 입지 정보 j_score 가중치 평균 구하기
     # select_avg_j_score(50)  # sub_distric_id
     # fetch_living_env(50)    # sub_distric_id
-    fetch_move_pop(50)  # sub_distric_id
+    # fetch_move_pop(50)  # sub_distric_id
+
+    ###############################################
+    # 상권분석
+    get_j_score_national_commercial_distirct(19)
+    loop_commercial_district_statistics()
+    # get_city_district_and_national_statistics_commercial_district(19)
+    # loop_avg_commercial_district_statistics()
