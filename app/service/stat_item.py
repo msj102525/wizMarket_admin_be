@@ -52,6 +52,7 @@ def insert_stat_item_from_commercial_district_by_detail_category(
 # 함수 실행
 if __name__ == "__main__":
     # insert_stat_item_from_loc_info("population", "mz_population")
-    insert_stat_item_from_commercial_district_by_detail_category(
-        "commercial_district", "usage_count"
-    )
+    # insert_stat_item_from_commercial_district_by_detail_category(
+    #     "commercial_district", "national_density"
+    # )
+    pass

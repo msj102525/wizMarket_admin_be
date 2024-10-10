@@ -47,7 +47,7 @@ def select_state_item_id(table_name: str, column_name: str) -> int:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-    # print(table_name, column_name)
+    print(table_name, column_name)
 
     try:
         select_query = """

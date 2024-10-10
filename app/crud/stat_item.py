@@ -52,10 +52,11 @@ def insert_stat_item_add_detail_category(
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     try:
+        
         # stat_item 테이블에 데이터 삽입하는 SQL 쿼리 작성
         insert_query = """
-            INSERT INTO stat_item (table_name, column_name, REFERENCE_ID, detail_category_id)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO stat_item (table_name, column_name, reference_id, detail_category_id)
+            VALUES (%s, %s, %s, %s);
         """
 
         # 데이터 삽입

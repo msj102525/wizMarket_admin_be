@@ -549,7 +549,7 @@ def get_j_score_national_commercial_distirct(stat_item_id):
         national_data, detail_category_id
     )
 
-    print(data)
+    # print(data)
 
     # 원하는 컬럼만 추출하여 별도의 리스트 생성
     counts = [item[-1] for item in data]
@@ -584,14 +584,18 @@ def get_j_score_national_commercial_distirct(stat_item_id):
     # print(j_score_data_nation)
     insert_j_score_nation(j_score_data_nation)
 
-    get_city_district_and_national_statistics_commercial_district(stat_item_id)
-
     return j_score_data_nation
 
 
 def get_city_district_and_national_statistics_commercial_district(stat_item_id):
     # 1. 전국 데이터를 가져와 통계 계산
     stat_item_info = crud_select_stat_item_info_by_stat_item_id(stat_item_id)
+
+    # biz_detail_category_id가 0인지 확인
+    if stat_item_info.biz_detail_category_id == 0:
+        return {
+            "message": f"No action taken because biz_detail_category_id is 0.  stat_item_info: {stat_item_info}"
+        }
 
     national_data = get_national_data_by_detail_category(
         stat_item_info.column_name,
@@ -613,21 +617,27 @@ def get_city_district_and_national_statistics_commercial_district(stat_item_id):
 
 
 def loop_commercial_district_statistics():
-    statistics_start_id, statistics_end_id = 19, 2045
+    statistics_start_id, statistics_end_id = 11, 1699
     for idx in tqdm(
         range(statistics_start_id, statistics_end_id + 1), desc="Processing"
     ):
         tqdm.write(f"Currently processing idx: {idx}")
         get_j_score_national_commercial_distirct(idx)
 
+    # for idx in tqdm(
+    #     range(statistics_start_id, statistics_end_id + 1), desc="Processing"
+    # ):
+    #     tqdm.write(f"Currently processing idx: {idx}")
+    #     get_city_district_and_national_statistics_commercial_district(idx)
 
-# def loop_avg_commercial_district_statistics():
-#     statistics_start_id, statistics_end_id = 20, 2045
-#     for idx in tqdm(
-#         range(statistics_start_id, statistics_end_id + 1), desc="Processing"
-#     ):
-#         tqdm.write(f"Currently processing idx: {idx}")
-#         get_city_district_and_national_statistics_commercial_district(idx)
+
+def loop_avg_commercial_district_statistics():
+    statistics_start_id, statistics_end_id = 11, 1699
+    for idx in tqdm(
+        range(statistics_start_id, statistics_end_id + 1), desc="Processing"
+    ):
+        tqdm.write(f"Currently processing idx: {idx}")
+        get_city_district_and_national_statistics_commercial_district(idx)
 
 
 # 테스트 실행 예시
@@ -651,7 +661,8 @@ if __name__ == "__main__":
 
     ###############################################
     # 상권분석
-    get_j_score_national_commercial_distirct(19)
-    loop_commercial_district_statistics()
+    # get_j_score_national_commercial_distirct(19)
+    # loop_commercial_district_statistics()
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()
+    pass
