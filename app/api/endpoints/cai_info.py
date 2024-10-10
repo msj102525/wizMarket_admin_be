@@ -14,7 +14,7 @@ async def get_cai_api_by_city(city: str):
     if not cai_api_key:
         raise HTTPException(status_code=500, detail="API key not found")
 
-    print(f"City: {city}")
+    # print(f"City: {city}")
 
     url = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty"
     params = {

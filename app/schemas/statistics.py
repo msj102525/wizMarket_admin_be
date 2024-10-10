@@ -93,3 +93,15 @@ class PopulationCompareResidentWorkPop(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CommercialStatistics(BaseModel):
+    avg_val: float = 0.0
+    med_val: float = 0.0
+    std_val: float = 0.0
+    max_val: float = 0.0
+    min_val: float = 0.0
+    j_score: float = 0.0
+
+    class Config:
+        from_attributes = True

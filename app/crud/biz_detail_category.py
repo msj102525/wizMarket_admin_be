@@ -333,5 +333,51 @@ def select_all_biz_detail_category_id() -> BizDetailCategoryId:
             close_connection(connection)
 
 
-if __name__ == "__main__":
-    select_all_biz_detail_category_id()
+def select_biz_detail_category_id_by_biz_detail_category_name(
+    biz_detail_category_name: str,
+) -> BizDetailCategoryId:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+    results: BizDetailCategoryId = 0
+    # print(biz_detail_category_name)
+    try:
+        if connection.open:
+            select_query = """
+                SELECT
+                    BIZ_DETAIL_CATEGORY_ID
+                FROM
+                    BIZ_DETAIL_CATEGORY
+                WHERE BIZ_DETAIL_CATEGORY_NAME = %s
+                ;
+            """
+
+            # logger.info(
+            #     f"Executing query: {select_query} with category name: {biz_detail_category_name}"
+            # )
+
+            cursor.execute(select_query, (biz_detail_category_name,))
+
+            results = cursor.fetchone() or 0
+
+            if results is None or results == 0:
+                raise Exception(
+                    f"No result found for category: {biz_detail_category_name}"
+                )
+            return results["BIZ_DETAIL_CATEGORY_ID"] if results else 0
+
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+        rollback(connection)
+    except Exception as e:
+        logger.error(f"Unexpected Error: {e}")
+        rollback(connection)
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+
+# if __name__ == "__main__":
+#     select_all_biz_detail_category_id()

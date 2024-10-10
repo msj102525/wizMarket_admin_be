@@ -1,7 +1,9 @@
 import logging
+from typing import Dict, List, Optional
 import pymysql
 from app.db.connect import get_db_connection, close_connection, close_cursor
-from app.schemas.statistics import StatisticsJscoreOutput
+from app.schemas.commercial_district import CommercialStatisticsData
+from app.schemas.statistics import CommercialStatistics, StatisticsJscoreOutput
 
 
 ################# 전국 범위 동별 j_score 가중치 적용 평균 구하기 #############
@@ -1023,3 +1025,63 @@ def get_j_score_national_data_by_detail_categroy_id(national_data, detail_catego
         close_connection(connection)
 
     return j_score_data  # j_score 데이터를 반환
+
+
+def select_statistics_data_by_sub_district_id_detail_category_id(
+    sub_district_id: int, stat_item_id_list: List[Dict[str, str]]
+) -> CommercialStatisticsData:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    statistics_data = {
+        "market_size": CommercialStatistics(),
+        "average_sales": CommercialStatistics(),
+        "average_payment": CommercialStatistics(),
+        "usage_count": CommercialStatistics(),
+        "national_density": CommercialStatistics(),
+    }
+
+    try:
+        for stat_item in stat_item_id_list:
+            stat_item_id = stat_item["STAT_ITEM_ID"]
+            column_name = stat_item["COLUMN_NAME"]
+
+            query = """
+                SELECT 
+                    AVG_VAL, 
+                    MED_VAL, 
+                    STD_VAL, 
+                    MAX_VALUE, 
+                    MIN_VALUE, 
+                    J_SCORE 
+                FROM statistics 
+                WHERE stat_item_id = %s AND sub_district_id = %s 
+                ;
+            """
+            cursor.execute(query, (stat_item_id, sub_district_id))
+            result = cursor.fetchone()
+
+            if result and column_name in statistics_data:
+                statistics_data[column_name] = CommercialStatistics(
+                    avg_val=result.get("AVG_VAL", 0.0),
+                    med_val=result.get("MED_VAL", 0.0),
+                    std_val=result.get("STD_VAL", 0.0),
+                    max_val=result.get("MAX_VALUE", 0.0),
+                    min_val=result.get("MIN_VALUE", 0.0),
+                    j_score=result.get("J_SCORE", 0.0),
+                )
+            elif column_name not in statistics_data:
+                print(f"Column '{column_name}' is not in statistics_data")
+
+        # print(statistics_data)
+
+        data = CommercialStatisticsData(**statistics_data)
+
+        return data
+
+    except Exception as e:
+        print(f"Error fetching statistics data: {e}")
+        raise
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)

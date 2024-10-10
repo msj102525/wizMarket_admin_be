@@ -52,7 +52,7 @@ def insert_stat_item_add_detail_category(
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
     try:
-        
+
         # stat_item 테이블에 데이터 삽입하는 SQL 쿼리 작성
         insert_query = """
             INSERT INTO stat_item (table_name, column_name, reference_id, detail_category_id)
@@ -102,6 +102,41 @@ def select_detail_category_id_by_stat_item_id(stat_item_id) -> BizDetailCategory
     except Exception as e:
         print(f"Error inserting into stat_item: {e}")
         rollback(connection)
+
+    finally:
+        close_cursor(cursor)
+        close_connection(connection)
+
+
+def select_all_stat_item_id_by_detail_category_id(detail_category_id: int):
+    # print(detail_category_id)
+    # DB 연결
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    results = []
+
+    try:
+        # stat_item 테이블에서 데이터 조회하는 SQL 쿼리 작성
+        select_query = """
+            SELECT
+                STAT_ITEM_ID,
+                COLUMN_NAME
+            FROM
+                STAT_ITEM
+            WHERE DETAIL_CATEGORY_ID = %s
+        """
+        cursor.execute(select_query, (detail_category_id,))
+        rows = cursor.fetchall()
+
+        # return [row['STAT_ITEM_ID'] for row in rows]
+        return rows
+
+
+    except Exception as e:
+        print(f"Error selecting from stat_item: {e}")
+        connection.rollback()  # Rollback if there's an error
+        raise  # Re-raise the exception after rollback
 
     finally:
         close_cursor(cursor)

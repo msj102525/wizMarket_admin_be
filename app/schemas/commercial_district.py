@@ -2,6 +2,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 
+from app.schemas.statistics import CommercialStatistics
+
 
 class CommercialDistrict(BaseModel):
     commercial_district_id: int
@@ -209,6 +211,25 @@ class CommercialDistrictOutput(BaseModel):
 
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CommercialStatisticsData(BaseModel):
+    market_size: CommercialStatistics
+    average_sales: CommercialStatistics
+    average_payment: CommercialStatistics
+    usage_count: CommercialStatistics
+    national_density: CommercialStatistics
+
+    class Config:
+        from_attributes = True
+
+
+class CommercialStatisticsOutput(BaseModel):
+    commercial_district_data: CommercialDistrictOutput
+    statistics_data: CommercialStatisticsData
 
     class Config:
         from_attributes = True

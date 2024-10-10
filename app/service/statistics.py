@@ -1,5 +1,10 @@
 import numpy as np
 from tqdm import tqdm
+from app.crud.biz_detail_category import (
+    select_biz_detail_category_id_by_biz_detail_category_name as crud_select_biz_detail_category_id_by_biz_detail_category_name,
+)
+from app.crud.city import get_city_id as crud_get_city_id
+from app.crud.district import get_district_id as crud_get_district_id
 from app.crud.loc_store import (
     select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
 )
@@ -7,11 +12,19 @@ from app.crud.stat_item import (
     select_detail_category_id_by_stat_item_id as crud_select_detail_category_id_by_stat_item_id,
     select_stat_item_info_by_stat_item_id as crud_select_stat_item_info_by_stat_item_id,
 )
+from app.crud.statistics import (
+    select_statistics_data_by_sub_district_id_detail_category_id as crud_select_statistics_data_by_sub_district_id_detail_category_id,
+)
 from app.crud.statistics import *
+from app.crud.sub_district import get_sub_district_id_by as crud_get_sub_district_id_by
+from app.schemas.commercial_district import CommercialStatisticsData
 from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.statistics import (
     LocInfoAvgJscoreOutput,
     PopulationCompareResidentWorkPop,
+)
+from app.crud.stat_item import (
+    select_all_stat_item_id_by_detail_category_id as crud_select_all_stat_item_id_by_detail_category_id,
 )
 
 
@@ -666,3 +679,45 @@ if __name__ == "__main__":
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()
     pass
+
+
+def select_statistics_by_sub_district_detail_category(
+    city_name: str,
+    district_name: str,
+    sub_district_name: str,
+    biz_detail_category_name: str,
+):
+    # print(city_name)
+    # print(district_name)
+    # print(sub_district_name)
+    # print(biz_detail_category_name)
+
+    city_id = crud_get_city_id(city_name)
+    district_id = crud_get_district_id(city_id, district_name)
+    sub_district_id = crud_get_sub_district_id_by(
+        city_id, district_id, sub_district_name
+    )
+
+    detail_category_id = crud_select_biz_detail_category_id_by_biz_detail_category_name(
+        biz_detail_category_name
+    )
+
+    # print(city_id)
+    # print(district_id)
+    # print(sub_district_id)
+    # print(detail_category_id)
+
+    stat_item_id_list = []
+    stat_item_id_list = crud_select_all_stat_item_id_by_detail_category_id(
+        detail_category_id
+    )
+
+    statistics_data: CommercialStatisticsData = (
+        crud_select_statistics_data_by_sub_district_id_detail_category_id(
+            sub_district_id, stat_item_id_list
+        )
+    )
+
+    # print(statistics_data)
+
+    return statistics_data

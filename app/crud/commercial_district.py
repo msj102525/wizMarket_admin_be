@@ -458,7 +458,7 @@ def select_commercial_district_by_dynamic_query(
                     created_at=row.get("CREATED_AT"),
                     updated_at=row.get("UPDATED_AT"),
                 )
-                print(row)
+                # print(row)
                 results.append(commercial_district_output)
 
             return results

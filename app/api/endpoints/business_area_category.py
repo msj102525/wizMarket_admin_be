@@ -44,7 +44,7 @@ def get_all_b_a_c_sub_category_by_main_category_id(
 def get_all_b_a_c_detail_category_by_sub_category_id(
     sub_category_code: str = Query(True),
 ):
-    print(sub_category_code)
+    # print(sub_category_code)
     try:
         results = service_get_all_b_a_c_detail_category_by_sub_category_code(
             sub_category_code

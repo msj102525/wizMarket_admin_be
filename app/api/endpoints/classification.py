@@ -44,7 +44,7 @@ def get_all_classification_sub_category_by_biz_main_category_id(
 def get_all_classification_detail_category_by_sub_category_code(
     sub_category_code: int = Query(True),
 ):
-    print(f"endpoint/detail: {sub_category_code}")
+    # print(f"endpoint/detail: {sub_category_code}")
     try:
         results = service_get_all_classification_detail_category_by_sub_category_code(
             sub_category_code
