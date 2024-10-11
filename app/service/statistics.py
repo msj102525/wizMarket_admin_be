@@ -553,7 +553,9 @@ def get_j_score_for_region_mz_population(stat_item_id):
     return j_score_data_region
 
 
-def get_j_score_national_commercial_distirct(stat_item_id):
+def get_j_score_national_commercial_distirct(stat_item_id: int):
+    # print(f"stat_item_id_1: {stat_item_id}")
+
     stat_item_info: StatItemInfo = crud_select_stat_item_info_by_stat_item_id(
         stat_item_id
     )
@@ -564,6 +566,11 @@ def get_j_score_national_commercial_distirct(stat_item_id):
     national_data = get_all_city_district_sub_district()
 
     detail_category_id = crud_select_detail_category_id_by_stat_item_id(stat_item_id)
+
+    # print(national_data)
+    # print(detail_category_id)
+    # print(stat_item_table_name)
+    # print(stat_item_column_name)
 
     # data는 city_id, district_id, sub_district_id, count로 구성된 리스트
     data = get_j_score_national_data_by_detail_categroy_id(
@@ -686,7 +693,7 @@ if __name__ == "__main__":
     loop_commercial_district_statistics()
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()
-    # pass
+    pass
 
 
 def select_statistics_by_sub_district_detail_category(

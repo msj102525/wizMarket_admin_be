@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import date, datetime
 
@@ -96,12 +97,12 @@ class PopulationCompareResidentWorkPop(BaseModel):
 
 
 class CommercialStatistics(BaseModel):
-    avg_val: float = 0.0
-    med_val: float = 0.0
-    std_val: float = 0.0
-    max_val: float = 0.0
-    min_val: float = 0.0
-    j_score: float = 0.0
+    avg_val: Optional[float] = 0.0
+    med_val: Optional[float] = 0.0
+    std_val: Optional[float] = 0.0
+    max_val: Optional[float] = 0.0
+    min_val: Optional[float] = 0.0
+    j_score: Optional[float] = 0.0
 
     class Config:
         from_attributes = True
