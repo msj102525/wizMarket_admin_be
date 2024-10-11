@@ -132,7 +132,6 @@ def select_all_stat_item_id_by_detail_category_id(detail_category_id: int):
         # return [row['STAT_ITEM_ID'] for row in rows]
         return rows
 
-
     except Exception as e:
         print(f"Error selecting from stat_item: {e}")
         connection.rollback()  # Rollback if there's an error
@@ -143,12 +142,13 @@ def select_all_stat_item_id_by_detail_category_id(detail_category_id: int):
         close_connection(connection)
 
 
-def select_stat_item_info_by_stat_item_id(stat_item_id) -> StatItemInfo:
+def select_stat_item_info_by_stat_item_id(stat_item_id: int) -> StatItemInfo:
     # DB 연결
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     try:
+        print(stat_item_id)
         # stat_item 테이블에서 데이터 조회하는 SQL 쿼리 작성
         select_query = """
             SELECT

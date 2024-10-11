@@ -442,12 +442,25 @@ def insert_j_score_nation(data):
         connection = get_db_connection()
         cursor = connection.cursor()
 
+        # query = """
+        #     INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, reference_id, ref_date, stat_level)
+        #     VALUES (%s, %s, %s, %s, %s, now(), %s, %s, '전국')
+        # """
         query = """
-            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, reference_id, ref_date, stat_level)
-            VALUES (%s, %s, %s, %s, %s, now(), %s, %s, '전국')
+            UPDATE statistics 
+            SET 
+            J_SCORE = %s
+            WHERE STAT_ITEM_ID = %s AND CITY_ID = %s AND DISTRICT_ID = %s 
+            AND SUB_DISTRICT_ID = %s AND reference_id = %s AND ref_date = %s;
         """
 
-        cursor.executemany(query, data)
+        # 순서를 맞추기 위해 data에서 j_score를 맨 앞에 두도록 순서 변경
+        data_to_update = [
+            (item[4], item[0], item[1], item[2], item[3], item[5], item[6])
+            for item in data
+        ]
+
+        cursor.executemany(query, data_to_update)
         connection.commit()
 
     except Exception as e:
@@ -993,29 +1006,42 @@ def select_nationwide_jscore_by_stat_item_id_and_sub_district_id(
 
 ############## 읍면동 단위 모든 컬럼 정보 가져오기 ################
 # 컬럼 값 테이블에서 가져오는 함수
-def get_j_score_national_data_by_detail_categroy_id(national_data, detail_category_id):
+def get_j_score_national_data_by_detail_categroy_id(
+    national_data, detail_category_id, stat_item_table_name, stat_item_column_name
+):
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-
+    logger = logging.getLogger(__name__)
     j_score_data = []
 
     try:
         for city_id, district_id, sub_district_id in national_data:
-            query = """
-                SELECT market_size
-                FROM commercial_district
+            select_query = f"""
+                SELECT `{stat_item_column_name}`
+                FROM `{stat_item_table_name}`
                 WHERE city_id = %s AND district_id = %s AND sub_district_id = %s AND biz_detail_category_id = %s
                 ;
             """
+            # logger.info(
+            #     f"Executing query: {select_query % (city_id, district_id, sub_district_id, detail_category_id)}"
+            # )
+
+            # 쿼리 실행: 숫자나 문자열 값은 매개변수로 전달
             cursor.execute(
-                query, (city_id, district_id, sub_district_id, detail_category_id)
+                select_query,
+                (city_id, district_id, sub_district_id, detail_category_id),
             )
             result = cursor.fetchone()  # 해당 읍/면/동의 컬럼 데이터를 하나 가져옴
 
             if result:
                 # 튜플 (city_id, district_id, sub_district_id, 컬럼)를 리스트에 추가
                 j_score_data.append(
-                    (city_id, district_id, sub_district_id, result["market_size"])
+                    (
+                        city_id,
+                        district_id,
+                        sub_district_id,
+                        result[stat_item_column_name],
+                    )
                 )
 
     except Exception as e:

@@ -19,6 +19,7 @@ from app.crud.statistics import *
 from app.crud.sub_district import get_sub_district_id_by as crud_get_sub_district_id_by
 from app.schemas.commercial_district import CommercialStatisticsData
 from app.schemas.loc_store import LocalStoreSubdistrict
+from app.schemas.stat_item import StatItemInfo
 from app.schemas.statistics import (
     LocInfoAvgJscoreOutput,
     PopulationCompareResidentWorkPop,
@@ -553,13 +554,20 @@ def get_j_score_for_region_mz_population(stat_item_id):
 
 
 def get_j_score_national_commercial_distirct(stat_item_id):
+    stat_item_info: StatItemInfo = crud_select_stat_item_info_by_stat_item_id(
+        stat_item_id
+    )
+    stat_item_table_name = stat_item_info.table_name
+    stat_item_column_name = stat_item_info.column_name
+    # print(stat_item_column_name)
+    # print(stat_item_table_name)
     national_data = get_all_city_district_sub_district()
 
     detail_category_id = crud_select_detail_category_id_by_stat_item_id(stat_item_id)
 
     # data는 city_id, district_id, sub_district_id, count로 구성된 리스트
     data = get_j_score_national_data_by_detail_categroy_id(
-        national_data, detail_category_id
+        national_data, detail_category_id, stat_item_table_name, stat_item_column_name
     )
 
     # print(data)
@@ -674,11 +682,11 @@ if __name__ == "__main__":
 
     ###############################################
     # 상권분석
-    # get_j_score_national_commercial_distirct(19)
-    # loop_commercial_district_statistics()
+    # get_j_score_national_commercial_distirct(11)
+    loop_commercial_district_statistics()
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()
-    pass
+    # pass
 
 
 def select_statistics_by_sub_district_detail_category(

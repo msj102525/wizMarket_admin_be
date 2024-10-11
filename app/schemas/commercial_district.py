@@ -217,11 +217,11 @@ class CommercialDistrictOutput(BaseModel):
 
 
 class CommercialStatisticsData(BaseModel):
-    market_size: CommercialStatistics
-    average_sales: CommercialStatistics
-    average_payment: CommercialStatistics
-    usage_count: CommercialStatistics
-    national_density: CommercialStatistics
+    market_size: Optional[CommercialStatistics] = None
+    average_sales: Optional[CommercialStatistics] = None
+    average_payment: Optional[CommercialStatistics] = None
+    usage_count: Optional[CommercialStatistics] = None
+    national_density: Optional[CommercialStatistics] = None
 
     class Config:
         from_attributes = True
@@ -229,7 +229,7 @@ class CommercialStatisticsData(BaseModel):
 
 class CommercialStatisticsOutput(BaseModel):
     commercial_district_data: CommercialDistrictOutput
-    statistics_data: CommercialStatisticsData
+    statistics_data: Optional[CommercialStatisticsData] = None
 
     class Config:
         from_attributes = True
