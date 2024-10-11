@@ -49,7 +49,7 @@ def select_state_item_id(table_name: str, column_name: str) -> int:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-    print(table_name, column_name)
+    # print(table_name, column_name)
 
     try:
         select_query = """
@@ -77,7 +77,7 @@ def select_state_item_id(table_name: str, column_name: str) -> int:
 
 ############### 값 조회 ######################
 def get_stat_data(filters_dict):
-    print(filters_dict)
+    # print(filters_dict)
 
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
@@ -442,25 +442,25 @@ def insert_j_score_nation(data):
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        # query = """
-        #     INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, reference_id, ref_date, stat_level)
-        #     VALUES (%s, %s, %s, %s, %s, now(), %s, %s, '전국')
-        # """
         query = """
-            UPDATE statistics 
-            SET 
-            J_SCORE = %s
-            WHERE STAT_ITEM_ID = %s AND CITY_ID = %s AND DISTRICT_ID = %s 
-            AND SUB_DISTRICT_ID = %s AND reference_id = %s AND ref_date = %s;
+            INSERT INTO statistics (STAT_ITEM_ID, city_id, district_id, sub_district_id, j_score, CREATED_AT, reference_id, ref_date, stat_level)
+            VALUES (%s, %s, %s, %s, %s, now(), %s, %s, '전국')
         """
+        # query = """
+        #     UPDATE statistics 
+        #     SET 
+        #     J_SCORE = %s
+        #     WHERE STAT_ITEM_ID = %s AND CITY_ID = %s AND DISTRICT_ID = %s 
+        #     AND SUB_DISTRICT_ID = %s AND reference_id = %s AND ref_date = %s;
+        # """
 
         # 순서를 맞추기 위해 data에서 j_score를 맨 앞에 두도록 순서 변경
-        data_to_update = [
-            (item[4], item[0], item[1], item[2], item[3], item[5], item[6])
-            for item in data
-        ]
+        # data_to_update = [
+        #     (item[4], item[0], item[1], item[2], item[3], item[5], item[6])
+        #     for item in data
+        # ]
 
-        cursor.executemany(query, data_to_update)
+        cursor.executemany(query, data)
         connection.commit()
 
     except Exception as e:
@@ -1064,8 +1064,10 @@ def select_statistics_data_by_sub_district_id_detail_category_id(
         "average_sales": CommercialStatistics(),
         "average_payment": CommercialStatistics(),
         "usage_count": CommercialStatistics(),
-        "national_density": CommercialStatistics(),
+        "sub_district_density": CommercialStatistics(),
     }
+
+    print(stat_item_id_list)
 
     try:
         for stat_item in stat_item_id_list:
@@ -1099,7 +1101,7 @@ def select_statistics_data_by_sub_district_id_detail_category_id(
             elif column_name not in statistics_data:
                 print(f"Column '{column_name}' is not in statistics_data")
 
-        # print(statistics_data)
+        print(statistics_data)
 
         data = CommercialStatisticsData(**statistics_data)
 

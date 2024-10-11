@@ -20,7 +20,7 @@ from app.schemas.common_information import (
 
 
 def get_all_report_common_information() -> List[CommonInformationOutput]:
-    connection = get_report_db_connection(True)
+    connection = get_report_db_connection(False)
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     results: Dict[int, CommonInformationOutput] = {}

@@ -1,3 +1,4 @@
+import logging
 import pymysql
 from app.db.connect import (
     get_db_connection,
@@ -82,25 +83,38 @@ def insert_stat_item_add_detail_category(
         close_connection(connection)
 
 
-def select_detail_category_id_by_stat_item_id(stat_item_id) -> BizDetailCategoryId:
+def select_detail_category_id_by_stat_item_id(stat_item_id: int) -> BizDetailCategoryId:
     # DB 연결
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-    try:
+    logger = logging.getLogger(__name__)
 
-        # stat_item 테이블에 데이터 삽입하는 SQL 쿼리 작성
+    try:
+        # print(f"stat_item_id_2: {stat_item_id}")
+        # stat_item 테이블에서 DETAIL_CATEGORY_ID를 선택하는 SQL 쿼리 작성
         select_query = """
             SELECT
                 DETAIL_CATEGORY_ID
             FROM
                 STAT_ITEM
             WHERE STAT_ITEM_ID = %s
+            ;
         """
 
-        return cursor.execute(select_query, (stat_item_id,))
+        # logger.info(f"Executing query: {select_query % (stat_item_id)}")
+
+        # 쿼리 실행
+        cursor.execute(select_query, (stat_item_id,))
+
+        # 결과 가져오기
+        result = cursor.fetchone()
+
+        # print(f"쿼리 결과: {result}")
+
+        return result["DETAIL_CATEGORY_ID"]
 
     except Exception as e:
-        print(f"Error inserting into stat_item: {e}")
+        print(f"Error fetching detail category ID: {e}")
         rollback(connection)
 
     finally:
@@ -148,7 +162,7 @@ def select_stat_item_info_by_stat_item_id(stat_item_id: int) -> StatItemInfo:
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
     try:
-        print(stat_item_id)
+        # print(stat_item_id)
         # stat_item 테이블에서 데이터 조회하는 SQL 쿼리 작성
         select_query = """
             SELECT

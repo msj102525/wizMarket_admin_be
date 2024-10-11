@@ -40,8 +40,22 @@ from app.service.gpt_generate import(
 
 router = APIRouter()
 
+# @router.get("/info/store", response_model=List[CommonInformationOutput])
+@router.get("/store/info")
+def get_all_report_common_information(store_business_id: str):
+    try:
+        print(store_business_id)
+        # results = service_get_all_report_common_information()
+        results = 'hi'
+        return results
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.get("/info/common", response_model=List[CommonInformationOutput])
+
+
+@router.get("/common/info", response_model=List[CommonInformationOutput])
 def get_all_report_common_information():
     try:
         results = service_get_all_report_common_information()

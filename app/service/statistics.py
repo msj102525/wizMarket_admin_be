@@ -189,7 +189,7 @@ def fetch_move_pop(sub_district_id):
     j_score = j_score_data[0].get("j_score", 0)
     result[0]["j_score"] = j_score
 
-    print(result)
+    # print(result)
 
     return result
 
@@ -212,7 +212,7 @@ city_district_pairs_cache = None
 def fetch_city():
     global city_ids_cache
     if city_ids_cache is None:
-        print("Fetching city_district_pairs from DB...")
+        # print("Fetching city_district_pairs from DB...")
         city_ids_cache = get_all_city_ids()  # DB에서 한 번만 가져옴
     return city_ids_cache
 
@@ -223,7 +223,7 @@ def fetch_city_district_pairs():
     """
     global city_district_pairs_cache
     if city_district_pairs_cache is None:
-        print("Fetching city_district_pairs from DB...")
+        # print("Fetching city_district_pairs from DB...")
         city_district_pairs_cache = (
             get_all_city_district_pairs()
         )  # DB에서 한 번만 가져옴
@@ -240,7 +240,7 @@ def fetch_stat_item_id():
     if stat_item_id_list is None:
         stat_item_id_list = get_stat_item_id()
 
-    print(stat_item_id_list)
+    # print(stat_item_id_list)
 
     return stat_item_id_list
 
@@ -305,7 +305,7 @@ def get_j_score_national(stat_item_id):
             (stat_item_id, city_id, district_id, sub_district_id, j_score)
         )
 
-    print(j_score_data_nation)
+    # print(j_score_data_nation)
     # insert_j_score_nation(j_score_data_nation)
 
     return j_score_data_nation
@@ -553,7 +553,9 @@ def get_j_score_for_region_mz_population(stat_item_id):
     return j_score_data_region
 
 
-def get_j_score_national_commercial_distirct(stat_item_id):
+def get_j_score_national_commercial_distirct(stat_item_id: int):
+    # print(f"stat_item_id_1: {stat_item_id}")
+
     stat_item_info: StatItemInfo = crud_select_stat_item_info_by_stat_item_id(
         stat_item_id
     )
@@ -564,7 +566,11 @@ def get_j_score_national_commercial_distirct(stat_item_id):
     national_data = get_all_city_district_sub_district()
 
     detail_category_id = crud_select_detail_category_id_by_stat_item_id(stat_item_id)
-    print(detail_category_id)
+
+    # print(national_data)
+    # print(detail_category_id)
+    # print(stat_item_table_name)
+    # print(stat_item_column_name)
 
     # data는 city_id, district_id, sub_district_id, count로 구성된 리스트
     data = get_j_score_national_data_by_detail_categroy_id(
@@ -589,6 +595,8 @@ def get_j_score_national_commercial_distirct(stat_item_id):
 
             # j_score 계산
             j_score = 10 * ((totals + 1 - rank) / totals)
+        else :
+            j_score = 0
 
         # j_score_data에 (city_id, district_id, sub_district_id, count, j_score) 형태로 추가
         j_score_data_nation.append(
@@ -646,11 +654,11 @@ def loop_commercial_district_statistics():
         tqdm.write(f"Currently processing idx: {idx}")
         get_j_score_national_commercial_distirct(idx)
 
-    # for idx in tqdm(
-    #     range(statistics_start_id, statistics_end_id + 1), desc="Processing"
-    # ):
-    #     tqdm.write(f"Currently processing idx: {idx}")
-    #     get_city_district_and_national_statistics_commercial_district(idx)
+    for idx in tqdm(
+        range(statistics_start_id, statistics_end_id + 1), desc="Processing"
+    ):
+        tqdm.write(f"Currently processing idx: {idx}")
+        get_city_district_and_national_statistics_commercial_district(idx)
 
 
 def loop_avg_commercial_district_statistics():
@@ -683,11 +691,11 @@ if __name__ == "__main__":
 
     ###############################################
     # 상권분석
-    get_j_score_national_commercial_distirct(12)
-    # loop_commercial_district_statistics()
+    # get_j_score_national_commercial_distirct(11)
+    loop_commercial_district_statistics()
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()
-    # pass
+    pass
 
 
 def select_statistics_by_sub_district_detail_category(
