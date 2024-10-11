@@ -189,7 +189,7 @@ def fetch_move_pop(sub_district_id):
     j_score = j_score_data[0].get("j_score", 0)
     result[0]["j_score"] = j_score
 
-    print(result)
+    # print(result)
 
     return result
 
@@ -212,7 +212,7 @@ city_district_pairs_cache = None
 def fetch_city():
     global city_ids_cache
     if city_ids_cache is None:
-        print("Fetching city_district_pairs from DB...")
+        # print("Fetching city_district_pairs from DB...")
         city_ids_cache = get_all_city_ids()  # DB에서 한 번만 가져옴
     return city_ids_cache
 
@@ -223,7 +223,7 @@ def fetch_city_district_pairs():
     """
     global city_district_pairs_cache
     if city_district_pairs_cache is None:
-        print("Fetching city_district_pairs from DB...")
+        # print("Fetching city_district_pairs from DB...")
         city_district_pairs_cache = (
             get_all_city_district_pairs()
         )  # DB에서 한 번만 가져옴
@@ -240,7 +240,7 @@ def fetch_stat_item_id():
     if stat_item_id_list is None:
         stat_item_id_list = get_stat_item_id()
 
-    print(stat_item_id_list)
+    # print(stat_item_id_list)
 
     return stat_item_id_list
 
@@ -305,7 +305,7 @@ def get_j_score_national(stat_item_id):
             (stat_item_id, city_id, district_id, sub_district_id, j_score)
         )
 
-    print(j_score_data_nation)
+    # print(j_score_data_nation)
     # insert_j_score_nation(j_score_data_nation)
 
     return j_score_data_nation

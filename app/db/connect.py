@@ -16,7 +16,7 @@ def get_db_connection():
             database=os.getenv("DB_DATABASE"),
             autocommit=False,
         )
-        print("TEST Database connection established successfully.")
+        # print("TEST Database connection established successfully.")
     except OperationalError as e:
         print(f"OperationalError: {e}")
     except InternalError as e:
@@ -52,7 +52,7 @@ def get_report_db_connection(is_dev=False):
             database=database,
             autocommit=False,
         )
-        print("ReportDB Database connection established successfully.")
+        # print("ReportDB Database connection established successfully.")
     except OperationalError as e:
         print(f"OperationalError: {e}")
     except InternalError as e:
@@ -71,7 +71,7 @@ def close_connection(connection):
     try:
         if connection:
             connection.close()
-            print("Database connection closed successfully.")
+            # print("Database connection closed successfully.")
     except pymysql.MySQLError as e:
         print(f"Error closing connection: {e}")
 
@@ -81,7 +81,7 @@ def close_cursor(cursor):
     try:
         if cursor is not None:
             cursor.close()
-            print("Cursor closed successfully.")
+            # print("Cursor closed successfully.")
     except pymysql.MySQLError as e:
         print(f"Error closing cursor: {e}")
 
