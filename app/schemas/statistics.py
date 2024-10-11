@@ -105,3 +105,10 @@ class CommercialStatistics(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class GPTLocInfo(BaseModel):
+    content: str  
+
+    class Config:
+        from_attributes = True

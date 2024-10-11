@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, date
 
 
@@ -60,6 +60,29 @@ class LocationInfoReportOutput(BaseModel):
     house: Optional[int] = None
     shop: Optional[int] = None
     income: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+# loc_info_result 모델
+class LocInfoResult(BaseModel):
+    shop: int
+    move_pop: int
+    sales: int
+    work_pop: int
+    income: int
+    spend: int
+    house: int
+    resident: int
+
+# statistics_result 모델
+class StatisticsResult(BaseModel):
+    j_score: float
+
+# 상위 모델 - 두 결과를 함께 포함하는 모델
+class LocalInfoStatisticsResponse(BaseModel):
+    loc_info: LocInfoResult
+    statistics: List[StatisticsResult]
 
     class Config:
         from_attributes = True
