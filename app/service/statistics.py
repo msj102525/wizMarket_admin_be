@@ -595,6 +595,8 @@ def get_j_score_national_commercial_distirct(stat_item_id: int):
 
             # j_score 계산
             j_score = 10 * ((totals + 1 - rank) / totals)
+        else :
+            j_score = 0
 
         # j_score_data에 (city_id, district_id, sub_district_id, count, j_score) 형태로 추가
         j_score_data_nation.append(
@@ -652,11 +654,11 @@ def loop_commercial_district_statistics():
         tqdm.write(f"Currently processing idx: {idx}")
         get_j_score_national_commercial_distirct(idx)
 
-    # for idx in tqdm(
-    #     range(statistics_start_id, statistics_end_id + 1), desc="Processing"
-    # ):
-    #     tqdm.write(f"Currently processing idx: {idx}")
-    #     get_city_district_and_national_statistics_commercial_district(idx)
+    for idx in tqdm(
+        range(statistics_start_id, statistics_end_id + 1), desc="Processing"
+    ):
+        tqdm.write(f"Currently processing idx: {idx}")
+        get_city_district_and_national_statistics_commercial_district(idx)
 
 
 def loop_avg_commercial_district_statistics():
@@ -689,7 +691,7 @@ if __name__ == "__main__":
 
     ###############################################
     # 상권분석
-    # get_j_score_national_commercial_distirct(11)
+    # get_j_score_national_commercial_distirct(467)
     loop_commercial_district_statistics()
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()

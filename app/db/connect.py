@@ -30,7 +30,7 @@ def get_db_connection():
     return connection
 
 
-def get_report_db_connection(is_dev=True):
+def get_report_db_connection(is_dev=False):
     connection = None
     try:
         # 개발 모드 또는 배포 모드에 따라 다른 환경 변수 사용

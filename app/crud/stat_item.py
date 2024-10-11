@@ -90,7 +90,7 @@ def select_detail_category_id_by_stat_item_id(stat_item_id: int) -> BizDetailCat
     logger = logging.getLogger(__name__)
 
     try:
-        print(f"stat_item_id_2: {stat_item_id}")
+        # print(f"stat_item_id_2: {stat_item_id}")
         # stat_item 테이블에서 DETAIL_CATEGORY_ID를 선택하는 SQL 쿼리 작성
         select_query = """
             SELECT
@@ -109,7 +109,7 @@ def select_detail_category_id_by_stat_item_id(stat_item_id: int) -> BizDetailCat
         # 결과 가져오기
         result = cursor.fetchone()
 
-        print(f"쿼리 결과: {result}")
+        # print(f"쿼리 결과: {result}")
 
         return result["DETAIL_CATEGORY_ID"]
 

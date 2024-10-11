@@ -221,7 +221,7 @@ class CommercialStatisticsData(BaseModel):
     average_sales: Optional[CommercialStatistics] = None
     average_payment: Optional[CommercialStatistics] = None
     usage_count: Optional[CommercialStatistics] = None
-    national_density: Optional[CommercialStatistics] = None
+    sub_district_density: Optional[CommercialStatistics] = None
 
     class Config:
         from_attributes = True

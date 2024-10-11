@@ -1064,8 +1064,10 @@ def select_statistics_data_by_sub_district_id_detail_category_id(
         "average_sales": CommercialStatistics(),
         "average_payment": CommercialStatistics(),
         "usage_count": CommercialStatistics(),
-        "national_density": CommercialStatistics(),
+        "sub_district_density": CommercialStatistics(),
     }
+
+    print(stat_item_id_list)
 
     try:
         for stat_item in stat_item_id_list:
@@ -1099,7 +1101,7 @@ def select_statistics_data_by_sub_district_id_detail_category_id(
             elif column_name not in statistics_data:
                 print(f"Column '{column_name}' is not in statistics_data")
 
-        # print(statistics_data)
+        print(statistics_data)
 
         data = CommercialStatisticsData(**statistics_data)
 
