@@ -76,8 +76,8 @@ def report_loc_info(store_business_id):
     # 3. 보낼 프롬프트 설정
     content = f"""
         다음과 같은 매장정보 입지 현황을 바탕으로 매장 입지 특징을 분석하시고 입지에 따른 매장운영 가이드를 제시해주세요. 
-        답변은 반드시 한글로 해주고 답변 내용 첫줄에 반드시 매장 정보를 넣어주세요.
-        각 항목의 점수는 전체 지역 대비 순위를 나타낸것으로 0~10점으로 구성됩니다.
+        답변은 반드시 한글로 해주고 답변 내용 첫줄에 매장 정보를 넣어주세요.
+        각 항목의 점수는 전체 지역 대비 순위를 나타낸것으로 1~10점으로 구성됩니다.
 
         매장 정보 입지 현황
         - 위치 : {region_name} 
@@ -113,6 +113,7 @@ def report_loc_info(store_business_id):
     )
 
     report = completion.choices[0].message.content
+    print(report)
     return report
 
 ################ 클로드 결제 후 사용 #################
@@ -158,5 +159,5 @@ def report_loc_info(store_business_id):
 
 if __name__ == "__main__":
     # process_crime_data()
-    report_loc_info("MA010120220814371602")
+    report_loc_info("MA010120220803781837")
     # time_fnc()
