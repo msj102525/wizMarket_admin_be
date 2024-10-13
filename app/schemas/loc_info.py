@@ -64,6 +64,27 @@ class LocationInfoReportOutput(BaseModel):
     class Config:
         from_attributes = True
 
+
+class InsertRecordSchema(BaseModel):
+    city_id: int
+    district_id: int
+    sub_district_id: int
+    created_at: datetime
+    updated_at: datetime
+    reference_id: int
+    shop: Optional[int] = None
+    move_pop: Optional[int] = None
+    sales: Optional[int] = None
+    work_pop: Optional[int] = None
+    income: Optional[int] = None
+    spend: Optional[int] = None
+    house: Optional[int] = None
+    resident: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
 # loc_info_result 모델
 class LocInfoResult(BaseModel):
     shop: int
