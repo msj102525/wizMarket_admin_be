@@ -6,10 +6,13 @@ from app.schemas.loc_info import LocationInfoReportOutput
 from app.schemas.loc_store import (
     LocalStoreInfo,
     LocalStoreLatLng,
-    LocalStoreSubdistrict, LocalStoreCityDistrictSubDistrict,
-    BusinessAreaCategoryReportOutput, BizDetailCategoryIdOutPut,
-    RisingMenuOutPut
+    LocalStoreSubdistrict,
+    LocalStoreCityDistrictSubDistrict,
+    BusinessAreaCategoryReportOutput,
+    BizDetailCategoryIdOutPut,
+    RisingMenuOutPut,
 )
+
 # crud/loc_store.py
 
 
@@ -294,7 +297,6 @@ def select_local_store_sub_distirct_id_by_store_business_number(
     return results
 
 
-
 ######### gpt 프롬프트 용 ##############
 # 매장번호로 읍면동 id, 읍면동 이름 가져오기
 def select_local_store_by_store_business_number(
@@ -501,8 +503,6 @@ def get_lat_lng_by_store_business_id(
     return results
 
 
-
-
 def get_report_store_info_by_store_business_id(
     store_business_id: str,
 ) -> LocalStoreSubdistrict:
@@ -607,8 +607,6 @@ def get_lat_lng_by_store_business_id(
     return results
 
 
-
-
 def select_business_area_category_id_by_reference_id(
     reference_id: int, small_category_name: str
 ) -> BusinessAreaCategoryReportOutput:
@@ -639,8 +637,9 @@ def select_business_area_category_id_by_reference_id(
             cursor.close()
         connection.close()
 
+
 def select_biz_detail_category_id_by_detail_category_id(
-    business_area_category_id: int
+    business_area_category_id: int,
 ) -> List[BizDetailCategoryIdOutPut]:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -662,7 +661,7 @@ def select_biz_detail_category_id_by_detail_category_id(
         if row:
             return BizDetailCategoryIdOutPut(
                 rep_id=row["REP_ID"],
-                biz_detail_category_name=row["BIZ_DETAIL_CATEGORY_NAME"]
+                biz_detail_category_name=row["BIZ_DETAIL_CATEGORY_NAME"],
             )
         else:
             return None  # 데이터가 없을 경우
@@ -674,8 +673,8 @@ def select_biz_detail_category_id_by_detail_category_id(
 
 
 def select_rising_menu_by_sub_district_id_rep_id(
-        sub_district_id: int, rep_id: int
-    ) -> RisingMenuOutPut :
+    sub_district_id: int, rep_id: int
+) -> RisingMenuOutPut:
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
 
@@ -718,7 +717,7 @@ def select_rising_menu_by_sub_district_id_rep_id(
                 top_menu_2=row["TOP_MENU_2"],
                 top_menu_3=row["TOP_MENU_3"],
                 top_menu_4=row["TOP_MENU_4"],
-                top_menu_5=row["TOP_MENU_5"]
+                top_menu_5=row["TOP_MENU_5"],
             )
         else:
             return None  # 데이터가 없을 경우
@@ -743,8 +742,10 @@ def get_region_id_by_store_business_number(
 
             select_query = """
                 SELECT 
-                LONGITUDE,
-                LATITUDE
+                ls.CITY_ID,
+                ls.DISTRICT_ID,
+                ls.SUB_DISTRICT_ID,
+                reference_id
             FROM
                 LOCAL_STORE
             WHERE
@@ -757,12 +758,7 @@ def get_region_id_by_store_business_number(
 
             row = cursor.fetchone()
 
-            results = LocalStoreLatLng(
-                longitude=row["LONGITUDE"],
-                latitude=row["LATITUDE"],
-            )
-
-            return results
+            return row
     except pymysql.MySQLError as e:
         logger.error(f"MySQL Error: {e}")
     except Exception as e:

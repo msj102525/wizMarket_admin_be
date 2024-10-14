@@ -754,6 +754,8 @@ def select_statistics_by_store_business_number(
 
     region_id = crud_get_region_id_by_store_business_number(store_business_number)
 
+    print(region_id)
+
     # detail_category_id = crud_select_biz_detail_category_id_by_biz_detail_category_name(
     #     biz_detail_category_name
     # )

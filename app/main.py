@@ -13,8 +13,8 @@ from app.api.endpoints import (
     classification,
     district,
     hello,
-    loc_context,
     reference,
+    report,
     rising_business,
     commercial_district,
 )
@@ -63,7 +63,7 @@ app.include_router(biz_detail_category.router, prefix="/biz_detail_category")
 app.include_router(business_area_category.router, prefix="/business_area_category")
 app.include_router(category.router, prefix="/category")
 app.include_router(classification.router, prefix="/classification")
-app.include_router(loc_context.router, prefix="/report")
+app.include_router(report.router, prefix="/report")
 app.include_router(statistics.router, prefix="/statistics")
 
 

@@ -177,7 +177,7 @@ def select_population_compare_resident_work(store_business_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
 
-
+# CommercialDistrictSummary
 @router.get("/gpt/report_loc_info", response_model=GPTReport)
 def generate_report_loc_info_from_gpt(store_business_id: str):
     # print(store_business_id)
@@ -193,7 +193,7 @@ def generate_report_loc_info_from_gpt(store_business_id: str):
         print(f"Unhandled exception: {e}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-
+# RisingMenu
 @router.get("/gpt/report_rising_menu", response_model=GPTReport)
 def generate_report_rising_menu_from_gpt(store_business_id: str):
     # print(store_business_id)
@@ -228,15 +228,16 @@ def generate_report_today_tip_from_gpt(store_business_id: str):
 # @router.get("/commercialDistrict", response_model=CommercialStatisticsData)
 @router.get("/commercialDistrict")
 def select_loc_info_report_data(store_business_id: str):
-    # print(store_business_id)
-    try:
-        statistics_data: CommercialStatisticsData = (
-            service_select_statistics_by_store_business_number(store_business_id)
-        )
+    print(store_business_id)
+    # try:
+    #     statistics_data: CommercialStatisticsData = (
+    #         service_select_statistics_by_store_business_number(store_business_id)
+    #     )
 
-        return statistics_data
+    #     return statistics_data
 
-    except HTTPException as http_ex:
-        raise http_ex
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+    # except HTTPException as http_ex:
+    #     raise http_ex
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+    # return "hi"

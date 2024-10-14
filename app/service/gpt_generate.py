@@ -173,6 +173,8 @@ def report_loc_info(store_business_id):
         답변은 반드시 한글로 해주고 답변 내용 첫줄에 매장 정보를 넣어주세요.
         각 항목의 점수는 전체 지역 대비 순위를 나타낸것으로 1~10점으로 구성됩니다.
 
+        5줄로 요약해줘
+    
         매장 정보 입지 현황
         - 위치 : {region_name} 
         - 업종 : {category_name}
