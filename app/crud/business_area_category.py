@@ -101,9 +101,9 @@ def get_all_b_a_c_sub_category_by_main_category_code(
             cursor.execute(select_query, (main_category_code,))
             rows = cursor.fetchall()
 
-            logger.info(
-                f"Executing query: {select_query}, with params: {main_category_code}"
-            )
+            # logger.info(
+            #     f"Executing query: {select_query}, with params: {main_category_code}"
+            # )
 
             results: List[BizSubCategoryOutput] = []
 

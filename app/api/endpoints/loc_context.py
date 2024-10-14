@@ -1,15 +1,14 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
-import requests
 
+from app.schemas.commercial_district import CommercialStatisticsData
 from app.schemas.loc_store import LocalStoreInfo, LocalStoreInfoWeaterInfo, WeatherInfo
 from app.schemas.population import PopulationJScoreOutput, PopulationOutput
 from app.schemas.statistics import (
     LocInfoAvgJscoreOutput,
     LocInfoStatisticsDataRefOutput,
-    LocInfoStatisticsOutput,
     PopulationCompareResidentWorkPop,
-    GPTReport
+    GPTReport,
 )
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
@@ -24,6 +23,9 @@ from app.service.loc_store import (
 from app.service.population import (
     select_report_population_by_store_business_number as service_select_report_population_by_store_business_number,
 )
+from app.service.loc_context import (
+    get_weather_info_by_lat_lng as service_get_weather_info_by_lat_lng,
+)
 from app.service.rising_business import (
     select_top3_rising_business_by_store_business_number as service_select_top3_rising_business_by_store_business_number,
     select_top5_rising_business as service_select_top5_rising_business,
@@ -37,16 +39,10 @@ from app.schemas.rising_business import (
 from app.service.statistics import (
     fetch_living_env as service_fetch_living_env,
     select_avg_j_score as service_select_avg_j_score,
+    select_statistics_by_store_business_number as service_select_statistics_by_store_business_number,
 )
 
-from app.service.gpt_generate import(
-    report_loc_info,
-    report_rising_menu
-)
-
-
-router = APIRouter()
-
+from app.service.gpt_generate import report_loc_info, report_rising_menu
 
 router = APIRouter()
 
@@ -59,24 +55,8 @@ def get_report_store_info(store_business_id: str):
         location = service_get_lat_lng_by_store_business_id(store_business_id)
         lat = location.latitude
         lng = location.longitude
-        lang = "kr"
 
-        print(lat, lng)
-
-        apikey = "c6cf8cca80cf321d319d6eb75d11e8ce"
-        api = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lng}&appid={apikey}&lang={lang}&units=metric"
-
-        result = requests.get(api)
-
-        if result.status_code != 200:
-            raise HTTPException(
-                status_code=result.status_code,
-                detail=f"Weather API Error: {result.text}",
-            )
-
-        weather_data = result.json()
-
-        # print(weather_data)
+        weather_data = service_get_weather_info_by_lat_lng(lat, lng)
 
         weather_info = WeatherInfo(
             icon=weather_data["weather"][0]["icon"], temp=weather_data["main"]["temp"]
@@ -192,7 +172,6 @@ def select_population_compare_resident_work(store_business_id: str):
         raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
 
 
-
 @router.get("/gpt/report_loc_info", response_model=GPTReport)
 def generate_report_loc_info_from_gpt(store_business_id: str):
     # print(store_business_id)
@@ -214,6 +193,23 @@ def generate_report_rising_menu_from_gpt(store_business_id: str):
         report = report_rising_menu(store_business_id)
 
         return report
+
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+
+
+# @router.get("/commercialDistrict", response_model=CommercialStatisticsData)
+@router.get("/commercialDistrict")
+def select_loc_info_report_data(store_business_id: str):
+    # print(store_business_id)
+    try:
+        statistics_data: CommercialStatisticsData = (
+            service_select_statistics_by_store_business_number(store_business_id)
+        )
+
+        return statistics_data
 
     except HTTPException as http_ex:
         raise http_ex

@@ -6,6 +6,7 @@ from app.crud.biz_detail_category import (
 from app.crud.city import get_city_id as crud_get_city_id
 from app.crud.district import get_district_id as crud_get_district_id
 from app.crud.loc_store import (
+    get_region_id_by_store_business_number as crud_get_region_id_by_store_business_number,
     select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
 )
 from app.crud.stat_item import (
@@ -595,7 +596,7 @@ def get_j_score_national_commercial_distirct(stat_item_id: int):
 
             # j_score 계산
             j_score = 10 * ((totals + 1 - rank) / totals)
-        else :
+        else:
             j_score = 0
 
         # j_score_data에 (city_id, district_id, sub_district_id, count, j_score) 형태로 추가
@@ -738,3 +739,42 @@ def select_statistics_by_sub_district_detail_category(
     # print(statistics_data)
 
     return statistics_data
+
+
+def select_statistics_by_store_business_number(
+    store_business_number: str,
+):
+    # print(store_business_number)
+
+    # city_id = crud_get_city_id(city_name)
+    # district_id = crud_get_district_id(city_id, district_name)
+    # sub_district_id = crud_get_sub_district_id_by(
+    #     city_id, district_id, sub_district_name
+    # )
+
+    region_id = crud_get_region_id_by_store_business_number(store_business_number)
+
+    # detail_category_id = crud_select_biz_detail_category_id_by_biz_detail_category_name(
+    #     biz_detail_category_name
+    # )
+
+    # print(city_id)
+    # print(district_id)
+    # print(sub_district_id)
+    # print(detail_category_id)
+
+    stat_item_id_list = []
+    # stat_item_id_list = crud_select_all_stat_item_id_by_detail_category_id(
+    #     detail_category_id
+    # )
+
+    # statistics_data: CommercialStatisticsData = (
+    #     crud_select_statistics_data_by_sub_district_id_detail_category_id(
+    #         sub_district_id, stat_item_id_list
+    #     )
+    # )
+
+    # print(statistics_data)
+
+    # return statistics_data
+    pass

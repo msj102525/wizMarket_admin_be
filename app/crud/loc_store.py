@@ -727,3 +727,52 @@ def select_rising_menu_by_sub_district_id_rep_id(
         if cursor:
             cursor.close()
         connection.close()
+
+
+def get_region_id_by_store_business_number(
+    store_business_id: str,
+) -> LocalStoreLatLng:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+
+    # print(f"store_business_id: {store_business_id}")
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT 
+                LONGITUDE,
+                LATITUDE
+            FROM
+                LOCAL_STORE
+            WHERE
+                STORE_BUSINESS_NUMBER = %s
+            ;
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query, (store_business_id,))
+
+            row = cursor.fetchone()
+
+            results = LocalStoreLatLng(
+                longitude=row["LONGITUDE"],
+                latitude=row["LATITUDE"],
+            )
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_top3_rising_business_by_store_business_number: {e}"
+        )
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results
