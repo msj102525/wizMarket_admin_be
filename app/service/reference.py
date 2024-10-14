@@ -23,7 +23,7 @@ def get_all_reference() -> List[ReferenceCategoryCountOutput]:
     business_area_category_count = crud_b_a_c_get_all_detail_category_count()
 
     rows = crud_get_all_reference()
-    print(rows)
+    # print(rows)
 
     for row in rows:
         reference_id = row.reference_id

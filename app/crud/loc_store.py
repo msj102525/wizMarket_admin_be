@@ -3,7 +3,11 @@ from typing import List
 import pymysql
 from app.db.connect import close_connection, close_cursor, get_db_connection
 from app.schemas.loc_info import LocationInfoReportOutput
-from app.schemas.loc_store import LocalStoreSubdistrict
+from app.schemas.loc_store import (
+    LocalStoreInfo,
+    LocalStoreLatLng,
+    LocalStoreSubdistrict,
+)
 
 # crud/loc_store.py
 
@@ -108,7 +112,7 @@ def get_filtered_loc_store(filters: dict):
         query_params.append(page_size)
         query_params.append(offset)
 
-        print(data_query)
+        # print(data_query)
         # 데이터 조회 쿼리 실행
         cursor.execute(data_query, query_params)
         result = cursor.fetchall()
@@ -326,3 +330,109 @@ def select_loc_info_report_data_by_sub_district_id(
         if cursor:
             cursor.close()
         connection.close()
+
+
+def get_report_store_info_by_store_business_id(
+    store_business_id: str,
+) -> LocalStoreSubdistrict:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+
+    # print(f"store_business_id: {store_business_id}")
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT 
+                STORE_NAME,
+                ROAD_NAME_ADDRESS,
+                BUILDING_NAME,
+                FLOOR_INFO,
+                SMALL_CATEGORY_NAME
+            FROM
+                LOCAL_STORE
+            WHERE
+                STORE_BUSINESS_NUMBER = %s
+            ;
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query, (store_business_id,))
+
+            row = cursor.fetchone()
+
+            results = LocalStoreInfo(
+                road_name_address=row["ROAD_NAME_ADDRESS"],
+                store_name=row["STORE_NAME"],
+                building_name=row["BUILDING_NAME"],
+                floor_info=row["FLOOR_INFO"],
+                small_category_name=row["SMALL_CATEGORY_NAME"],
+            )
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_top3_rising_business_by_store_business_number: {e}"
+        )
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results
+
+
+def get_lat_lng_by_store_business_id(
+    store_business_id: str,
+) -> LocalStoreLatLng:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+
+    # print(f"store_business_id: {store_business_id}")
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT 
+                LONGITUDE,
+                LATITUDE
+            FROM
+                LOCAL_STORE
+            WHERE
+                STORE_BUSINESS_NUMBER = %s
+            ;
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query, (store_business_id,))
+
+            row = cursor.fetchone()
+
+            results = LocalStoreLatLng(
+                longitude=row["LONGITUDE"],
+                latitude=row["LATITUDE"],
+            )
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_top3_rising_business_by_store_business_number: {e}"
+        )
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results
+
+

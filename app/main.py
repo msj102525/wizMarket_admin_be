@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
 from app.api.endpoints import (
     biz_detail_category,
     biz_main_category,
@@ -39,6 +40,7 @@ app.add_middleware(
 
 print(os.getenv("ALLOWED_ORIGINS", ""))
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/")
 async def read_root():
