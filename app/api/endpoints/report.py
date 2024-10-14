@@ -7,7 +7,7 @@ from app.schemas.statistics import (
     LocInfoStatisticsDataRefOutput,
     LocInfoStatisticsOutput,
     PopulationCompareResidentWorkPop,
-    GPTLocInfo,
+    GPTReport
 )
 from app.service.common_information import (
     get_all_report_common_information as service_get_all_report_common_information,
@@ -34,7 +34,8 @@ from app.service.statistics import (
 )
 
 from app.service.gpt_generate import(
-    report_loc_info
+    report_loc_info,
+    report_rising_menu
 )
 
 
@@ -156,11 +157,25 @@ def select_population_compare_resident_work(store_business_id: str):
 
 
 
-@router.get("/gpt/report_loc_info", response_model=GPTLocInfo)
+@router.get("/gpt/report_loc_info", response_model=GPTReport)
 def generate_report_loc_info_from_gpt(store_business_id: str):
     # print(store_business_id)
     try:
         report = report_loc_info(store_business_id)
+
+        return report
+
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+
+
+@router.get("/gpt/report_rising_menu", response_model=GPTReport)
+def generate_report_rising_menu_from_gpt(store_business_id: str):
+    # print(store_business_id)
+    try:
+        report = report_rising_menu(store_business_id)
 
         return report
 

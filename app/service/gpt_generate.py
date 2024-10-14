@@ -4,9 +4,17 @@ from dotenv import load_dotenv
 from app.db.connect import *
 from app.crud.crime import *
 from app.schemas.crime import CrimeRequest
-from app.crud.loc_store import select_local_store_by_store_business_number
+from app.crud.loc_store import (
+    select_local_store_by_store_business_number, select_business_area_category_id_by_reference_id, select_biz_detail_category_id_by_detail_category_id,
+    select_rising_menu_by_sub_district_id_rep_id
+)
 from app.crud.loc_info import select_local_info_statistics_by_sub_district_id
 from app.crud.population import select_age_pop_list_by_sub_district_id, select_gender_pop_list_by_sub_district_id
+import openai
+from dotenv import load_dotenv
+import openai
+from datetime import datetime
+import locale
 
 gpt_content = """
     당신은 전문 조언자입니다. 
@@ -14,28 +22,32 @@ gpt_content = """
     접근 방식을 최적화하는 데 도움이 되는 전략이나 솔루션을 제공합니다.
 """
 
-import openai
-from dotenv import load_dotenv
-import openai
 
-load_dotenv()
+# 프롬프트에 전달 할 지역의 정보 가져오기
+def get_region_info(store_business_id):
 
-def report_loc_info(store_business_id):
-    
+    ########## 입지 정보 관련 정보 ##########
     # 1. 전달받은 건물 관리 번호로 지역 명 및 카테고리 조회
     region = select_local_store_by_store_business_number(store_business_id)
     sub_district_id = region.get('SUB_DISTRICT_ID')
-    region_name = region.get('CITY_NAME', '') + ' ' + region.get('DISTRICT_NAME', '') + ' ' + region.get('SUB_DISTRICT_NAME')
+    city_name = region.get('CITY_NAME')
+    district_name = region.get('DISTRICT_NAME')
     sub_district_name = region.get('SUB_DISTRICT_NAME')
-    category = region.get('large_category_name', '') + '>' + region.get('medium_category_name', '') + '>' + region.get('small_category_name')
-    store_name = region.get('store_name')
+    region_name = region.get('CITY_NAME', '') + ' ' + region.get('DISTRICT_NAME', '') + ' ' + region.get('SUB_DISTRICT_NAME')
+    large_category_name = region.get('LARGE_CATEGORY_NAME')
+    medium_category_name = region.get('MEDIUM_CATEGORY_NAME')
+    small_category_name = region.get('SMALL_CATEGORY_NAME')
+    category_name = region.get('LARGE_CATEGORY_NAME', '') + '>' + region.get('MEDIUM_CATEGORY_NAME', '') + '>' + region.get('SMALL_CATEGORY_NAME')
+    store_name = region.get('STORE_NAME')
+    reference_id = region.get('REFERENCE_ID')
 
-    # 2. 지역 id 값으로 입지 정보 및 통계 값 조회 후 쌍으로 묶기
+    # 2. 지역 id 값으로 입지 정보 값 및 통계 값 조회 후 쌍으로 묶기
     loc_info_result, statistics_result = select_local_info_statistics_by_sub_district_id(sub_district_id)
 
     # loc_info와 statistics 데이터 추출
     loc_info = loc_info_result[1]  # LocInfoResult 객체 추출
     statistics = statistics_result[1]  # StatisticsResult 리스트 추출
+
     # 각각 변수에 할당
     shop = loc_info.shop
     shop_jscore = statistics[0].j_score
@@ -66,12 +78,95 @@ def report_loc_info(store_business_id):
 
     # 4. 성별 인구 조회
     gender_pop_list = select_gender_pop_list_by_sub_district_id(sub_district_id)
-
     male_population = gender_pop_list[0]['male_population']
     female_population = gender_pop_list[1]['female_population']
     total_population = male_population + female_population
     male_percentage = int((male_population / total_population) * 100)
     female_percentage = int((female_population / total_population) * 100)
+
+    ########## ~ 매장에서 가장 많이 주문하는 메뉴 관련 정보 ##########
+    # 1. 상권 정보의 카테고리 값으로 상권정보 분류표의 pk 값 가져오기
+    business_area_category = select_business_area_category_id_by_reference_id(reference_id, small_category_name)
+    business_area_category_id = business_area_category.business_area_category_id
+
+    # 2. pk 값으로 매핑한 비즈맵의 디테일 카테고리 id 대표 값 가져오기
+    categories = select_biz_detail_category_id_by_detail_category_id(business_area_category_id)
+    rep_id = categories.rep_id
+    biz_detail_category_name = categories.biz_detail_category_name
+
+    # 3. 해당 동의 해당 업종의 상권 정보 값 들 가져오기
+    commercial_data = select_rising_menu_by_sub_district_id_rep_id(sub_district_id, rep_id)
+
+    market_size = commercial_data.market_size
+    average_sales = commercial_data.average_sales
+    average_payment = commercial_data.average_payment
+    usage_count = commercial_data.usage_count
+    avg_profit_per_mon = commercial_data.avg_profit_per_mon
+    avg_profit_per_tue= commercial_data.avg_profit_per_mon
+    avg_profit_per_wed = commercial_data.avg_profit_per_wed
+    avg_profit_per_thu = commercial_data.avg_profit_per_thu
+    avg_profit_per_fri = commercial_data.avg_profit_per_fri
+    avg_profit_per_sat = commercial_data.avg_profit_per_sat
+    avg_profit_per_sun = commercial_data.avg_profit_per_sun
+    avg_profit_per_06_09 = commercial_data.avg_profit_per_06_09
+    avg_profit_per_09_12 = commercial_data.avg_profit_per_09_12
+    avg_profit_per_12_15 = commercial_data.avg_profit_per_12_15
+    avg_profit_per_15_18 = commercial_data.avg_profit_per_15_18
+    avg_profit_per_18_21 = commercial_data.avg_profit_per_18_21
+    avg_profit_per_21_24 = commercial_data.avg_profit_per_21_24
+    avg_profit_per_24_06 = commercial_data.avg_profit_per_24_06
+    top_menu_1 = commercial_data.top_menu_1
+    top_menu_2 = commercial_data.top_menu_2
+    top_menu_3 = commercial_data.top_menu_3
+    top_menu_4 = commercial_data.top_menu_4
+    top_menu_5 = commercial_data.top_menu_5
+
+    top_day = max(
+    avg_profit_per_mon,
+    avg_profit_per_tue,
+    avg_profit_per_wed,
+    avg_profit_per_thu,
+    avg_profit_per_fri,
+    avg_profit_per_sat,
+    avg_profit_per_sun)
+    
+    top_time = max(
+    avg_profit_per_06_09,
+    avg_profit_per_09_12,
+    avg_profit_per_12_15,
+    avg_profit_per_15_18,
+    avg_profit_per_18_21,
+    avg_profit_per_21_24,
+    avg_profit_per_24_06)
+
+    return (
+        region, sub_district_id, city_name, district_name, sub_district_name, region_name, 
+        large_category_name, medium_category_name, small_category_name, category_name, store_name,
+        shop, move_pop, sales, work_pop, income, spend, house, resident,
+        shop_jscore, move_pop_jscore, sales_jscore, work_pop_jscore, income_jscore, spend_jscore, house_jscore, resident_jscore,
+        age_under_10, age_10s, age_20s, age_30s, age_40s, age_50s, age_60_plus, male_percentage, female_percentage,
+        market_size, average_sales, average_payment, usage_count, 
+        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, top_day, top_time,
+        biz_detail_category_name
+    )
+            
+
+
+# 입지 정보 관련 리포트 생성
+def report_loc_info(store_business_id):    
+    load_dotenv()
+
+    (
+        _, _, _, _, sub_district_name, region_name,
+        _, _, _, category_name, store_name, 
+        shop, move_pop, sales, work_pop, income, spend, house, resident,
+        shop_jscore, move_pop_jscore, sales_jscore, work_pop_jscore, income_jscore, spend_jscore, house_jscore, resident_jscore,
+        age_under_10, age_10s, age_20s, age_30s, age_40s, age_50s, age_60_plus, male_percentage, female_percentage,
+        _, _, _, _, 
+        _, _, _, _, _, _, _,
+        _
+    )   = get_region_info(store_business_id)
+     
 
     # 3. 보낼 프롬프트 설정
     content = f"""
@@ -81,7 +176,7 @@ def report_loc_info(store_business_id):
 
         매장 정보 입지 현황
         - 위치 : {region_name} 
-        - 업종 : {category}
+        - 업종 : {category_name}
         - 매장이름 : {store_name}
 
         - {sub_district_name}의 업소수 : {shop}개/ {shop_jscore}점
@@ -92,10 +187,67 @@ def report_loc_info(store_business_id):
         - {sub_district_name}의 유동인구 수 : {move_pop}명/ {move_pop_jscore}점
         - {sub_district_name}의 주거인구 수 : {resident}명/ {resident_jscore}점
         - {sub_district_name}의 세대 수 : {house}개/{house_jscore}점
-        - {sub_district_name}의 인구 분포 : 10세 미만 {age_under_10}명, 10대 {age_10s}, 20대 {age_20s}, 
-                                            30대 {age_30s}, 40대 {age_40s}, 50대 {age_50s}, 60대 이상 {age_60_plus},    
+        - {sub_district_name}의 인구 분포 : 10세 미만 {age_under_10}명, 10대 {age_10s}명, 20대 {age_20s}명, 
+                                            30대 {age_30s}명, 40대 {age_40s}명, 50대 {age_50s}명, 60대 이상 {age_60_plus}명,    
                                             여성 {female_percentage}%, 남성 {male_percentage}%
     """
+
+    print(content)
+
+    openai_api_key = os.getenv("GPT_KEY")
+    
+    # OpenAI API 키 설정
+    openai.api_key = openai_api_key
+
+    completion = openai.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {
+            "role": "system", 
+            "content": gpt_content
+        },
+        {"role": "user", "content": content}  
+    ]
+    )
+
+    report = completion.choices[0].message.content
+
+    return report
+
+
+# 업종 별 뜨는 메뉴 리포트 생성
+def report_rising_menu(store_business_id):    
+    load_dotenv()
+
+    (
+        _, _, _, _, _, region_name,
+        _, _, _, _, _, 
+        _, _, _, _, _, _, _, _,
+        _, _, _, _, _, _, _, _,
+        _, _, _, _, _, _, _, _, _,
+        _, _, _, _, 
+        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, _, _,
+        biz_detail_category_name
+    )   = get_region_info(store_business_id)
+    
+    now = datetime.now()
+    current_time = now.strftime("%Y년 %m월 %d일 %H:%M")
+    weekday = now.strftime("%A")
+
+
+    # 3. 보낼 프롬프트 설정
+    content = f"""
+        아래 지역 업종의 뜨는 메뉴가 다음과 같습니다. 
+        해당 업종의 매장이 고객을 위해 주요 전략으로 가져가야 할 점이 무엇일지 백종원 쉐프 스타일로 조언을 해주세요.
+        단, 말투나 전문적 용어는 점주 성향에 맞추고 조언은 4줄 이하로 해주세요. 
+
+        - 매장 업종 : {biz_detail_category_name}
+        - 매장 위치 : {region_name}
+        - 뜨는 메뉴 : 1위 {top_menu_1}, 2위 {top_menu_2}, 3위 {top_menu_3}, 4위 {top_menu_4}, 5위 {top_menu_5}
+        - 적용날짜 : {current_time}  {weekday} 
+
+    """
+
     openai_api_key = os.getenv("GPT_KEY")
     
     # OpenAI API 키 설정
@@ -159,5 +311,6 @@ def report_loc_info(store_business_id):
 
 if __name__ == "__main__":
     # process_crime_data()
-    report_loc_info("MA010120220803781837")
-    # time_fnc()
+    # report_loc_info("MA010120220803674032")
+    # get_region_info("MA010120220803674032")
+    report_rising_menu("MA010120220803674032")

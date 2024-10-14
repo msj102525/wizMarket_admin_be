@@ -108,7 +108,7 @@ class CommercialStatistics(BaseModel):
         from_attributes = True
 
 
-class GPTLocInfo(BaseModel):
+class GPTReport(BaseModel):
     content: str  
 
     class Config:

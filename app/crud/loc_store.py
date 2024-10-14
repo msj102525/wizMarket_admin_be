@@ -3,8 +3,10 @@ from typing import List
 import pymysql
 from app.db.connect import close_connection, close_cursor, get_db_connection
 from app.schemas.loc_info import LocationInfoReportOutput
-from app.schemas.loc_store import LocalStoreSubdistrict, LocalStoreCityDistrictSubDistrict
-
+from app.schemas.loc_store import (
+    LocalStoreSubdistrict, LocalStoreCityDistrictSubDistrict, BusinessAreaCategoryReportOutput, BizDetailCategoryIdOutPut,
+    RisingMenuOutPut
+)
 # crud/loc_store.py
 
 
@@ -308,16 +310,17 @@ def select_local_store_by_store_business_number(
                 SELECT
                     ls.LOCAL_STORE_ID,
                     ls.STORE_BUSINESS_NUMBER,
-                    ls.store_name,
+                    ls.STORE_NAME,
                     c.CITY_NAME,
                     d.DISTRICT_NAME,
                     sd.SUB_DISTRICT_NAME,
                     ls.CITY_ID,
                     ls.DISTRICT_ID,
                     ls.SUB_DISTRICT_ID,
-                    ls.large_category_name,
-                    ls.medium_category_name,
-                    ls.small_category_name
+                    ls.LARGE_CATEGORY_NAME,
+                    ls.MEDIUM_CATEGORY_NAME,                   
+                    ls.SMALL_CATEGORY_NAME,
+                    ls.REFERENCE_ID
                 FROM
                     local_store ls
                 JOIN
@@ -381,6 +384,126 @@ def select_loc_info_report_data_by_sub_district_id(
                 house=row["HOUSE"],
                 shop=row["SHOP"],
                 income=row["INCOME"],
+            )
+        else:
+            return None  # 데이터가 없을 경우
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+
+def select_business_area_category_id_by_reference_id(
+    reference_id: int, small_category_name: str
+) -> BusinessAreaCategoryReportOutput:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        select_query = """
+            SELECT 
+                BUSINESS_AREA_CATEGORY_ID
+            FROM BUSINESS_AREA_CATEGORY
+            WHERE reference_id = %s
+            AND detail_category_name = %s;
+        """
+
+        cursor.execute(select_query, (reference_id, small_category_name))
+        row = cursor.fetchone()
+
+        if row:
+            return BusinessAreaCategoryReportOutput(
+                business_area_category_id=row["BUSINESS_AREA_CATEGORY_ID"]
+            )
+        else:
+            return None  # 데이터가 없을 경우
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+def select_biz_detail_category_id_by_detail_category_id(
+    business_area_category_id: int
+) -> List[BizDetailCategoryIdOutPut]:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        select_query = """
+            SELECT 
+                dcm.REP_ID,
+                bdc.BIZ_DETAIL_CATEGORY_NAME
+            FROM DETAIL_CATEGORY_MAPPING dcm
+            JOIN biz_detail_category bdc 
+                ON dcm.REP_ID = bdc.biz_detail_category_id
+            WHERE dcm.business_area_category_id = %s;
+        """
+
+        cursor.execute(select_query, (business_area_category_id))
+        row = cursor.fetchone()
+
+        if row:
+            return BizDetailCategoryIdOutPut(
+                rep_id=row["REP_ID"],
+                biz_detail_category_name=row["BIZ_DETAIL_CATEGORY_NAME"]
+            )
+        else:
+            return None  # 데이터가 없을 경우
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+
+def select_rising_menu_by_sub_district_id_rep_id(
+        sub_district_id: int, rep_id: int
+    ) -> RisingMenuOutPut :
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        select_query = """
+            SELECT 
+                MARKET_SIZE, AVERAGE_SALES, AVERAGE_PAYMENT, USAGE_COUNT,
+                AVG_PROFIT_PER_MON, AVG_PROFIT_PER_TUE, AVG_PROFIT_PER_WED, AVG_PROFIT_PER_THU, AVG_PROFIT_PER_FRI, AVG_PROFIT_PER_SAT, AVG_PROFIT_PER_SUN,
+                AVG_PROFIT_PER_06_09, AVG_PROFIT_PER_09_12, AVG_PROFIT_PER_12_15, AVG_PROFIT_PER_15_18, AVG_PROFIT_PER_18_21, AVG_PROFIT_PER_21_24, AVG_PROFIT_PER_24_06,
+                TOP_MENU_1, TOP_MENU_2, TOP_MENU_3, TOP_MENU_4, TOP_MENU_5
+            FROM commercial_district
+            WHERE sub_district_id = %s
+            AND biz_detail_category_id = %s;
+        """
+
+        cursor.execute(select_query, (sub_district_id, rep_id))
+        row = cursor.fetchone()
+
+        if row:
+            return RisingMenuOutPut(
+                market_size=row["MARKET_SIZE"],
+                average_sales=row["AVERAGE_SALES"],
+                average_payment=row["AVERAGE_PAYMENT"],
+                usage_count=row["USAGE_COUNT"],
+                avg_profit_per_mon=row["AVG_PROFIT_PER_MON"],
+                avg_profit_per_tue=row["AVG_PROFIT_PER_TUE"],
+                avg_profit_per_wed=row["AVG_PROFIT_PER_WED"],
+                avg_profit_per_thu=row["AVG_PROFIT_PER_THU"],
+                avg_profit_per_fri=row["AVG_PROFIT_PER_FRI"],
+                avg_profit_per_sat=row["AVG_PROFIT_PER_SAT"],
+                avg_profit_per_sun=row["AVG_PROFIT_PER_SUN"],
+                avg_profit_per_06_09=row["AVG_PROFIT_PER_06_09"],
+                avg_profit_per_09_12=row["AVG_PROFIT_PER_09_12"],
+                avg_profit_per_12_15=row["AVG_PROFIT_PER_12_15"],
+                avg_profit_per_15_18=row["AVG_PROFIT_PER_15_18"],
+                avg_profit_per_18_21=row["AVG_PROFIT_PER_18_21"],
+                avg_profit_per_21_24=row["AVG_PROFIT_PER_21_24"],
+                avg_profit_per_24_06=row["AVG_PROFIT_PER_24_06"],
+                top_menu_1=row["TOP_MENU_1"],
+                top_menu_2=row["TOP_MENU_2"],
+                top_menu_3=row["TOP_MENU_3"],
+                top_menu_4=row["TOP_MENU_4"],
+                top_menu_5=row["TOP_MENU_5"]
             )
         else:
             return None  # 데이터가 없을 경우

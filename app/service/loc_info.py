@@ -7,6 +7,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 import os, time
@@ -85,17 +87,29 @@ def fetch_all_region_id():
     all_region_list = get_all_region_id()
     return all_region_list
 
+# Global WebDriver instance
+global_driver = None
+
+
+def setup_global_driver():
+    global global_driver
+    if global_driver is None:
+        options = Options()
+        options.add_argument("--start-fullscreen")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        # WebDriver Manager를 이용해 ChromeDriver 자동 관리
+        service = Service(ChromeDriverManager().install())
+        global_driver = webdriver.Chrome(service=service, options=options)
+
+    return global_driver
+
 
 def crawl_keyword(region_data, connection, insert_count):
-    driver_path = os.path.join(
-        os.path.dirname(__file__), "../", "drivers", "chromedriver.exe"
-    )
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-
-    driver = webdriver.Chrome(service=Service(driver_path), options=options)
+     # 글로벌 드라이버 사용
+    global global_driver
+    driver = setup_global_driver()
 
     try:
         driver.get("https://sg.sbiz.or.kr/godo/index.sg")
@@ -114,7 +128,6 @@ def crawl_keyword(region_data, connection, insert_count):
 
         last_keyword = region_data['keyword'].split()[-1]
 
-        print(f"마지막 동 단위 단어 : {last_keyword}")
         time.sleep(0.3)
 
         try:
@@ -148,7 +161,7 @@ def crawl_keyword(region_data, connection, insert_count):
                 "house": None,
                 "resident": None,
             }
-
+        print(data)
         year_month = datetime(2024, 10, 2).date()
         try:
             with connection.cursor() as cursor:
@@ -159,7 +172,6 @@ def crawl_keyword(region_data, connection, insert_count):
                     city_id=region_data['city_id'],
                     district_id=region_data['district_id'],
                     sub_district_id=region_data['sub_district_id'],
-                    keyword=region_data['keyword'],
                     y_m=year_month,
                     **data,
                 )
@@ -180,16 +192,22 @@ def crawl_keyword(region_data, connection, insert_count):
 def parse_html(html_content):
     from bs4 import BeautifulSoup
 
+    def clean_value(value):
+        if value:
+            # 쉼표와 단위 제거
+            value = value.replace(",", "").replace("만원", "").replace("명", "").strip()
+        return value
+
     soup = BeautifulSoup(html_content, "html.parser")
     data = {
-        "shop": soup.find("strong", {"data-name": "business"}).text if soup.find("strong", {"data-name": "business"}) else None,
-        "move_pop": soup.find("strong", {"data-name": "person"}).text if soup.find("strong", {"data-name": "person"}) else None,
-        "sales": soup.find("strong", {"data-name": "price"}).text if soup.find("strong", {"data-name": "price"}) else None,
-        "work_pop": soup.find("strong", {"data-name": "wrcppl"}).text if soup.find("strong", {"data-name": "wrcppl"}) else None,
-        "income": soup.find("strong", {"data-name": "earn"}).text if soup.find("strong", {"data-name": "earn"}) else None,
-        "spend": soup.find("strong", {"data-name": "cnsmp"}).text if soup.find("strong", {"data-name": "cnsmp"}) else None,
-        "house": soup.find("strong", {"data-name": "hhCnt"}).text if soup.find("strong", {"data-name": "hhCnt"}) else None,
-        "resident": soup.find("strong", {"data-name": "rsdppl"}).text if soup.find("strong", {"data-name": "rsdppl"}) else None,
+        "shop": clean_value(soup.find("strong", {"data-name": "business"}).text if soup.find("strong", {"data-name": "business"}) else None),
+        "move_pop": clean_value(soup.find("strong", {"data-name": "person"}).text if soup.find("strong", {"data-name": "person"}) else None),
+        "sales": clean_value(soup.find("strong", {"data-name": "price"}).text if soup.find("strong", {"data-name": "price"}) else None),
+        "work_pop": clean_value(soup.find("strong", {"data-name": "wrcppl"}).text if soup.find("strong", {"data-name": "wrcppl"}) else None),
+        "income": clean_value(soup.find("strong", {"data-name": "earn"}).text if soup.find("strong", {"data-name": "earn"}) else None),
+        "spend": clean_value(soup.find("strong", {"data-name": "cnsmp"}).text if soup.find("strong", {"data-name": "cnsmp"}) else None),
+        "house": clean_value(soup.find("strong", {"data-name": "hhCnt"}).text if soup.find("strong", {"data-name": "hhCnt"}) else None),
+        "resident": clean_value(soup.find("strong", {"data-name": "rsdppl"}).text if soup.find("strong", {"data-name": "rsdppl"}) else None),
     }
     return data
 
@@ -222,7 +240,6 @@ def insert_record(table_name: str, connection, insert_count, city_id, district_i
 
 # 5. 엑셀 파일에서 값 꺼내서 키워드 화, 매핑
 def read_keywords_from_excel(file_path, all_region_list):
-    print(file_path, 'asd')
     workbook = load_workbook(filename=file_path)
     sheet = workbook.active
     keywords = []
@@ -232,7 +249,6 @@ def read_keywords_from_excel(file_path, all_region_list):
         city_name = row[0].value  # 시도명
         district_name = row[1].value  # 시군구명
         sub_district_name = row[2].value  # 읍면동명
-        print(city_name)
 
         if city_name and district_name and sub_district_name:
             # all_region_list에서 매칭되는 id 값을 찾음
@@ -243,7 +259,6 @@ def read_keywords_from_excel(file_path, all_region_list):
                  and region['sub_district_name'] == sub_district_name),
                 None
             )
-
             if matching_region:
                 # 매칭된 지역의 id 값을 추출하고 리스트에 저장
                 keywords.append({
@@ -254,8 +269,6 @@ def read_keywords_from_excel(file_path, all_region_list):
                 })
             else:
                 print(f"Region not found for: {city_name} {district_name} {sub_district_name}")
-    
-
     return keywords
 
 
@@ -287,10 +300,10 @@ def process_keywords_from_excel():
     print("Starting to process keywords from Excel")
     all_region_list = fetch_all_region_id()
     directory = "C:/formovedata"
-    excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+    excel_files = [os.path.join(directory, f"SplitFile_{i}.xlsx") for i in [1, 2, 3, 4, 5]]
     # excel_files = [os.path.join(directory, f"list.xlsx")]
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         executor.map(lambda file: process_file(file, all_region_list), excel_files)
 
     print("Finished processing all files")
