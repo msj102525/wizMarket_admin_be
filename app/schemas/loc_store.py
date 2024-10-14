@@ -43,7 +43,7 @@ class LocalStoreCityDistrictSubDistrict(BaseModel):
         from_attributes = True
 
 
-<<<<<<< HEAD
+
 class LocalStoreInfo(BaseModel):
     road_name_address: Optional[str] = ""
     store_name: Optional[str] = ""
@@ -78,7 +78,7 @@ class LocalStoreInfoWeaterInfo(BaseModel):
 
     class Config:
         from_attributes = True
-=======
+
 class LocalStoreCityDistrictSubDistrict(BaseModel):
     local_store_id: int
     store_business_number: str
@@ -95,4 +95,4 @@ class LocalStoreCityDistrictSubDistrict(BaseModel):
 
     class Config:
         from_attributes = True
->>>>>>> ec3f6b5b018eb470deaee476060a60b42aab460f
+

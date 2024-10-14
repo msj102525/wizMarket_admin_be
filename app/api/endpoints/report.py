@@ -75,7 +75,7 @@ def get_report_store_info(store_business_id: str):
 
         weather_data = result.json()
 
-        print(weather_data)
+        # print(weather_data)
 
         weather_info = WeatherInfo(
             icon=weather_data["weather"][0]["icon"], temp=weather_data["main"]["temp"]
