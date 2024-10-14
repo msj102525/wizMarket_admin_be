@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from typing import List, Optional
+import requests
 
+from app.schemas.loc_store import LocalStoreInfo, LocalStoreInfoWeaterInfo, WeatherInfo
 from app.schemas.population import PopulationJScoreOutput, PopulationOutput
 from app.schemas.statistics import (
     LocInfoAvgJscoreOutput,
@@ -14,6 +16,10 @@ from app.service.common_information import (
 )
 from app.service.loc_info import (
     select_report_loc_info_by_store_business_number as service_select_report_loc_info_by_store_business_number,
+)
+from app.service.loc_store import (
+    get_lat_lng_by_store_business_id as service_get_lat_lng_by_store_business_id,
+    get_report_store_info_by_store_business_id as service_get_report_store_info_by_store_business_id,
 )
 from app.service.population import (
     select_report_population_by_store_business_number as service_select_report_population_by_store_business_number,
@@ -41,19 +47,49 @@ from app.service.gpt_generate import(
 
 router = APIRouter()
 
-# @router.get("/info/store", response_model=List[CommonInformationOutput])
-@router.get("/store/info")
-def get_all_report_common_information(store_business_id: str):
-    try:
-        print(store_business_id)
-        # results = service_get_all_report_common_information()
-        results = 'hi'
-        return results
-    except HTTPException as http_ex:
-        raise http_ex
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
 
+router = APIRouter()
+
+
+@router.get("/store/info", response_model=LocalStoreInfoWeaterInfo)
+def get_report_store_info(store_business_id: str):
+    try:
+        results = service_get_report_store_info_by_store_business_id(store_business_id)
+
+        location = service_get_lat_lng_by_store_business_id(store_business_id)
+        lat = location.latitude
+        lng = location.longitude
+        lang = "kr"
+
+        print(lat, lng)
+
+        apikey = "c6cf8cca80cf321d319d6eb75d11e8ce"
+        api = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lng}&appid={apikey}&lang={lang}&units=metric"
+
+        result = requests.get(api)
+
+        if result.status_code != 200:
+            raise HTTPException(
+                status_code=result.status_code,
+                detail=f"Weather API Error: {result.text}",
+            )
+
+        weather_data = result.json()
+
+        # print(weather_data)
+
+        weather_info = WeatherInfo(
+            icon=weather_data["weather"][0]["icon"], temp=weather_data["main"]["temp"]
+        )
+
+        response_data = LocalStoreInfoWeaterInfo(
+            localStoreInfo=results, weatherInfo=weather_info
+        )
+
+        return response_data
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/common/info", response_model=List[CommonInformationOutput])
