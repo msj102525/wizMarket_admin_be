@@ -188,3 +188,24 @@ class PopulationJScoreOutput(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class Population_by_ages(BaseModel):
+    age_under_10: int
+    age_10s: int
+    age_20s: int
+    age_30s: int
+    age_40s: int
+    age_50s: int
+    age_60_plus: int
+
+    class Config:
+        from_attributes = True
+
+
+class Population_by_gender(BaseModel):
+    male_population: int
+    female_population: int
+
+    class Config:
+        from_attributes = True

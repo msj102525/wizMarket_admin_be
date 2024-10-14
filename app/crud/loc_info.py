@@ -1,6 +1,7 @@
 import pymysql
 from app.db.connect import *
 from typing import Optional
+from app.schemas.loc_info import LocalInfoStatisticsResponse, StatisticsResult, LocInfoResult
 
 def fetch_loc_info_by_ids(city_id: int, district_id: int, sub_district_id: int) -> Optional[dict]:
     connection = get_db_connection()
@@ -19,6 +20,45 @@ def fetch_loc_info_by_ids(city_id: int, district_id: int, sub_district_id: int) 
             cursor.close()
         if connection:
             connection.close()
+
+######## GPT 프롬프트 용 ######################
+def select_local_info_statistics_by_sub_district_id(sub_district_id: int) -> LocalInfoStatisticsResponse:
+    connection = get_db_connection()
+    cursor = None
+    try:
+        cursor = connection.cursor(pymysql.cursors.DictCursor)  # DictCursor 사용
+       
+        # 첫 번째 쿼리: loc_info
+        loc_info_query = """
+            SELECT shop, move_pop, sales, work_pop, income, spend, house, resident 
+            FROM loc_info
+            WHERE sub_district_id = %s
+        """
+        cursor.execute(loc_info_query, (sub_district_id,))
+        loc_info_result = cursor.fetchone()  # 이 결과는 DictCursor로 인해 딕셔너리로 반환됨
+
+        # 두 번째 쿼리: statistics
+        statistics_query = """
+            SELECT j_score
+            FROM statistics
+            WHERE sub_district_id = %s
+            AND stat_item_id between 1 and 8
+        """
+        cursor.execute(statistics_query, (sub_district_id,))
+        statistics_result = cursor.fetchall()  # DictCursor로 딕셔너리 형태로 반환됨
+
+        # Pydantic 모델로 변환
+        loc_info_data = LocInfoResult(**loc_info_result)
+        statistics_data = [StatisticsResult(j_score=row['j_score']) for row in statistics_result]
+
+        return LocalInfoStatisticsResponse(loc_info=loc_info_data, statistics=statistics_data)
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
 
 def get_all_corr():
     """주어진 필터 조건을 바탕으로 데이터를 조회하는 함수"""

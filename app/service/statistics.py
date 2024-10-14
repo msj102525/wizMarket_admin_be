@@ -612,7 +612,7 @@ def get_j_score_national_commercial_distirct(stat_item_id: int):
         )
 
     # print(j_score_data_nation)
-    insert_j_score_nation(j_score_data_nation)
+    # insert_j_score_nation(j_score_data_nation)
 
     return j_score_data_nation
 
@@ -691,7 +691,7 @@ if __name__ == "__main__":
 
     ###############################################
     # 상권분석
-    # get_j_score_national_commercial_distirct(467)
+    # get_j_score_national_commercial_distirct(11)
     loop_commercial_district_statistics()
     # get_city_district_and_national_statistics_commercial_district(19)
     # loop_avg_commercial_district_statistics()

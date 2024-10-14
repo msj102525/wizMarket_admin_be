@@ -6,7 +6,7 @@ from app.schemas.loc_info import LocationInfoReportOutput
 from app.schemas.loc_store import (
     LocalStoreInfo,
     LocalStoreLatLng,
-    LocalStoreSubdistrict,
+    LocalStoreSubdistrict, LocalStoreCityDistrictSubDistrict,
 )
 
 # crud/loc_store.py
@@ -276,6 +276,69 @@ def select_local_store_sub_distirct_id_by_store_business_number(
             cursor.execute(select_query, (store_business_id,))
 
             results: LocalStoreSubdistrict = cursor.fetchone()
+
+            return results
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_top3_rising_business_by_store_business_number: {e}"
+        )
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)
+
+    return results
+
+
+
+######### gpt 프롬프트 용 ##############
+# 매장번호로 읍면동 id, 읍면동 이름 가져오기
+def select_local_store_by_store_business_number(
+    store_business_id: str,
+) -> LocalStoreCityDistrictSubDistrict:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+
+    # print(f"store_business_id: {store_business_id}")
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT
+                    ls.LOCAL_STORE_ID,
+                    ls.STORE_BUSINESS_NUMBER,
+                    ls.store_name,
+                    c.CITY_NAME,
+                    d.DISTRICT_NAME,
+                    sd.SUB_DISTRICT_NAME,
+                    ls.CITY_ID,
+                    ls.DISTRICT_ID,
+                    ls.SUB_DISTRICT_ID,
+                    ls.large_category_name,
+                    ls.medium_category_name,
+                    ls.small_category_name
+                FROM
+                    local_store ls
+                JOIN
+                    city c ON ls.city_id = c.city_id
+                JOIN
+                    district d ON ls.district_id = d.district_id
+                JOIN
+                    sub_district sd ON ls.sub_district_id = sd.sub_district_id
+                WHERE
+                    ls.STORE_BUSINESS_NUMBER = %s;
+                
+            """
+
+            # logger.info(f"Executing query: {select_query % tuple(params)}")
+            cursor.execute(select_query, (store_business_id,))
+
+            results: LocalStoreCityDistrictSubDistrict = cursor.fetchone()
 
             return results
     except pymysql.MySQLError as e:
