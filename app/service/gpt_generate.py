@@ -14,7 +14,6 @@ import openai
 from dotenv import load_dotenv
 import openai
 from datetime import datetime
-import locale
 
 gpt_content = """
     당신은 전문 조언자입니다. 
@@ -165,7 +164,7 @@ def report_loc_info(store_business_id):
         _, _, _, _, 
         _, _, _, _, _, _, _,
         _
-    )   = get_region_info(store_business_id)
+    ) = get_region_info(store_business_id)
      
 
     # 3. 보낼 프롬프트 설정
@@ -192,8 +191,6 @@ def report_loc_info(store_business_id):
                                             여성 {female_percentage}%, 남성 {male_percentage}%
     """
 
-    print(content)
-
     openai_api_key = os.getenv("GPT_KEY")
     
     # OpenAI API 키 설정
@@ -218,21 +215,19 @@ def report_loc_info(store_business_id):
 # 업종 별 뜨는 메뉴 리포트 생성
 def report_rising_menu(store_business_id):    
     load_dotenv()
-
-    (
-        _, _, _, _, _, region_name,
-        _, _, _, _, _, 
-        _, _, _, _, _, _, _, _,
-        _, _, _, _, _, _, _, _,
-        _, _, _, _, _, _, _, _, _,
-        _, _, _, _, 
-        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, _, _,
-        biz_detail_category_name
-    )   = get_region_info(store_business_id)
     
     now = datetime.now()
     current_time = now.strftime("%Y년 %m월 %d일 %H:%M")
     weekday = now.strftime("%A")
+
+    result = get_region_info(store_business_id)
+    region_name = result[5]
+    top_menu_1 = result[40]
+    top_menu_2 = result[41]
+    top_menu_3 = result[42]
+    top_menu_4 = result[43]
+    top_menu_5 = result[44]
+    biz_detail_category_name = result[47]
 
 
     # 3. 보낼 프롬프트 설정
@@ -265,8 +260,83 @@ def report_rising_menu(store_business_id):
     )
 
     report = completion.choices[0].message.content
-    print(report)
+
     return report
+
+
+# 오늘의 팁 리포트 생성
+def report_today_tip(store_business_id, temp):    
+    load_dotenv()
+    
+    print(temp)
+
+    now = datetime.now()
+    current_time = now.strftime("%Y년 %m월 %d일 %H:%M")
+    weekday = now.strftime("%A")
+
+    result = get_region_info(store_business_id)
+    region_name = result[5]
+    top_menu_1 = result[40]
+    top_menu_2 = result[41]
+    top_menu_3 = result[42]
+    top_menu_4 = result[43]
+    top_menu_5 = result[44]
+    biz_detail_category_name = result[47]
+
+
+    # 3. 보낼 프롬프트 설정
+    content = f"""
+        다음과 같은 매장정보 입지 및 상권 현황과 현재 환경상황에 맞게 '현재 매장 운영 팁' 이라는 내용으로 매장 운영 가이드를 주세요. 
+        매장 정보 입지 및 상권 현황
+        - 위치 : 서울시 영등포구 당산2동 
+        - 업종 : 음식 > 한식 > 돼지고기 구이 찜
+        - 매장이름 : 일차3.5숙성고기
+        - 당산2동 업소수 : 1904개
+        - 당산2동 지역 평균매출 : 39870000원
+        - 당산2동 월 평균소득 : 3640000원
+        - 당산2동 월 평균소비 : 39870000원
+        - 당산2동 유동인구 수 : 36720명
+        - 당산2동 주거인구 수 : 30158명
+        - 당산2동 세대 수 : 18927개
+        - 당산2동 돼지고기 구이 찜 시장규모 : 72927 개
+        - 당산2동 돼지고기 구이 찜 업종 평균매출 : 34730000원
+        - 당산2동 돼지고기 구이 찜 업종 평균결제액 : 67112원
+        - 당산2동 돼지고기 구이 찜 업종 평균건수 : 10867건
+        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 요일 : 목요일
+        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 시간대 : 18시~21시 
+        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 연령.성별 : 50대 남성 
+
+        현재 환경상황
+        - 날씨 : 맑음
+        - 기온 : 22도 
+        - 미세먼지 : 2 등급
+        - 일몰시간 : 18:05 
+        - 현재 시간 : 10월8일 화요일 17:25 
+        
+        작성 가이드 : 
+        1. 매장 운영가이드 내용은 아래 점주의 성향에 맞는 문체로 작성해주세요.
+        2. 5항목 이하, 항목당 2줄 이내로 작성해주세요.
+    """
+
+    # openai_api_key = os.getenv("GPT_KEY")
+    
+    # # OpenAI API 키 설정
+    # openai.api_key = openai_api_key
+
+    # completion = openai.chat.completions.create(
+    # model="gpt-4o",
+    # messages=[
+    #     {
+    #         "role": "system", 
+    #         "content": gpt_content
+    #     },
+    #     {"role": "user", "content": content}  
+    # ]
+    # )
+
+    # report = completion.choices[0].message.content
+
+    # return report
 
 ################ 클로드 결제 후 사용 #################
 # import anthropic
