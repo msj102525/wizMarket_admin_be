@@ -56,6 +56,12 @@ class BizDetailCategoryIdOutPut(BaseModel):
     class Config:
         from_attributes = True  
 
+class BizCategoriesNameOutPut(BaseModel):
+    biz_main_category_name: str
+    biz_sub_category_name: str
+    biz_detail_category_name: str
+
+
 class RisingMenuOutPut(BaseModel):
     market_size: Optional[int] = 0
     average_sales: Optional[int] = 0
@@ -109,6 +115,14 @@ class LocalStoreLatLng(BaseModel):
 class WeatherInfo(BaseModel):
     icon: str
     temp: float
+
+    class Config:
+        from_attributes = True
+
+class WeatherToday(BaseModel):
+    weather: str
+    temp: float
+    sunset: int
 
     class Config:
         from_attributes = True

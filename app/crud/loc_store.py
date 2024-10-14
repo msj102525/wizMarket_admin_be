@@ -11,6 +11,7 @@ from app.schemas.loc_store import (
     BusinessAreaCategoryReportOutput,
     BizDetailCategoryIdOutPut,
     RisingMenuOutPut,
+    BizCategoriesNameOutPut
 )
 
 # crud/loc_store.py
@@ -672,6 +673,44 @@ def select_biz_detail_category_id_by_detail_category_id(
         connection.close()
 
 
+def select_categories_name_by_rep_id(
+    business_area_category_id: int,
+) -> BizCategoriesNameOutPut:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        select_query = """
+            SELECT 
+                bmc.BIZ_MAIN_CATEGORY_NAME,
+                bsc.BIZ_SUB_CATEGORY_NAME,
+                bdc.BIZ_DETAIL_CATEGORY_NAME
+            FROM BIZ_DETAIL_CATEGORY bdc
+            JOIN BIZ_SUB_CATEGORY bsc
+                ON bsc.BIZ_SUB_CATEGORY_ID = bdc.BIZ_SUB_CATEGORY_ID
+            JOIN BIZ_MAIN_CATEGORY bmc
+                ON bsc.BIZ_MAIN_CATEGORY_ID = bmc.BIZ_MAIN_CATEGORY_ID
+            WHERE bdc.BIZ_DETAIL_CATEGORY_ID = %s;
+        """
+
+        cursor.execute(select_query, (business_area_category_id))
+        row = cursor.fetchone()
+
+        if row:
+            return BizCategoriesNameOutPut(
+                biz_main_category_name=row["BIZ_MAIN_CATEGORY_NAME"],
+                biz_sub_category_name=row["BIZ_SUB_CATEGORY_NAME"],
+                biz_detail_category_name=row["BIZ_DETAIL_CATEGORY_NAME"],
+            )
+        else:
+            return None  # 데이터가 없을 경우
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+
 def select_rising_menu_by_sub_district_id_rep_id(
     sub_district_id: int, rep_id: int
 ) -> RisingMenuOutPut:
@@ -771,4 +810,4 @@ def get_region_id_by_store_business_number(
         if connection:
             close_connection(connection)
 
-    return results
+

@@ -6,14 +6,14 @@ from app.crud.crime import *
 from app.schemas.crime import CrimeRequest
 from app.crud.loc_store import (
     select_local_store_by_store_business_number, select_business_area_category_id_by_reference_id, select_biz_detail_category_id_by_detail_category_id,
-    select_rising_menu_by_sub_district_id_rep_id
+    select_rising_menu_by_sub_district_id_rep_id, select_categories_name_by_rep_id
 )
 from app.crud.loc_info import select_local_info_statistics_by_sub_district_id
 from app.crud.population import select_age_pop_list_by_sub_district_id, select_gender_pop_list_by_sub_district_id
 import openai
 from dotenv import load_dotenv
 import openai
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 gpt_content = """
     당신은 전문 조언자입니다. 
@@ -88,10 +88,15 @@ def get_region_info(store_business_id):
     business_area_category = select_business_area_category_id_by_reference_id(reference_id, small_category_name)
     business_area_category_id = business_area_category.business_area_category_id
 
-    # 2. pk 값으로 매핑한 비즈맵의 디테일 카테고리 id 대표 값 가져오기
+    # 2. pk 값으로 매핑한 비즈맵의 디테일 카테고리 대표 id 값 가져오기
     categories = select_biz_detail_category_id_by_detail_category_id(business_area_category_id)
     rep_id = categories.rep_id
     biz_detail_category_name = categories.biz_detail_category_name
+
+    # 3. 디테일 카테고리 대표 id 값으로 이름 가져오기
+    categories_name = select_categories_name_by_rep_id(rep_id) 
+    biz_main_category_name = categories_name.biz_main_category_name
+    biz_sub_category_name = categories_name.biz_sub_category_name
 
     # 3. 해당 동의 해당 업종의 상권 정보 값 들 가져오기
     commercial_data = select_rising_menu_by_sub_district_id_rep_id(sub_district_id, rep_id)
@@ -120,23 +125,33 @@ def get_region_info(store_business_id):
     top_menu_4 = commercial_data.top_menu_4
     top_menu_5 = commercial_data.top_menu_5
 
-    top_day = max(
-    avg_profit_per_mon,
-    avg_profit_per_tue,
-    avg_profit_per_wed,
-    avg_profit_per_thu,
-    avg_profit_per_fri,
-    avg_profit_per_sat,
-    avg_profit_per_sun)
-    
-    top_time = max(
-    avg_profit_per_06_09,
-    avg_profit_per_09_12,
-    avg_profit_per_12_15,
-    avg_profit_per_15_18,
-    avg_profit_per_18_21,
-    avg_profit_per_21_24,
-    avg_profit_per_24_06)
+    days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
+    profits_per_day = [
+        avg_profit_per_mon,
+        avg_profit_per_tue,
+        avg_profit_per_wed,
+        avg_profit_per_thu,
+        avg_profit_per_fri,
+        avg_profit_per_sat,
+        avg_profit_per_sun
+    ]
+
+    # 시간대별 레이블과 값
+    time_slots = ['06-09시', '09-12시', '12-15시', '15-18시', '18-21시', '21-24시', '24-06시']
+    profits_per_time = [
+        avg_profit_per_06_09,
+        avg_profit_per_09_12,
+        avg_profit_per_12_15,
+        avg_profit_per_15_18,
+        avg_profit_per_18_21,
+        avg_profit_per_21_24,
+        avg_profit_per_24_06
+    ]
+
+    # 최대값과 해당 요일 찾기
+    top_day_profit, top_day_label = max(zip(profits_per_day, days))
+    # 최대값과 해당 시간대 찾기
+    top_time_profit, top_time_label = max(zip(profits_per_time, time_slots))
 
     return (
         region, sub_district_id, city_name, district_name, sub_district_name, region_name, 
@@ -145,8 +160,8 @@ def get_region_info(store_business_id):
         shop_jscore, move_pop_jscore, sales_jscore, work_pop_jscore, income_jscore, spend_jscore, house_jscore, resident_jscore,
         age_under_10, age_10s, age_20s, age_30s, age_40s, age_50s, age_60_plus, male_percentage, female_percentage,
         market_size, average_sales, average_payment, usage_count, 
-        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, top_day, top_time,
-        biz_detail_category_name
+        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, top_day_profit, top_day_label, top_time_profit, top_time_label,
+        biz_main_category_name, biz_sub_category_name, biz_detail_category_name
     )
             
 
@@ -267,59 +282,72 @@ def report_rising_menu(store_business_id):
 
 
 # 오늘의 팁 리포트 생성
-def report_today_tip(store_business_id, temp):    
+def report_today_tip(store_business_id, weather_info):    
     load_dotenv()
     
-    print(temp)
+    weather = weather_info.weather
+    temp = weather_info.temp
+    sunset = weather_info.sunset
+
+    sunset_utc_time = datetime.fromtimestamp(sunset, tz=timezone.utc)
+    sunset_korean_time = sunset_utc_time + timedelta(hours=9)
+
+    # 알아보기 쉽게 한국 시간 형식으로 출력
+    sunset_korean_time_formatted = sunset_korean_time.strftime("%Y-%m-%d %H:%M:%S")
 
     now = datetime.now()
     current_time = now.strftime("%Y년 %m월 %d일 %H:%M")
     weekday = now.strftime("%A")
 
-    result = get_region_info(store_business_id)
-    region_name = result[5]
-    top_menu_1 = result[40]
-    top_menu_2 = result[41]
-    top_menu_3 = result[42]
-    top_menu_4 = result[43]
-    top_menu_5 = result[44]
-    biz_detail_category_name = result[47]
+    (
+        _, _, _, _, _, region_name,
+        _, _, _, _, store_name, 
+        shop, move_pop, sales, work_pop, income, spend, house, resident,
+        _, _, _, _, _, _, _, _,
+        _, _, _, _, _, _, _, _, _,
+        market_size, average_sales, average_payment, usage_count, 
+        _, _, _, _, _, _, top_day_label, _, top_time_label,
+        biz_main_category_name, biz_sub_category_name, biz_detail_category_name
+    ) = get_region_info(store_business_id)
 
+
+    category = biz_main_category_name + ' > ' + biz_sub_category_name + ' > ' + biz_detail_category_name
 
     # 3. 보낼 프롬프트 설정
     content = f"""
         다음과 같은 매장정보 입지 및 상권 현황과 현재 환경상황에 맞게 '현재 매장 운영 팁' 이라는 내용으로 매장 운영 가이드를 주세요. 
         매장 정보 입지 및 상권 현황
-        - 위치 : 서울시 영등포구 당산2동 
-        - 업종 : 음식 > 한식 > 돼지고기 구이 찜
-        - 매장이름 : 일차3.5숙성고기
-        - 당산2동 업소수 : 1904개
-        - 당산2동 지역 평균매출 : 39870000원
-        - 당산2동 월 평균소득 : 3640000원
-        - 당산2동 월 평균소비 : 39870000원
-        - 당산2동 유동인구 수 : 36720명
-        - 당산2동 주거인구 수 : 30158명
-        - 당산2동 세대 수 : 18927개
-        - 당산2동 돼지고기 구이 찜 시장규모 : 72927 개
-        - 당산2동 돼지고기 구이 찜 업종 평균매출 : 34730000원
-        - 당산2동 돼지고기 구이 찜 업종 평균결제액 : 67112원
-        - 당산2동 돼지고기 구이 찜 업종 평균건수 : 10867건
-        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 요일 : 목요일
-        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 시간대 : 18시~21시 
+        - 위치 : {region_name}
+        - 업종 : {category}
+        - 매장이름 : {store_name}
+        - 당산2동 업소수 : {shop}개
+        - 당산2동 지역 평균매출 : {sales}원
+        - 당산2동 월 평균소득 : {income}원
+        - 당산2동 월 평균소비 : {spend}원
+        - 당산2동 유동인구 수 : {move_pop}명
+        - 당산2동 주거인구 수 : {resident}명
+        - 당산2동 직장인구 수 : {work_pop}명
+        - 당산2동 세대 수 : {house}개
+        - 당산2동 돼지고기 구이 찜 시장규모 : {market_size} 개
+        - 당산2동 돼지고기 구이 찜 업종 평균매출 : {average_sales}원
+        - 당산2동 돼지고기 구이 찜 업종 평균결제액 : {average_payment}원
+        - 당산2동 돼지고기 구이 찜 업종 평균건수 : {usage_count}건
+        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 요일 : {top_day_label}
+        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 시간대 : {top_time_label}
         - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 연령.성별 : 50대 남성 
 
         현재 환경상황
-        - 날씨 : 맑음
-        - 기온 : 22도 
-        - 미세먼지 : 2 등급
-        - 일몰시간 : 18:05 
-        - 현재 시간 : 10월8일 화요일 17:25 
+        - 날씨 : {weather}
+        - 기온 : {temp} 
+        - 일몰시간 : {sunset_korean_time_formatted}
+        - 현재 시간 : {current_time}  {weekday}  
         
         작성 가이드 : 
         1. 매장 운영가이드 내용은 아래 점주의 성향에 맞는 문체로 작성해주세요.
         2. 5항목 이하, 항목당 2줄 이내로 작성해주세요.
     """
-
+    result = "ji"
+    return  result, weather_info
     # openai_api_key = os.getenv("GPT_KEY")
     
     # # OpenAI API 키 설정
@@ -385,4 +413,5 @@ if __name__ == "__main__":
     # process_crime_data()
     # report_loc_info("MA010120220803674032")
     # get_region_info("MA010120220803674032")
-    report_rising_menu("MA010120220803674032")
+    # report_rising_menu("MA010120220803674032")
+    report_today_tip("MA010120220803674032")
