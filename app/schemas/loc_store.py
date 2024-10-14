@@ -57,29 +57,29 @@ class BizDetailCategoryIdOutPut(BaseModel):
         from_attributes = True  
 
 class RisingMenuOutPut(BaseModel):
-    market_size: float
-    average_sales: int
-    average_payment: int
-    usage_count: int
-    avg_profit_per_mon: float
-    avg_profit_per_tue: float
-    avg_profit_per_wed: float
-    avg_profit_per_thu: float
-    avg_profit_per_fri: float
-    avg_profit_per_sat: float
-    avg_profit_per_sun: float
-    avg_profit_per_06_09: float
-    avg_profit_per_09_12: float
-    avg_profit_per_12_15: float
-    avg_profit_per_15_18: float
-    avg_profit_per_18_21: float
-    avg_profit_per_21_24: float
-    avg_profit_per_24_06: float
-    top_menu_1: str
-    top_menu_2: str
-    top_menu_3: str
-    top_menu_4: str
-    top_menu_5: str
+    market_size: Optional[int] = None
+    average_sales: Optional[int] = None
+    average_payment: Optional[int] = None
+    usage_count: Optional[int] = None
+    avg_profit_per_mon: Optional[float] = None
+    avg_profit_per_tue: Optional[float] = None
+    avg_profit_per_wed: Optional[float] = None
+    avg_profit_per_thu: Optional[float] = None
+    avg_profit_per_fri: Optional[float] = None
+    avg_profit_per_sat: Optional[float] = None
+    avg_profit_per_sun: Optional[float] = None
+    avg_profit_per_06_09: Optional[float] = None
+    avg_profit_per_09_12: Optional[float] = None
+    avg_profit_per_12_15: Optional[float] = None
+    avg_profit_per_15_18: Optional[float] = None
+    avg_profit_per_18_21: Optional[float] = None
+    avg_profit_per_21_24: Optional[float] = None
+    avg_profit_per_24_06: Optional[float] = None
+    top_menu_1: Optional[str] = None
+    top_menu_2: Optional[str] = None
+    top_menu_3: Optional[str] = None
+    top_menu_4: Optional[str] = None
+    top_menu_5: Optional[str] = None
 
     class Config:
         from_attributes = True

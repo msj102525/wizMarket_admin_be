@@ -42,7 +42,13 @@ from app.service.statistics import (
     select_statistics_by_store_business_number as service_select_statistics_by_store_business_number,
 )
 
-from app.service.gpt_generate import report_loc_info, report_rising_menu
+from app.service.gpt_generate import(
+    report_loc_info,
+    report_rising_menu,
+    report_today_tip
+)
+from fastapi.responses import PlainTextResponse
+
 
 router = APIRouter()
 
@@ -176,21 +182,40 @@ def select_population_compare_resident_work(store_business_id: str):
 def generate_report_loc_info_from_gpt(store_business_id: str):
     # print(store_business_id)
     try:
-        report = report_loc_info(store_business_id)
-
+        report_content = report_loc_info(store_business_id)
+        report = PlainTextResponse(report_content)
         return report
 
     except HTTPException as http_ex:
         raise http_ex
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+        # 에러 로그 출력
+        print(f"Unhandled exception: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
 @router.get("/gpt/report_rising_menu", response_model=GPTReport)
 def generate_report_rising_menu_from_gpt(store_business_id: str):
     # print(store_business_id)
     try:
-        report = report_rising_menu(store_business_id)
+        report_content = report_rising_menu(store_business_id)
+        report = PlainTextResponse(report_content)
+        return report
+
+    except HTTPException as http_ex:
+        raise http_ex
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
+    
+
+@router.get("/gpt/report_today_tip", response_model=GPTReport)
+def generate_report_today_tip_from_gpt(store_business_id: str):
+    # print(store_business_id)
+    try:
+        weather= get_report_store_info(store_business_id)
+        tmp = weather.weatherInfo 
+        temp = tmp.temp
+        report = report_today_tip(store_business_id, temp)
 
         return report
 
