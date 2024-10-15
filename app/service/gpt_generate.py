@@ -119,13 +119,23 @@ def get_region_info(store_business_id):
     avg_profit_per_18_21 = commercial_data.avg_profit_per_18_21
     avg_profit_per_21_24 = commercial_data.avg_profit_per_21_24
     avg_profit_per_24_06 = commercial_data.avg_profit_per_24_06
+    avg_client_per_m_20 = commercial_data.avg_client_per_m_20
+    avg_client_per_m_30 = commercial_data.avg_client_per_m_30
+    avg_client_per_m_40 = commercial_data.avg_client_per_m_40
+    avg_client_per_m_50 = commercial_data.avg_client_per_m_50
+    avg_client_per_m_60 = commercial_data.avg_client_per_m_60
+    avg_client_per_f_20 = commercial_data.avg_client_per_m_20
+    avg_client_per_f_30 = commercial_data.avg_client_per_m_30
+    avg_client_per_f_40 = commercial_data.avg_client_per_m_40
+    avg_client_per_f_50 = commercial_data.avg_client_per_m_50
+    avg_client_per_f_60 = commercial_data.avg_client_per_m_60
     top_menu_1 = commercial_data.top_menu_1
     top_menu_2 = commercial_data.top_menu_2
     top_menu_3 = commercial_data.top_menu_3
     top_menu_4 = commercial_data.top_menu_4
     top_menu_5 = commercial_data.top_menu_5
 
-    days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
+    days_slots = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
     profits_per_day = [
         avg_profit_per_mon,
         avg_profit_per_tue,
@@ -148,10 +158,28 @@ def get_region_info(store_business_id):
         avg_profit_per_24_06
     ]
 
+    # 성별 연령대별 레이블과 값
+    gender_slots = ['20대 남성', '30대 남성', '40대 남성', '50대 남성', '60대 남성', '20대 여성', '30대 여성', '40대 여성', '50대 여성', '60대 여성']
+    profits_per_gender = [
+        avg_client_per_m_20,
+        avg_client_per_m_30,
+        avg_client_per_m_40,
+        avg_client_per_m_50,
+        avg_client_per_m_60,
+        avg_client_per_f_20,
+        avg_client_per_f_30,
+        avg_client_per_f_40,
+        avg_client_per_f_50,
+        avg_client_per_f_60
+    ]
+
+
     # 최대값과 해당 요일 찾기
-    top_day_profit, top_day_label = max(zip(profits_per_day, days))
+    top_day_profit, top_day_label = max(zip(profits_per_day, days_slots))
     # 최대값과 해당 시간대 찾기
     top_time_profit, top_time_label = max(zip(profits_per_time, time_slots))
+    # 최대값과 해당 성별 연령대 찾기
+    top_gender_profit, top_gender_label = max(zip(profits_per_gender, gender_slots))
 
     return (
         region, sub_district_id, city_name, district_name, sub_district_name, region_name, 
@@ -160,7 +188,7 @@ def get_region_info(store_business_id):
         shop_jscore, move_pop_jscore, sales_jscore, work_pop_jscore, income_jscore, spend_jscore, house_jscore, resident_jscore,
         age_under_10, age_10s, age_20s, age_30s, age_40s, age_50s, age_60_plus, male_percentage, female_percentage,
         market_size, average_sales, average_payment, usage_count, 
-        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, top_day_profit, top_day_label, top_time_profit, top_time_label,
+        top_menu_1, top_menu_2, top_menu_3, top_menu_4, top_menu_5, top_day_profit, top_day_label, top_time_profit, top_time_label, top_gender_profit, top_gender_label,
         biz_main_category_name, biz_sub_category_name, biz_detail_category_name
     )
             
@@ -293,20 +321,20 @@ def report_today_tip(store_business_id, weather_info):
     sunset_korean_time = sunset_utc_time + timedelta(hours=9)
 
     # 알아보기 쉽게 한국 시간 형식으로 출력
-    sunset_korean_time_formatted = sunset_korean_time.strftime("%Y-%m-%d %H:%M:%S")
+    sunset_korean_time_formatted = sunset_korean_time.strftime("%H:%M")
 
     now = datetime.now()
     current_time = now.strftime("%Y년 %m월 %d일 %H:%M")
     weekday = now.strftime("%A")
 
     (
-        _, _, _, _, _, region_name,
+        _, _, _, _, sub_district_name, region_name,
         _, _, _, _, store_name, 
         shop, move_pop, sales, work_pop, income, spend, house, resident,
         _, _, _, _, _, _, _, _,
         _, _, _, _, _, _, _, _, _,
         market_size, average_sales, average_payment, usage_count, 
-        _, _, _, _, _, _, top_day_label, _, top_time_label,
+        _, _, _, _, _, _, top_day_label, _, top_time_label, _, top_gender_label,
         biz_main_category_name, biz_sub_category_name, biz_detail_category_name
     ) = get_region_info(store_business_id)
 
@@ -320,32 +348,34 @@ def report_today_tip(store_business_id, weather_info):
         - 위치 : {region_name}
         - 업종 : {category}
         - 매장이름 : {store_name}
-        - 당산2동 업소수 : {shop}개
-        - 당산2동 지역 평균매출 : {sales}원
-        - 당산2동 월 평균소득 : {income}원
-        - 당산2동 월 평균소비 : {spend}원
-        - 당산2동 유동인구 수 : {move_pop}명
-        - 당산2동 주거인구 수 : {resident}명
-        - 당산2동 직장인구 수 : {work_pop}명
-        - 당산2동 세대 수 : {house}개
-        - 당산2동 돼지고기 구이 찜 시장규모 : {market_size} 개
-        - 당산2동 돼지고기 구이 찜 업종 평균매출 : {average_sales}원
-        - 당산2동 돼지고기 구이 찜 업종 평균결제액 : {average_payment}원
-        - 당산2동 돼지고기 구이 찜 업종 평균건수 : {usage_count}건
-        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 요일 : {top_day_label}
-        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 시간대 : {top_time_label}
-        - 당산2동 돼지고기 구이 찜 업종 가장 매출이 높은 연령.성별 : 50대 남성 
+        - {sub_district_name} 업소 수 : {shop}개
+        - {sub_district_name} 지역 평균매출 : {sales}원
+        - {sub_district_name} 월 평균소득 : {income}원
+        - {sub_district_name} 월 평균소비 : {spend}원
+        - {sub_district_name} 유동인구 수 : {move_pop}명
+        - {sub_district_name} 주거인구 수 : {resident}명
+        - {sub_district_name} 직장인구 수 : {work_pop}명
+        - {sub_district_name} 세대 수 : {house}개
+        - {sub_district_name} {biz_detail_category_name} 시장규모 : {market_size} 개
+        - {sub_district_name} {biz_detail_category_name} 업종 평균매출 : {average_sales}원
+        - {sub_district_name} {biz_detail_category_name} 업종 평균결제액 : {average_payment}원
+        - {sub_district_name} {biz_detail_category_name} 업종 평균건수 : {usage_count}건
+        - {sub_district_name} {biz_detail_category_name} 업종 가장 매출이 높은 요일 : {top_day_label}
+        - {sub_district_name} {biz_detail_category_name} 가장 매출이 높은 시간대 : {top_time_label}
+        - {sub_district_name} {biz_detail_category_name} 가장 매출이 높은 연령.성별 : {top_gender_label}
 
         현재 환경상황
         - 날씨 : {weather}
-        - 기온 : {temp} 
+        - 기온 : {temp} 도
         - 일몰시간 : {sunset_korean_time_formatted}
-        - 현재 시간 : {current_time}  {weekday}  
+        - 현재 시간 : {current_time} {weekday}  
         
         작성 가이드 : 
-        1. 매장 운영가이드 내용은 아래 점주의 성향에 맞는 문체로 작성해주세요.
-        2. 5항목 이하, 항목당 2줄 이내로 작성해주세요.
+        1. 5항목 이하, 항목당 2줄 이내로 작성해주세요.
     """
+
+    print(content)
+
     result = "ji"
     return  result, weather_info
     # openai_api_key = os.getenv("GPT_KEY")

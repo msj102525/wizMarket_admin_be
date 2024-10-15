@@ -81,6 +81,16 @@ class RisingMenuOutPut(BaseModel):
     avg_profit_per_18_21: Optional[float] = 0.0
     avg_profit_per_21_24: Optional[float] = 0.0
     avg_profit_per_24_06: Optional[float] = 0.0
+    avg_client_per_m_20: Optional[float] = 0.0
+    avg_client_per_m_30: Optional[float] = 0.0
+    avg_client_per_m_40: Optional[float] = 0.0
+    avg_client_per_m_50: Optional[float] = 0.0
+    avg_client_per_m_60: Optional[float] = 0.0
+    avg_client_per_f_20: Optional[float] = 0.0
+    avg_client_per_f_30: Optional[float] = 0.0
+    avg_client_per_f_40: Optional[float] = 0.0
+    avg_client_per_f_50: Optional[float] = 0.0
+    avg_client_per_f_60: Optional[float] = 0.0
     top_menu_1: Optional[str] = 0.0
     top_menu_2: Optional[str] = 0.0
     top_menu_3: Optional[str] = 0.0

@@ -723,6 +723,8 @@ def select_rising_menu_by_sub_district_id_rep_id(
                 MARKET_SIZE, AVERAGE_SALES, AVERAGE_PAYMENT, USAGE_COUNT,
                 AVG_PROFIT_PER_MON, AVG_PROFIT_PER_TUE, AVG_PROFIT_PER_WED, AVG_PROFIT_PER_THU, AVG_PROFIT_PER_FRI, AVG_PROFIT_PER_SAT, AVG_PROFIT_PER_SUN,
                 AVG_PROFIT_PER_06_09, AVG_PROFIT_PER_09_12, AVG_PROFIT_PER_12_15, AVG_PROFIT_PER_15_18, AVG_PROFIT_PER_18_21, AVG_PROFIT_PER_21_24, AVG_PROFIT_PER_24_06,
+                AVG_CLIENT_PER_M_20, AVG_CLIENT_PER_M_30, AVG_CLIENT_PER_M_40, AVG_CLIENT_PER_M_50, AVG_CLIENT_PER_M_60,
+                AVG_CLIENT_PER_F_20, AVG_CLIENT_PER_F_30, AVG_CLIENT_PER_F_40, AVG_CLIENT_PER_F_50, AVG_CLIENT_PER_F_60, 
                 TOP_MENU_1, TOP_MENU_2, TOP_MENU_3, TOP_MENU_4, TOP_MENU_5
             FROM commercial_district
             WHERE sub_district_id = %s
@@ -752,6 +754,16 @@ def select_rising_menu_by_sub_district_id_rep_id(
                 avg_profit_per_18_21=row["AVG_PROFIT_PER_18_21"],
                 avg_profit_per_21_24=row["AVG_PROFIT_PER_21_24"],
                 avg_profit_per_24_06=row["AVG_PROFIT_PER_24_06"],
+                avg_client_per_m_20=row["AVG_CLIENT_PER_M_20"],
+                avg_client_per_m_30=row["AVG_CLIENT_PER_M_30"],
+                avg_client_per_m_40=row["AVG_CLIENT_PER_M_40"],
+                avg_client_per_m_50=row["AVG_CLIENT_PER_M_50"],
+                avg_client_per_m_60=row["AVG_CLIENT_PER_M_60"],
+                avg_client_per_f_20=row["AVG_CLIENT_PER_F_20"],
+                avg_client_per_f_30=row["AVG_CLIENT_PER_F_30"],
+                avg_client_per_f_40=row["AVG_CLIENT_PER_F_40"],
+                avg_client_per_f_50=row["AVG_CLIENT_PER_F_50"],
+                avg_client_per_f_60=row["AVG_CLIENT_PER_F_60"],
                 top_menu_1=row["TOP_MENU_1"],
                 top_menu_2=row["TOP_MENU_2"],
                 top_menu_3=row["TOP_MENU_3"],
