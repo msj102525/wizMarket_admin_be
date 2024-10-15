@@ -11,6 +11,7 @@ from app.schemas.loc_store import (
     BusinessAreaCategoryReportOutput,
     BizDetailCategoryIdOutPut,
     RisingMenuOutPut,
+    BizCategoriesNameOutPut
 )
 
 # crud/loc_store.py
@@ -672,6 +673,44 @@ def select_biz_detail_category_id_by_detail_category_id(
         connection.close()
 
 
+def select_categories_name_by_rep_id(
+    business_area_category_id: int,
+) -> BizCategoriesNameOutPut:
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+
+    try:
+        select_query = """
+            SELECT 
+                bmc.BIZ_MAIN_CATEGORY_NAME,
+                bsc.BIZ_SUB_CATEGORY_NAME,
+                bdc.BIZ_DETAIL_CATEGORY_NAME
+            FROM BIZ_DETAIL_CATEGORY bdc
+            JOIN BIZ_SUB_CATEGORY bsc
+                ON bsc.BIZ_SUB_CATEGORY_ID = bdc.BIZ_SUB_CATEGORY_ID
+            JOIN BIZ_MAIN_CATEGORY bmc
+                ON bsc.BIZ_MAIN_CATEGORY_ID = bmc.BIZ_MAIN_CATEGORY_ID
+            WHERE bdc.BIZ_DETAIL_CATEGORY_ID = %s;
+        """
+
+        cursor.execute(select_query, (business_area_category_id))
+        row = cursor.fetchone()
+
+        if row:
+            return BizCategoriesNameOutPut(
+                biz_main_category_name=row["BIZ_MAIN_CATEGORY_NAME"],
+                biz_sub_category_name=row["BIZ_SUB_CATEGORY_NAME"],
+                biz_detail_category_name=row["BIZ_DETAIL_CATEGORY_NAME"],
+            )
+        else:
+            return None  # 데이터가 없을 경우
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+
 def select_rising_menu_by_sub_district_id_rep_id(
     sub_district_id: int, rep_id: int
 ) -> RisingMenuOutPut:
@@ -684,6 +723,8 @@ def select_rising_menu_by_sub_district_id_rep_id(
                 MARKET_SIZE, AVERAGE_SALES, AVERAGE_PAYMENT, USAGE_COUNT,
                 AVG_PROFIT_PER_MON, AVG_PROFIT_PER_TUE, AVG_PROFIT_PER_WED, AVG_PROFIT_PER_THU, AVG_PROFIT_PER_FRI, AVG_PROFIT_PER_SAT, AVG_PROFIT_PER_SUN,
                 AVG_PROFIT_PER_06_09, AVG_PROFIT_PER_09_12, AVG_PROFIT_PER_12_15, AVG_PROFIT_PER_15_18, AVG_PROFIT_PER_18_21, AVG_PROFIT_PER_21_24, AVG_PROFIT_PER_24_06,
+                AVG_CLIENT_PER_M_20, AVG_CLIENT_PER_M_30, AVG_CLIENT_PER_M_40, AVG_CLIENT_PER_M_50, AVG_CLIENT_PER_M_60,
+                AVG_CLIENT_PER_F_20, AVG_CLIENT_PER_F_30, AVG_CLIENT_PER_F_40, AVG_CLIENT_PER_F_50, AVG_CLIENT_PER_F_60, 
                 TOP_MENU_1, TOP_MENU_2, TOP_MENU_3, TOP_MENU_4, TOP_MENU_5
             FROM commercial_district
             WHERE sub_district_id = %s
@@ -713,6 +754,16 @@ def select_rising_menu_by_sub_district_id_rep_id(
                 avg_profit_per_18_21=row["AVG_PROFIT_PER_18_21"],
                 avg_profit_per_21_24=row["AVG_PROFIT_PER_21_24"],
                 avg_profit_per_24_06=row["AVG_PROFIT_PER_24_06"],
+                avg_client_per_m_20=row["AVG_CLIENT_PER_M_20"],
+                avg_client_per_m_30=row["AVG_CLIENT_PER_M_30"],
+                avg_client_per_m_40=row["AVG_CLIENT_PER_M_40"],
+                avg_client_per_m_50=row["AVG_CLIENT_PER_M_50"],
+                avg_client_per_m_60=row["AVG_CLIENT_PER_M_60"],
+                avg_client_per_f_20=row["AVG_CLIENT_PER_F_20"],
+                avg_client_per_f_30=row["AVG_CLIENT_PER_F_30"],
+                avg_client_per_f_40=row["AVG_CLIENT_PER_F_40"],
+                avg_client_per_f_50=row["AVG_CLIENT_PER_F_50"],
+                avg_client_per_f_60=row["AVG_CLIENT_PER_F_60"],
                 top_menu_1=row["TOP_MENU_1"],
                 top_menu_2=row["TOP_MENU_2"],
                 top_menu_3=row["TOP_MENU_3"],
@@ -771,4 +822,4 @@ def get_region_id_by_store_business_number(
         if connection:
             close_connection(connection)
 
-    return results
+

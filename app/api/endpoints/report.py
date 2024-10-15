@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List, Optional
 
 from app.schemas.commercial_district import CommercialStatisticsData
-from app.schemas.loc_store import LocalStoreInfo, LocalStoreInfoWeaterInfo, WeatherInfo
+from app.schemas.loc_store import LocalStoreInfo, LocalStoreInfoWeaterInfo, WeatherInfo, WeatherToday
 from app.schemas.population import PopulationJScoreOutput, PopulationOutput
 from app.schemas.statistics import (
     LocInfoAvgJscoreOutput,
@@ -226,16 +226,24 @@ def generate_report_rising_menu_from_gpt(store_business_id: str):
         raise HTTPException(status_code=500, detail=f"{e}Internal Server Error")
 
 
-@router.get("/gpt/report_today_tip", response_model=GPTReport)
+@router.get("/gpt/report_today_tip")
 def generate_report_today_tip_from_gpt(store_business_id: str):
     # print(store_business_id)
     try:
-        weather = get_report_store_info(store_business_id)
-        tmp = weather.weatherInfo
-        temp = tmp.temp
-        report = report_today_tip(store_business_id, temp)
 
-        return report
+        location = service_get_lat_lng_by_store_business_id(store_business_id)
+        lat = location.latitude
+        lng = location.longitude
+
+        weather_data = service_get_weather_info_by_lat_lng(lat, lng)
+
+        weather_info = WeatherToday(
+            weather=weather_data["weather"][0]["main"], temp=weather_data["main"]["temp"], sunset=weather_data["sys"]["sunset"]
+        )
+        
+        report, weather_info = report_today_tip(store_business_id, weather_info)
+
+        return report, weather_info
 
     except HTTPException as http_ex:
         raise http_ex
