@@ -121,4 +121,3 @@ def get_all_report_common_information() -> List[CommonInformationOutput]:
     finally:
         close_cursor(cursor)
         close_connection(connection)
-
