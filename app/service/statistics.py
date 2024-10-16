@@ -202,6 +202,14 @@ def select_stat_data(filters_dict):
     result = get_stat_data(filters_dict)
     return result
 
+def select_stat_data_by_city(filters_dict):
+    result = get_stat_data_by_city(filters_dict)
+    return result
+
+def select_stat_data_by_district(filters_dict):
+    result = get_stat_data_by_distirct(filters_dict)
+    return result
+
 
 ################# 시/도, 시/군/구 id 값 가져오기 ############################
 
