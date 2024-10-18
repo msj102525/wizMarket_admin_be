@@ -4,6 +4,21 @@ from app.crud.biz_detail_category import (
     select_biz_detail_category_id_by_biz_detail_category_name as crud_select_biz_detail_category_id_by_biz_detail_category_name,
 )
 from app.crud.city import get_city_id as crud_get_city_id
+from app.crud.commercial_district_average_payment_statistics import (
+    select_commercial_district_average_payment_info,
+)
+from app.crud.commercial_district_average_sales_statistics import (
+    select_commercial_district_average_sales_info,
+)
+from app.crud.commercial_district_market_size_statistics import (
+    select_commercial_district_market_size_info,
+)
+from app.crud.commercial_district_sub_district_density_statistics import (
+    select_commercial_district_sub_district_density_info,
+)
+from app.crud.commercial_district_usage_count_statistics import (
+    select_commercial_district_usage_count_info,
+)
 from app.crud.district import get_district_id as crud_get_district_id
 from app.crud.loc_store import (
     get_region_id_by_store_business_number as crud_get_region_id_by_store_business_number,
@@ -202,9 +217,11 @@ def select_stat_data(filters_dict):
     result = get_stat_data(filters_dict)
     return result
 
+
 def select_stat_data_by_city(filters_dict):
     result = get_stat_data_by_city(filters_dict)
     return result
+
 
 def select_stat_data_by_district(filters_dict):
     result = get_stat_data_by_distirct(filters_dict)
@@ -788,3 +805,49 @@ def select_statistics_by_store_business_number(
 
     # return statistics_data
     pass
+
+
+# new table
+def select_statistics_by_sub_district_detail_category_new(
+    city_name: str,
+    district_name: str,
+    sub_district_name: str,
+    biz_detail_category_name: str,
+):
+
+    city_id = crud_get_city_id(city_name)
+    district_id = crud_get_district_id(city_id, district_name)
+    sub_district_id = crud_get_sub_district_id_by(
+        city_id, district_id, sub_district_name
+    )
+
+    detail_category_id = crud_select_biz_detail_category_id_by_biz_detail_category_name(
+        biz_detail_category_name
+    )
+
+    # print(city_id)
+    # print(district_id)
+    # print(sub_district_id)
+    # print(detail_category_id)
+
+    statistics_data = CommercialStatisticsData(
+        market_size=select_commercial_district_market_size_info(
+            city_id, district_id, sub_district_id, detail_category_id
+        ),
+        average_sales=select_commercial_district_average_sales_info(
+            city_id, district_id, sub_district_id, detail_category_id
+        ),
+        average_payment=select_commercial_district_average_payment_info(
+            city_id, district_id, sub_district_id, detail_category_id
+        ),
+        usage_count=select_commercial_district_usage_count_info(
+            city_id, district_id, sub_district_id, detail_category_id
+        ),
+        sub_district_density=select_commercial_district_sub_district_density_info(
+            city_id, district_id, sub_district_id, detail_category_id
+        ),
+    )
+
+    print(statistics_data)
+
+    return statistics_data
