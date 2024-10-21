@@ -476,7 +476,6 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrict:
 # 동 하나 J-Score 값 조회
 def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
     results = []
-    print(filters_dict)
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
     cursor = None

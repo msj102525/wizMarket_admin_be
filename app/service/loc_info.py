@@ -13,7 +13,7 @@ from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.statistics import DataRefDateSubDistrictName, LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
 
 
-async def filter_location_info(filters: dict):
+def filter_location_info(filters: dict):
     # 필터링 로직: 필요하면 여기서 추가적인 필터 처리를 할 수 있습니다.
     filtered_locations = get_filtered_locations(filters)
     all_corr = get_all_corr()

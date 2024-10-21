@@ -13,7 +13,7 @@ async def filter_data(filters: FilterRequest):
     # 1. 기본 입지분성 값, 상관 분석 값 조회
     filters_dict = filters.dict(exclude_unset=True)
     # 필터 데이터를 서비스 레이어로 전달
-    result, all_corr_matrix, filter_corr_matrix = await filter_location_info(filters_dict)
+    result, all_corr_matrix, filter_corr_matrix = filter_location_info(filters_dict)
 
     # 2. 필터에 따른 J-Score 조회
     city = filters_dict.get('city')
