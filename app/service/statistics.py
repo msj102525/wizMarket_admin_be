@@ -848,6 +848,6 @@ def select_statistics_by_sub_district_detail_category_new(
         ),
     )
 
-    print(statistics_data)
+    # print(statistics_data)
 
     return statistics_data

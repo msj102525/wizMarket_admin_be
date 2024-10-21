@@ -32,7 +32,7 @@ def select_commercial_district_market_size_info(
         )
         row = cursor.fetchone()
 
-        print(row)
+        # print(row)
 
         result = CommercialStatistics(
             avg_val=row["AVG_VAL"],

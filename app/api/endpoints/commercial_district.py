@@ -147,7 +147,7 @@ def get_commercial_district_by_query(
         for item in results:
             # 각 상권의 통계 데이터 가져오기
             statistics_data: CommercialStatisticsData = (
-                service_select_statistics_by_sub_district_detail_category(
+                service_select_statistics_by_sub_district_detail_category_new(
                     item.city_name,
                     item.district_name,
                     item.sub_district_name,
