@@ -22,7 +22,7 @@ async def filter_data(filters: FilterRequest):
 
     # 2-1. 전국 범위 J-Score 조회
     if city is None:
-        region_stat = select_stat_data()
+        region_stat = select_stat_data(filters_dict)
     # 2-2. 시/도 범위 J-Score 조회
     elif district is None:
         region_stat = select_stat_data_by_city(filters_dict)

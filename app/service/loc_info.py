@@ -63,7 +63,7 @@ async def filter_location_info(filters: dict):
 
 # 추가 j_score 로직 변경
 def select_stat_data_avg():
-    result = get_stat_data()
+    result = get_stat_data_avg()
     return result
 
 def select_stat_data(filters_dict):

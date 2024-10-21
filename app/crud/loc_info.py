@@ -308,7 +308,7 @@ def get_all_region_id():
 
 ############### 값 조회 ######################
 # 전국 J-Score 값 조회
-def get_stat_data()-> StatData:
+def get_stat_data_avg()-> StatData:
     results = []
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
@@ -544,3 +544,56 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
 
 
 
+def get_stat_data(filters_dict)-> StatData:
+    results = []
+    # 여기서 직접 DB 연결을 설정
+    connection = get_db_connection()
+    cursor = None
+
+    try:
+        query = """
+            SELECT 
+                   city.city_id AS CITY_ID, 
+                   city.city_name AS CITY_NAME, 
+                   district.district_id AS DISTRICT_ID, 
+                   district.district_name AS DISTRICT_NAME, 
+                   sub_district.sub_district_id AS SUB_DISTRICT_ID,
+                   sub_district.sub_district_name AS SUB_DISTRICT_NAME,
+                   TARGET_ITEM,
+                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE
+            FROM loc_info_statistics li
+            JOIN city ON li.city_id = city.city_id
+            JOIN district ON li.district_id = district.district_id
+            JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
+            WHERE li.city_id is not null and li.district_id is not null and li.sub_district_id is not null
+        """
+        query_params = []
+
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query, query_params)
+        rows = cursor.fetchall()
+
+        for row in rows:
+            loc_info_by_region = StatData(
+                city_id= row.get("CITY_ID"),
+                city_name= row.get("CITY_NAME"),
+                district_id=row.get("DISTRICT_ID"),
+                district_name=row.get("DISTRICT_NAME"),
+                sub_district_id=row.get("SUB_DISTRICT_ID"),
+                sub_district_name=row.get("SUB_DISTRICT_NAME"),
+                target_item=row.get("TARGET_ITEM"),
+                avg_val=row.get("AVG_VAL"),
+                med_val= row.get("MED_VAL"),
+                std_val= row.get("STD_VAL"),
+                max_val= row.get("MAX_VAL"),
+                min_val= row.get("MIN_VAL"),
+                j_score= row.get("J_SCORE")
+            )
+            results.append(loc_info_by_region)
+
+        return results
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
