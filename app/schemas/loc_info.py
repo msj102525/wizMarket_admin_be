@@ -107,3 +107,69 @@ class LocalInfoStatisticsResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    
+
+class StatData(BaseModel):
+    city_id: int
+    city_name: str
+    district_id: int
+    district_name: str
+    sub_district_id: int
+    sub_district_name: str
+    target_item: str
+    avg_val: float
+    med_val: float
+    std_val: float
+    max_val: float
+    min_val: float
+    j_score: float
+
+    class Config:
+        from_attributes = True
+
+
+class StatDataByCity(BaseModel):
+    city_id: int
+    city_name: str
+    sub_district_id: int
+    sub_district_name: str
+    target_item: str
+    avg_val: float
+    med_val: float
+    std_val: float
+    max_val: float
+    min_val: float
+    j_score: float
+
+    class Config:
+        from_attributes = True
+
+class StatDataByDistrict(BaseModel):
+    district_id: int
+    district_name: str
+    sub_district_id: int
+    sub_district_name: str
+    target_item: str
+    avg_val: float
+    med_val: float
+    std_val: float
+    max_val: float
+    min_val: float
+    j_score: float
+
+    class Config:
+        from_attributes = True
+    
+
+class StatDataAvg(BaseModel):
+    target_item: str
+    avg_val: float
+    med_val: float
+    std_val: float
+    max_val: float
+    min_val: float
+    j_score: float
+
+    class Config:
+        from_attributes = True

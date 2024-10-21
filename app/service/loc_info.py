@@ -61,6 +61,33 @@ async def filter_location_info(filters: dict):
     return filtered_locations, all_corr_matrix, filter_corr_matrix
 
 
+# 추가 j_score 로직 변경
+def select_stat_data_avg():
+    result = get_stat_data()
+    return result
+
+def select_stat_data(filters_dict):
+    result = get_stat_data(filters_dict)
+    return result
+
+def select_stat_data_by_city(filters_dict):
+    result = get_stat_data_by_city(filters_dict)
+    return result
+
+def select_stat_data_by_district(filters_dict):
+    result = get_stat_data_by_distirct(filters_dict)
+    return result
+
+def select_stat_data_by_sub_district(filters_dict):
+    result = get_stat_data_by_sub_distirct(filters_dict)
+    return result
+
+
+
+
+
+
+
 
 def select_report_loc_info_by_store_business_number(
     store_business_id: str,
