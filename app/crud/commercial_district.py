@@ -340,7 +340,7 @@ def select_commercial_district_by_dynamic_query(
                 select_query += " AND cd.BIZ_MAIN_CATEGORY_ID = %s"
                 params.append(biz_main_category_id)
             if biz_sub_category_id is not None:
-                select_query += "    = %s"
+                select_query += " AND cd.BIZ_SUB_CATEGORY_ID = %s"
                 params.append(biz_sub_category_id)
             if biz_detail_category_id is not None:
                 select_query += " AND cd.BIZ_DETAIL_CATEGORY_ID = %s"
