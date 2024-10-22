@@ -340,7 +340,7 @@ def select_commercial_district_by_dynamic_query(
                 select_query += " AND cd.BIZ_MAIN_CATEGORY_ID = %s"
                 params.append(biz_main_category_id)
             if biz_sub_category_id is not None:
-                select_query += " AND cd.BIZ_SUB_CATEGORY_ID = %s"
+                select_query += "    = %s"
                 params.append(biz_sub_category_id)
             if biz_detail_category_id is not None:
                 select_query += " AND cd.BIZ_DETAIL_CATEGORY_ID = %s"
@@ -396,9 +396,13 @@ def select_commercial_district_by_dynamic_query(
 
             select_query += " ORDER BY cd.COMMERCIAL_DISTRICT_ID DESC"
 
+            # logger.info(f"Generated SQL Query: {select_query}")
+            # logger.info(f"Query Parameters: {params}")
+
             cursor.execute(select_query, tuple(params))
 
             rows = cursor.fetchall()
+            
 
             for row in rows:
                 commercial_district_output = CommercialDistrictOutput(

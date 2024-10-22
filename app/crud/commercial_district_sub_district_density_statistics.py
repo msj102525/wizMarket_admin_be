@@ -1,3 +1,5 @@
+import logging
+from fastapi import logger
 import pymysql
 from app.db.connect import close_connection, close_cursor, get_db_connection
 from app.schemas.statistics import CommercialStatistics
@@ -10,7 +12,7 @@ def select_commercial_district_sub_district_density_info(
     # DB 연결
     connection = get_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
-
+    logger = logging.getLogger(__name__)
     results = []
 
     try:
@@ -32,8 +34,19 @@ def select_commercial_district_sub_district_density_info(
         )
         row = cursor.fetchone()
 
+        # logger.info(
+        #     f"Generated SQL Query: {select_query, (city_id,district_id, sub_district_id, detail_category_id )}"
+        # )
+
         # print(row)
 
+        # if row is None:
+        #     print("No data found for the given parameters")
+        #     return (
+        #         CommercialStatistics()
+        #     )  # 기본값으로 초기화된 CommercialStatistics 반환
+
+        # 결과 생성 (row.get()으로 기본값 처리)
         result = CommercialStatistics(
             avg_val=row["AVG_VAL"],
             med_val=row["MED_VAL"],
@@ -46,7 +59,7 @@ def select_commercial_district_sub_district_density_info(
         return result
 
     except Exception as e:
-        print(f"Error selecting from stat_item: {e}")
+        print(f"Error selecting from sub_district_density: {e}")
         connection.rollback()  # Rollback if there's an error
         raise  # Re-raise the exception after rollback
 

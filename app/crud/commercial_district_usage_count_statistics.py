@@ -46,7 +46,7 @@ def select_commercial_district_usage_count_info(
         return result
 
     except Exception as e:
-        print(f"Error selecting from stat_item: {e}")
+        print(f"Error selecting from usage_count: {e}")
         connection.rollback()  # Rollback if there's an error
         raise  # Re-raise the exception after rollback
 

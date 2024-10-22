@@ -46,7 +46,7 @@ def select_commercial_district_market_size_info(
         return result
 
     except Exception as e:
-        print(f"Error selecting from stat_item: {e}")
+        print(f"Error selecting from market_size: {e}")
         connection.rollback()  # Rollback if there's an error
         raise  # Re-raise the exception after rollback
 
