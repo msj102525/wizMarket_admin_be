@@ -323,7 +323,7 @@ def get_stat_data_avg()-> StatData:
                    district.district_name AS DISTRICT_NAME, 
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                   TARGET_ITEM,
+                   TARGET_ITEM, REF_DATE,
                    AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
@@ -346,6 +346,7 @@ def get_stat_data_avg()-> StatData:
                 sub_district_id=row.get("SUB_DISTRICT_ID"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 target_item=row.get("TARGET_ITEM"),
+                ref_date=row.get("REF_DATE"),
                 avg_val=row.get("AVG_VAL"),
                 med_val= row.get("MED_VAL"),
                 std_val= row.get("STD_VAL"),
@@ -376,7 +377,7 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCity:
                    city.city_name AS CITY_NAME, 
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                   TARGET_ITEM,
+                   TARGET_ITEM, REF_DATE,
                    AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
@@ -401,6 +402,7 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCity:
                 sub_district_id=row.get("SUB_DISTRICT_ID"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 target_item=row.get("TARGET_ITEM"),
+                ref_date=row.get("REF_DATE"),
                 avg_val=row.get("AVG_VAL"),
                 med_val= row.get("MED_VAL"),
                 std_val= row.get("STD_VAL"),
@@ -432,7 +434,7 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrict:
                    district.district_name AS DISTRICT_NAME, 
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                   TARGET_ITEM,
+                   TARGET_ITEM, REF_DATE,
                    AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE
             FROM loc_info_statistics li
             JOIN district ON li.district_id = district.district_id
@@ -456,6 +458,7 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrict:
                 sub_district_id=row.get("SUB_DISTRICT_ID"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 target_item=row.get("TARGET_ITEM"),
+                ref_date=row.get("REF_DATE"),
                 avg_val=row.get("AVG_VAL"),
                 med_val= row.get("MED_VAL"),
                 std_val= row.get("STD_VAL"),
@@ -489,7 +492,7 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
                    district.district_name AS DISTRICT_NAME, 
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                   TARGET_ITEM,
+                   TARGET_ITEM, REF_DATE,
                    AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
@@ -525,6 +528,7 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
                 sub_district_id=row.get("SUB_DISTRICT_ID"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 target_item=row.get("TARGET_ITEM"),
+                ref_date=row.get("REF_DATE"),
                 avg_val=row.get("AVG_VAL"),
                 med_val= row.get("MED_VAL"),
                 std_val= row.get("STD_VAL"),
@@ -548,6 +552,7 @@ def get_stat_data(filters_dict)-> StatData:
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
     cursor = None
+    print(f"Host: {connection.host}")
 
     try:
         query = """
@@ -558,7 +563,7 @@ def get_stat_data(filters_dict)-> StatData:
                    district.district_name AS DISTRICT_NAME, 
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                   TARGET_ITEM,
+                   TARGET_ITEM, REF_DATE,
                    AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
@@ -581,6 +586,7 @@ def get_stat_data(filters_dict)-> StatData:
                 sub_district_id=row.get("SUB_DISTRICT_ID"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 target_item=row.get("TARGET_ITEM"),
+                ref_date=row.get("REF_DATE"),
                 avg_val=row.get("AVG_VAL"),
                 med_val= row.get("MED_VAL"),
                 std_val= row.get("STD_VAL"),

@@ -118,12 +118,13 @@ class StatData(BaseModel):
     sub_district_id: int
     sub_district_name: str
     target_item: str
-    avg_val: float
-    med_val: float
-    std_val: float
-    max_val: float
-    min_val: float
+    avg_val: Optional[float]
+    med_val: Optional[float]
+    std_val: Optional[float]
+    max_val: Optional[float]
+    min_val: Optional[float]
     j_score: float
+    ref_date : Optional[date]
 
     class Config:
         from_attributes = True
