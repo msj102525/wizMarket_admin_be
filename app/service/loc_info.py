@@ -16,49 +16,62 @@ from app.schemas.statistics import DataRefDateSubDistrictName, LocInfoStatistics
 def filter_location_info(filters: dict):
     # 필터링 로직: 필요하면 여기서 추가적인 필터 처리를 할 수 있습니다.
     filtered_locations = get_filtered_locations(filters)
-    all_corr = get_all_corr()
+    years = ['2024-08-01', '2024-10-01']
 
-    # 필요한 항목들로 DataFrame 생성 (SALES와 다른 변수들)
-    df_all = pd.DataFrame(
-        all_corr,
-        columns=[
-            "SALES",
-            "SHOP",
-            "MOVE_POP",
-            "WORK_POP",
-            "INCOME",
-            "SPEND",
-            "HOUSE",
-            "RESIDENT",
-        ],
-    )
+    # 년도별로 결과를 저장하기 위한 딕셔너리
+    all_corr_matrices = {}
+    filter_corr_matrices = {}
 
-    # 전체 상관분석 수행
-    all_corr_matrix = df_all.corr()
+    for year in years:
+        # 해당 날짜의 데이터를 가져옴
+        all_corr = get_all_corr(year)
 
-    # 지역 내 상관 분석
-    filter_corr = get_filter_corr(filters)
+        # 필요한 항목들로 DataFrame 생성 (SALES와 다른 변수들)
+        df_all = pd.DataFrame(
+            all_corr,
+            columns=[
+                "SALES",
+                "SHOP",
+                "MOVE_POP",
+                "WORK_POP",
+                "INCOME",
+                "SPEND",
+                "HOUSE",
+                "RESIDENT",
+            ],
+        )
 
-    # 지역 내 분석 수행
-    df_filter = pd.DataFrame(filter_corr)
+        # 전국 상관분석 수행
+        all_corr_matrix = df_all.corr().to_dict()
 
-    filter_corr_matrix = df_filter.groupby("DISTRICT_NAME")[
-        [
-            "SALES",
-            "SHOP",
-            "MOVE_POP",
-            "WORK_POP",
-            "INCOME",
-            "SPEND",
-            "HOUSE",
-            "RESIDENT",
-        ]
-    ].corr()
+        # 년도별 상관분석 결과를 저장
+        all_corr_matrices[year] = all_corr_matrix
 
-    filter_corr_matrix = filter_corr_matrix.reset_index().to_dict(orient="records")
+        # 지역 내 상관 분석
+        filter_corr = get_filter_corr(filters, year)
+
+        # 지역 내 분석 수행
+        df_filter = pd.DataFrame(filter_corr)
+
+        filter_corr_matrix = df_filter.groupby("DISTRICT_NAME")[
+            [
+                "SALES",
+                "SHOP",
+                "MOVE_POP",
+                "WORK_POP",
+                "INCOME",
+                "SPEND",
+                "HOUSE",
+                "RESIDENT",
+            ]
+        ].corr()
+
+        # 년도별 지역 내 상관분석 결과를 저장
+        filter_corr_matrix = filter_corr_matrix.reset_index().to_dict(orient="records")
+        filter_corr_matrices[year] = filter_corr_matrix
 
     # 필요 시 추가적인 비즈니스 로직을 처리할 수 있음
-    return filtered_locations, all_corr_matrix, filter_corr_matrix
+    return filtered_locations, all_corr_matrices, filter_corr_matrices
 
 
 # 추가 j_score 로직 변경
