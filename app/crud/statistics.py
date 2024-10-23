@@ -406,9 +406,9 @@ def get_national_data_by_detail_category(column_name, table_name, detail_categor
         connection = get_db_connection()
         cursor = connection.cursor(pymysql.cursors.DictCursor)
 
-        print(column_name)
-        print(table_name)
-        print(detail_category_id)
+        # print(column_name)
+        # print(table_name)
+        # print(detail_category_id)
 
         # 전국 데이터를 가져오는 쿼리
         select_query = f"""
@@ -420,7 +420,7 @@ def get_national_data_by_detail_category(column_name, table_name, detail_categor
         logger.info(f"Executing query: {select_query % (detail_category_id)}")
         result = cursor.fetchall()
 
-        print(result)
+        # print(result)
 
         # 데이터만 리스트로 반환
         return [row[column_name] for row in result]

@@ -34,7 +34,7 @@ async def filter_population_data(filters: dict):
 async def download_data(filters: dict):
     try:
         results = download_data_ex(filters)
-        print("엑셀 다운 로드 후")
+        # print("엑셀 다운 로드 후")
         return results
     except Exception as e:
         raise Exception(f"Error in filtering population data: {str(e)}")

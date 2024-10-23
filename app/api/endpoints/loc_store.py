@@ -12,7 +12,6 @@ router = APIRouter()
 @router.post("/select_loc_store")
 async def filter_data(filters: FilterRequest):
     # 필터 정보를 서비스 레이어로 전달
-    print(filters)
     data, total_items = await filter_loc_store(filters)
 
     return {

@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("", response_model=List[RisingBusinessOutput])
 def get_rising_business(city: str, district: str, sub_district: str):
-    print(f"city: {city}, district: {district}, sub_d: {sub_district}")
+    # print(f"city: {city}, district: {district}, sub_d: {sub_district}")
     try:
         results = get_all_rising_business_by_region_name(city, district, sub_district)
         return results

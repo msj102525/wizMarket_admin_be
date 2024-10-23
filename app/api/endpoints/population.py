@@ -42,12 +42,10 @@ age_groups = {
 async def download(filters: PopulationSearch):
     # 입력된 필터 데이터를 딕셔너리로 변환 (unset된 필드는 제외)
     filters_dict = filters.dict(exclude_unset=True)
-    print(filters_dict)
 
     try:
         # 서비스 레이어를 통해 필터 데이터 기반의 결과 가져오기
         result = await download_data(filters_dict)
-        print(result)
         
         # 기본적으로 가져올 컬럼들 (지역 및 성별)
         column_names = ['시/도 명', '시/군/구 명', '읍/면/동 명', '남성 총 인구', '여성 총 인구', '기준 날짜', '성별']
@@ -69,21 +67,15 @@ async def download(filters: PopulationSearch):
         # 나이 관련 컬럼을 최종 컬럼 이름 리스트에 추가
         column_names += age_columns
 
-        print(column_names)
-
         # 튜플 데이터를 DataFrame으로 변환 (컬럼 이름을 동적으로 설정)
         df = pd.DataFrame(result, columns=column_names)
 
-        print('asd1')
         
         # 메모리 내에서 엑셀 파일 생성
         output = io.BytesIO()
-        print('asd2')
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df.to_excel(writer, index=False)
-        print('asd3')
         output.seek(0)  # 파일 포인터를 처음으로 이동
-        print('asd4')
         
         
         # 엑셀 파일을 클라이언트에 반환
