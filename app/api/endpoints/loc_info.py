@@ -35,6 +35,4 @@ async def filter_data(filters: FilterRequest):
     # 3. 기본 통계값 (전국) 조회
     stat_data = select_stat_data_avg()
 
-    # 4.
-
     return {"filtered_data": result, "all_corr" : all_corr_matrix, "filter_corr" : filter_corr_matrix, "region_j_score":region_stat, "total_stat":stat_data}

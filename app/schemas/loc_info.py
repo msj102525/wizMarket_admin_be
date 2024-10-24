@@ -52,6 +52,8 @@ class FilterRequest(BaseModel):
     spendMax: Optional[int] = None
     houseMax: Optional[int] = None
     residentMax: Optional[int] = None
+    selectedOptions: Optional[List[str]] 
+
 
 
 class LocationInfoReportOutput(BaseModel):
@@ -123,8 +125,9 @@ class StatData(BaseModel):
     std_val: Optional[float]
     max_val: Optional[float]
     min_val: Optional[float]
-    j_score: float
-    ref_date : Optional[date]
+    j_score_rank: float
+    j_score_per: Optional[float]
+    ref_date : date
 
     class Config:
         from_attributes = True
@@ -133,6 +136,7 @@ class StatData(BaseModel):
 class StatDataByCity(BaseModel):
     city_id: int
     city_name: str
+    district_name:Optional[str]
     sub_district_id: int
     sub_district_name: str
     target_item: str
@@ -141,12 +145,15 @@ class StatDataByCity(BaseModel):
     std_val: float
     max_val: float
     min_val: float
-    j_score: float
+    j_score_rank: float
+    j_score_per: Optional[float]
+    ref_date : date
 
     class Config:
         from_attributes = True
 
 class StatDataByDistrict(BaseModel):
+    city_name: Optional[str]
     district_id: int
     district_name: str
     sub_district_id: int
@@ -157,7 +164,9 @@ class StatDataByDistrict(BaseModel):
     std_val: float
     max_val: float
     min_val: float
-    j_score: float
+    j_score_rank: float
+    j_score_per: Optional[float]
+    ref_date : date
 
     class Config:
         from_attributes = True

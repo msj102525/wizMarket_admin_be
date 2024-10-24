@@ -98,10 +98,6 @@ def select_stat_data_by_sub_district(filters_dict):
 
 
 
-
-
-
-
 def select_report_loc_info_by_store_business_number(
     store_business_id: str,
 ) -> LocInfoStatisticsDataRefOutput:
