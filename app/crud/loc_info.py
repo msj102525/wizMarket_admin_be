@@ -158,7 +158,7 @@ def get_filtered_locations(filters):
             LEFT JOIN loc_info_statistics ON loc_info.sub_district_id = loc_info_statistics.sub_district_id
             WHERE loc_info_statistics.stat_level = '전국'
             AND loc_info.y_m = loc_info_statistics.ref_date
-            AND loc_info_statistics.target_item = 'j_score_rank_avg'
+            AND loc_info_statistics.target_item = 'j_score_avg'
         """
         query_params = []
 
