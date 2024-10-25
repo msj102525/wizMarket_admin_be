@@ -3,7 +3,7 @@ from datetime import date
 from app.crud.loc_info import *
 import pandas as pd
 from app.crud.loc_store import (
-    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
+    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number, 
 )
 from app.crud.statistics import (
     select_nationwide_jscore_by_stat_item_id_and_sub_district_id as crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id,
@@ -13,14 +13,11 @@ from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.statistics import DataRefDateSubDistrictName, LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
 
 
-def filter_location_info(filters: dict):
-    # 필터링 로직: 필요하면 여기서 추가적인 필터 처리를 할 수 있습니다.
-    filtered_locations = get_filtered_locations(filters)
+def init_corr_data():
     years = ['2024-08-01', '2024-10-01']
 
     # 년도별로 결과를 저장하기 위한 딕셔너리
     all_corr_matrices = {}
-    filter_corr_matrices = {}
 
     for year in years:
         # 해당 날짜의 데이터를 가져옴
@@ -47,6 +44,19 @@ def filter_location_info(filters: dict):
         # 년도별 상관분석 결과를 저장
         all_corr_matrices[year] = all_corr_matrix
 
+    return all_corr_matrices
+
+def filter_location_info(filters: dict):
+    # 필터링 로직: 필요하면 여기서 추가적인 필터 처리를 할 수 있습니다.
+    filtered_locations = get_filtered_locations(filters)
+    years = ['2024-08-01', '2024-10-01']
+
+    # 년도별로 결과를 저장하기 위한 딕셔너리
+    filter_corr_matrices = {}
+
+    for year in years:
+        # 해당 날짜의 데이터를 가져옴
+
         # 지역 내 상관 분석
         filter_corr = get_filter_corr(filters, year)
 
@@ -65,13 +75,16 @@ def filter_location_info(filters: dict):
                 "RESIDENT",
             ]
         ].corr()
+        
+        # NaN 값을 '-'로 대체
+        filter_corr_matrix = filter_corr_matrix.fillna('-')
 
         # 년도별 지역 내 상관분석 결과를 저장
         filter_corr_matrix = filter_corr_matrix.reset_index().to_dict(orient="records")
         filter_corr_matrices[year] = filter_corr_matrix
 
     # 필요 시 추가적인 비즈니스 로직을 처리할 수 있음
-    return filtered_locations, all_corr_matrices, filter_corr_matrices
+    return filtered_locations, filter_corr_matrices
 
 
 # 추가 j_score 로직 변경
@@ -95,6 +108,9 @@ def select_stat_data_by_sub_district(filters_dict):
     result = get_stat_data_by_sub_distirct(filters_dict)
     return result
 
+def select_nation_j_score(filters_dict):
+    result = get_nation_j_score(filters_dict)
+    return result
 
 
 

@@ -112,7 +112,7 @@ class LocalInfoStatisticsResponse(BaseModel):
 
     
 
-class StatData(BaseModel):
+class StatDataForExetend(BaseModel):
     city_id: int
     city_name: str
     district_id: int
@@ -125,7 +125,7 @@ class StatData(BaseModel):
     std_val: Optional[float]
     max_val: Optional[float]
     min_val: Optional[float]
-    j_score_rank: float
+    j_score_rank: Optional[float]
     j_score_per: Optional[float]
     ref_date : date
 
@@ -133,7 +133,7 @@ class StatData(BaseModel):
         from_attributes = True
 
 
-class StatDataByCity(BaseModel):
+class StatDataByCityForExetend(BaseModel):
     city_id: int
     city_name: str
     district_name:Optional[str]
@@ -152,7 +152,7 @@ class StatDataByCity(BaseModel):
     class Config:
         from_attributes = True
 
-class StatDataByDistrict(BaseModel):
+class StatDataByDistrictForExetend(BaseModel):
     city_name: Optional[str]
     district_id: int
     district_name: str
@@ -183,3 +183,35 @@ class StatDataAvg(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class StatDataForNation(BaseModel):
+    city_id: int
+    city_name: str
+    district_id: int
+    district_name: str
+    sub_district_id: int
+    sub_district_name: str
+    target_item: str
+    j_score_rank: Optional[float]
+    j_score_per: Optional[float]
+    ref_date : date
+
+    class Config:
+        from_attributes = True
+
+
+class StatDataForInit(BaseModel):
+    city_id: int
+    city_name: str
+    district_id: int
+    district_name: str
+    sub_district_id: int
+    sub_district_name: str
+    target_item: str
+    avg_val: Optional[float]
+    med_val: Optional[float]
+    std_val: Optional[float]
+    max_val: Optional[float]
+    min_val: Optional[float]
+    ref_date : date

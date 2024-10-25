@@ -3,7 +3,9 @@ from app.db.connect import *
 from typing import Optional
 from app.schemas.loc_info import LocalInfoStatisticsResponse, StatisticsResult, LocInfoResult
 from app.db.connect import get_db_connection, close_connection, close_cursor
-from app.schemas.loc_info import StatData, StatDataByCity, StatDataByDistrict, StatDataAvg
+from app.schemas.loc_info import (
+    StatDataForExetend, StatDataByCityForExetend, StatDataByDistrictForExetend, StatDataForNation, StatDataForInit
+)
 
 def fetch_loc_info_by_ids(city_id: int, district_id: int, sub_district_id: int) -> Optional[dict]:
     connection = get_db_connection()
@@ -146,12 +148,15 @@ def get_filtered_locations(filters):
                    loc_info.loc_info_id,
                    loc_info.shop, loc_info.move_pop, loc_info.sales, loc_info.work_pop, 
                    loc_info.income, loc_info.spend, loc_info.house, loc_info.resident,
-                   loc_info.y_m
+                   loc_info.y_m,
+                   loc_info_statistics.j_score_rank, loc_info_statistics.j_score_per
             FROM loc_info
             JOIN city ON loc_info.city_id = city.city_id
             JOIN district ON loc_info.district_id = district.district_id
             JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
-            WHERE 1=1
+            JOIN loc_info_statistics ON loc_info.sub_district_id = loc_info_statistics.sub_district_id
+            WHERE loc_info_statistics.target_item = 'j_score_rank_avg'
+            AND loc_info.y_m = loc_info_statistics.ref_date
         """
         query_params = []
 
@@ -251,28 +256,11 @@ def get_filtered_locations(filters):
                 query += ")"
                 query_params.extend(selected_dates)  # 모든 날짜를 파라미터에 추가
 
-
-
+        query += " ORDER BY city.city_name, district.district_name, sub_district.sub_district_name"
 
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         result = cursor.fetchall()
-
-        for item in result:
-            # 8개의 값이 모두 0인 경우에만 '정보 없음'으로 변환
-            if (
-                item['shop'] == 0 and item['move_pop'] == 0 and item['sales'] == 0 and
-                item['work_pop'] == 0 and item['income'] == 0 and item['spend'] == 0 and
-                item['house'] == 0 and item['resident'] == 0
-            ):
-                item['shop'] = '정보 없음'
-                item['move_pop'] = '정보 없음'
-                item['sales'] = '정보 없음'
-                item['work_pop'] = '정보 없음'
-                item['income'] = '정보 없음'
-                item['spend'] = '정보 없음'
-                item['house'] = '정보 없음'
-                item['resident'] = '정보 없음'
 
         return result
 
@@ -321,13 +309,96 @@ def get_all_region_id():
 
 
 
-############### 값 조회 ######################
-# 전국 J-Score 값 조회
-def get_stat_data_avg()-> StatData:
+################  값 조회 ######################
+# 초기 데이터 : 통계값
+def get_stat_data_avg()-> StatDataForInit:
     results = []
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
     cursor = None
+
+    try:
+        query = """
+            (SELECT 
+                city.city_id AS CITY_ID, 
+                city.city_name AS CITY_NAME, 
+                district.district_id AS DISTRICT_ID, 
+                district.district_name AS DISTRICT_NAME, 
+                sub_district.sub_district_id AS SUB_DISTRICT_ID,
+                sub_district.sub_district_name AS SUB_DISTRICT_NAME,
+                TARGET_ITEM, REF_DATE,
+                AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL
+            FROM loc_info_statistics li
+            JOIN city ON li.city_id = city.city_id
+            JOIN district ON li.district_id = district.district_id
+            JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
+            WHERE li.city_id IS NOT NULL 
+            AND li.district_id IS NOT NULL 
+            AND li.sub_district_id IS NOT NULL
+            AND li.REF_DATE = '2024-08-01'
+            LIMIT 8)
+
+            UNION ALL
+
+            (SELECT 
+                city.city_id AS CITY_ID, 
+                city.city_name AS CITY_NAME, 
+                district.district_id AS DISTRICT_ID, 
+                district.district_name AS DISTRICT_NAME, 
+                sub_district.sub_district_id AS SUB_DISTRICT_ID,
+                sub_district.sub_district_name AS SUB_DISTRICT_NAME,
+                TARGET_ITEM, REF_DATE,
+                AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL
+            FROM loc_info_statistics li
+            JOIN city ON li.city_id = city.city_id
+            JOIN district ON li.district_id = district.district_id
+            JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
+            WHERE li.city_id IS NOT NULL 
+            AND li.district_id IS NOT NULL 
+            AND li.sub_district_id IS NOT NULL
+            AND li.REF_DATE = '2024-10-01'
+            LIMIT 8);
+        """
+        query_params = []
+
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query, query_params)
+        rows = cursor.fetchall()
+
+        for row in rows:
+            loc_info_by_region = StatDataForInit(
+                city_id= row.get("CITY_ID"),
+                city_name= row.get("CITY_NAME"),
+                district_id=row.get("DISTRICT_ID"),
+                district_name=row.get("DISTRICT_NAME"),
+                sub_district_id=row.get("SUB_DISTRICT_ID"),
+                sub_district_name=row.get("SUB_DISTRICT_NAME"),
+                target_item=row.get("TARGET_ITEM"),
+                ref_date=row.get("REF_DATE"),
+                avg_val=row.get("AVG_VAL"),
+                med_val= row.get("MED_VAL"),
+                std_val= row.get("STD_VAL"),
+                max_val= row.get("MAX_VAL"),
+                min_val= row.get("MIN_VAL")
+            )
+            results.append(loc_info_by_region)
+
+        return results
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()  # 연결 종료
+
+
+
+# 전국에서 동 끼리 비교 J-Score 값 조회
+def get_stat_data(filters_dict)-> StatDataForExetend:
+    results = []
+    # 여기서 직접 DB 연결을 설정
+    connection = get_db_connection()
+    cursor = None
+    print(f"Host: {connection.host}")
 
     try:
         query = """
@@ -353,7 +424,7 @@ def get_stat_data_avg()-> StatData:
         rows = cursor.fetchall()
 
         for row in rows:
-            loc_info_by_region = StatData(
+            loc_info_by_region = StatDataForExetend(
                 city_id= row.get("CITY_ID"),
                 city_name= row.get("CITY_NAME"),
                 district_id=row.get("DISTRICT_ID"),
@@ -379,8 +450,9 @@ def get_stat_data_avg()-> StatData:
             cursor.close()
         connection.close()  # 연결 종료
 
+
 # 시/도 내의 동 끼리 비교 J-Score 값 조회
-def get_stat_data_by_city(filters_dict: dict) -> StatDataByCity:
+def get_stat_data_by_city(filters_dict: dict) -> StatDataByCityForExetend:
     results = []
     connection = get_db_connection()
     cursor = None
@@ -433,7 +505,7 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCity:
             sub_district_id = row.get("SUB_DISTRICT_ID")
             district_name = district_map.get(sub_district_id, "데이터 없음")
 
-            loc_info_by_region = StatDataByCity(
+            loc_info_by_region = StatDataByCityForExetend(
                 city_id= row.get("CITY_ID"),
                 city_name= row.get("CITY_NAME"),
                 sub_district_id=sub_district_id,
@@ -451,7 +523,7 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCity:
             )
             results.append(loc_info_by_region)
 
-        print(results)
+        # print(results)
         return results
 
     finally:
@@ -463,7 +535,7 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCity:
     
 
 # 시/군/구 내의 동 끼리 비교 J-Score 값 조회
-def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrict:
+def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrictForExetend:
     results = []
     connection = get_db_connection()
     cursor = None
@@ -515,7 +587,7 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrict:
             sub_district_id = row.get("SUB_DISTRICT_ID")
             city_name = city_map.get(sub_district_id, "데이터 없음")
 
-            loc_info_by_region = StatDataByDistrict(
+            loc_info_by_region = StatDataByDistrictForExetend(
                 district_id= row.get("DISTRICT_ID"),
                 district_name= row.get("DISTRICT_NAME"),
                 sub_district_id=sub_district_id,
@@ -543,7 +615,7 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrict:
 
 
 # 동 하나 J-Score 값 조회
-def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
+def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatDataForExetend:
     results = []
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
@@ -586,7 +658,7 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
         rows = cursor.fetchall()
 
         for row in rows:
-            loc_info_by_region = StatData(
+            loc_info_by_region = StatDataForExetend(
                 city_id= row.get("CITY_ID"),
                 city_name= row.get("CITY_NAME"),
                 district_id=row.get("DISTRICT_ID"),
@@ -614,7 +686,10 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatData:
 
 
 
-def get_stat_data(filters_dict)-> StatData:
+########################
+
+
+def get_nation_j_score(filters_dict)-> StatDataForNation:
     results = []
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
@@ -630,8 +705,9 @@ def get_stat_data(filters_dict)-> StatData:
                    district.district_name AS DISTRICT_NAME, 
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                   TARGET_ITEM, REF_DATE,
-                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_RANK, J_SCORE_PER
+                   li.TARGET_ITEM, li.REF_DATE,
+                   li.J_SCORE_RANK, li.J_SCORE_PER,
+                   li.REF_DATE
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
             JOIN district ON li.district_id = district.district_id
@@ -640,12 +716,25 @@ def get_stat_data(filters_dict)-> StatData:
         """
         query_params = []
 
+        # 필터 값이 존재할 때만 쿼리에 조건 추가
+        if filters_dict.get("city") is not None:
+            query += " AND li.city_id = %s"
+            query_params.append(filters_dict["city"])
+
+        if filters_dict.get("district") is not None:
+            query += " AND li.district_id = %s"
+            query_params.append(filters_dict["district"])
+
+        if filters_dict.get("subDistrict") is not None:
+            query += " AND li.sub_district_id = %s"
+            query_params.append(filters_dict["subDistrict"])
+
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         rows = cursor.fetchall()
 
         for row in rows:
-            loc_info_by_region = StatData(
+            loc_info_by_region = StatDataForNation(
                 city_id= row.get("CITY_ID"),
                 city_name= row.get("CITY_NAME"),
                 district_id=row.get("DISTRICT_ID"),
@@ -653,14 +742,9 @@ def get_stat_data(filters_dict)-> StatData:
                 sub_district_id=row.get("SUB_DISTRICT_ID"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 target_item=row.get("TARGET_ITEM"),
-                ref_date=row.get("REF_DATE"),
-                avg_val=row.get("AVG_VAL"),
-                med_val= row.get("MED_VAL"),
-                std_val= row.get("STD_VAL"),
-                max_val= row.get("MAX_VAL"),
-                min_val= row.get("MIN_VAL"),
-                j_score_rank= row.get("J_SCORE_RANK"),
-                j_score_per= row.get("J_SCORE_PER")
+                j_score_rank = row.get("J_SCORE_RANK"),
+                j_score_per = row.get("J_SCORE_PER"),
+                ref_date=row.get("REF_DATE")
             )
             results.append(loc_info_by_region)
 
