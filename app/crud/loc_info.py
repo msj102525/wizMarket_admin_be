@@ -149,14 +149,16 @@ def get_filtered_locations(filters):
                    loc_info.shop, loc_info.move_pop, loc_info.sales, loc_info.work_pop, 
                    loc_info.income, loc_info.spend, loc_info.house, loc_info.resident,
                    loc_info.y_m,
+                   loc_info_statistics.target_item,
                    loc_info_statistics.j_score_rank, loc_info_statistics.j_score_per
             FROM loc_info
-            JOIN city ON loc_info.city_id = city.city_id
-            JOIN district ON loc_info.district_id = district.district_id
-            JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
-            JOIN loc_info_statistics ON loc_info.sub_district_id = loc_info_statistics.sub_district_id
-            WHERE loc_info_statistics.target_item = 'j_score_rank_avg'
+            LEFT JOIN city ON loc_info.city_id = city.city_id
+            LEFT JOIN district ON loc_info.district_id = district.district_id
+            LEFT JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+            LEFT JOIN loc_info_statistics ON loc_info.sub_district_id = loc_info_statistics.sub_district_id
+            WHERE loc_info_statistics.stat_level = '전국'
             AND loc_info.y_m = loc_info_statistics.ref_date
+            AND loc_info_statistics.target_item = 'j_score_rank_avg'
         """
         query_params = []
 
