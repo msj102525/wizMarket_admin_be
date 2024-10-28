@@ -145,7 +145,7 @@ class StatDataByCityForExetend(BaseModel):
     std_val: float
     max_val: float
     min_val: float
-    j_score_rank: float
+    j_score_rank: Optional[float]
     j_score_per: Optional[float]
     ref_date : date
 
@@ -164,25 +164,13 @@ class StatDataByDistrictForExetend(BaseModel):
     std_val: float
     max_val: float
     min_val: float
-    j_score_rank: float
+    j_score_rank: Optional[float]
     j_score_per: Optional[float]
     ref_date : date
 
     class Config:
         from_attributes = True
     
-
-class StatDataAvg(BaseModel):
-    target_item: str
-    avg_val: float
-    med_val: float
-    std_val: float
-    max_val: float
-    min_val: float
-    j_score: float
-
-    class Config:
-        from_attributes = True
 
 
 class StatDataForNation(BaseModel):
