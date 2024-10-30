@@ -39,7 +39,7 @@ def get_filtered_loc_store(filters: dict):
             JOIN city ON local_store.city_id = city.city_id
             JOIN district ON local_store.district_id = district.district_id
             JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
-            WHERE 1=1 and local_year = 2024 and local_quarter = 2
+            WHERE 1=1 and IS_EXIST = 1
         """
         query_params = []
 
@@ -98,7 +98,7 @@ def get_filtered_loc_store(filters: dict):
             JOIN city ON local_store.city_id = city.city_id
             JOIN district ON local_store.district_id = district.district_id
             JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
-            WHERE 1=1
+            WHERE 1=1 and IS_EXIST = 1
         """
 
         # 동일한 필터 조건 적용

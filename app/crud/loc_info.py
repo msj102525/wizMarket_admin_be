@@ -727,7 +727,7 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatDataForExetend:
                 j_score_rank= row.get("J_SCORE_RANK")
             )
             results.append(loc_info_by_region)
-        print(results)
+
         return results
 
     finally:
