@@ -16,6 +16,7 @@ router = APIRouter()
 async def select_population(filters: PopulationSearch):
     # 입력된 필터 데이터만 딕셔너리로 변환 (unset된 필드는 제외)
     filters_dict = filters.dict(exclude_unset=True)
+    # print(filters)
     try:
         # 필터 데이터를 서비스 레이어로 전달하여 결과 가져옴
         result = await filter_population_data(filters_dict)

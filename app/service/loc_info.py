@@ -257,4 +257,3 @@ def select_report_loc_info_by_store_business_number(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
-

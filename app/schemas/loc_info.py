@@ -125,8 +125,9 @@ class StatDataForExetend(BaseModel):
     std_val: Optional[float]
     max_val: Optional[float]
     min_val: Optional[float]
-    j_score_rank: Optional[float]
     j_score_per: Optional[float]
+    j_score_rank: Optional[float]
+    j_score: Optional[float]
     ref_date : date
 
     class Config:
@@ -145,8 +146,9 @@ class StatDataByCityForExetend(BaseModel):
     std_val: float
     max_val: float
     min_val: float
-    j_score_rank: Optional[float]
     j_score_per: Optional[float]
+    j_score_rank: Optional[float]
+    j_score: Optional[float]
     ref_date : date
 
     class Config:
@@ -164,8 +166,9 @@ class StatDataByDistrictForExetend(BaseModel):
     std_val: float
     max_val: float
     min_val: float
-    j_score_rank: Optional[float]
     j_score_per: Optional[float]
+    j_score_rank: Optional[float]
+    j_score: Optional[float]
     ref_date : date
 
     class Config:
@@ -181,8 +184,9 @@ class StatDataForNation(BaseModel):
     sub_district_id: int
     sub_district_name: str
     target_item: str
-    j_score_rank: Optional[float]
+    j_score: Optional[float]
     j_score_per: Optional[float]
+    j_score_rank: Optional[float]
     ref_date : date
 
     class Config:

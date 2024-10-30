@@ -38,6 +38,6 @@ async def filter_data(filters: FilterRequest):
     else:
         region_stat = select_stat_data_by_sub_district(filters_dict)
     
-    nation_j_score_rank = select_nation_j_score(filters_dict)
+    nation_j_score = select_nation_j_score(filters_dict)
 
-    return {"filtered_data": result, "filter_corr" : filter_corr_matrix, "region_j_score":region_stat, "nation_j_score_rank":nation_j_score_rank}
+    return {"filtered_data": result, "filter_corr" : filter_corr_matrix, "region_j_score":region_stat, "nation_j_score":nation_j_score}

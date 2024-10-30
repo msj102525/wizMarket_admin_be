@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 from app.schemas.loc_info import LocationInfoReportOutput
 from app.schemas.statistics import LocStatisticsOutput
@@ -206,6 +206,26 @@ class Population_by_ages(BaseModel):
 class Population_by_gender(BaseModel):
     male_population: int
     female_population: int
+
+    class Config:
+        from_attributes = True
+
+
+
+class PopulationFindByFilter(BaseModel):
+    city_name: str
+    district_name: str
+    sub_district_name: str
+    age_under_10s: Optional[int]
+    age_10s: Optional[int]
+    age_20s: Optional[int]
+    age_30s: Optional[int]
+    age_40s: Optional[int]
+    age_50s: Optional[int]
+    age_plus_60s: Optional[int]
+    total_population_by_gender: int
+    total_population: int
+    ref_date: date
 
     class Config:
         from_attributes = True
