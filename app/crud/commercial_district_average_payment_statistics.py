@@ -16,7 +16,7 @@ def select_commercial_district_average_payment_info(
                         STD_VAL,
                         MAX_VAL,
                         MIN_VAL,
-                        J_SCORE_PER
+                        J_SCORE
                     FROM COMMERCIAL_DISTRICT_AVERAGE_PAYMENT_STATISTICS
                     WHERE CITY_ID = %s AND DISTRICT_ID = %s AND SUB_DISTRICT_ID=%s AND BIZ_DETAIL_CATEGORY_ID = %s
                     ;
@@ -36,7 +36,7 @@ def select_commercial_district_average_payment_info(
                     std_val=row["STD_VAL"],
                     max_val=row["MAX_VAL"],
                     min_val=row["MIN_VAL"],
-                    j_score=row["J_SCORE_PER"],
+                    j_score=row["J_SCORE"],
                 )
 
                 return result
