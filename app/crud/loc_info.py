@@ -331,9 +331,9 @@ def get_stat_data_avg()-> StatDataForInit:
             JOIN city ON li.city_id = city.city_id
             JOIN district ON li.district_id = district.district_id
             JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
-            WHERE li.city_id IS NOT NULL 
-            AND li.district_id IS NOT NULL 
-            AND li.sub_district_id IS NOT NULL
+            WHERE li.city_id = 1
+            AND li.district_id = 1
+            AND li.sub_district_id = 1
             AND li.REF_DATE = '2024-08-01'
             LIMIT 9)
 
@@ -352,9 +352,9 @@ def get_stat_data_avg()-> StatDataForInit:
             JOIN city ON li.city_id = city.city_id
             JOIN district ON li.district_id = district.district_id
             JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
-            WHERE li.city_id IS NOT NULL 
-            AND li.district_id IS NOT NULL 
-            AND li.sub_district_id IS NOT NULL
+            WHERE li.city_id = 1
+            AND li.district_id = 1
+            AND li.sub_district_id = 1
             AND li.REF_DATE = '2024-10-01'
             LIMIT 9);
         """
