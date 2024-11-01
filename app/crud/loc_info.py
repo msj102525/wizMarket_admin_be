@@ -310,7 +310,7 @@ def get_all_region_id():
 
 ################  값 조회 ######################
 # 초기 데이터 : 통계값
-def get_stat_data_avg()-> StatDataForInit:
+def select_stat_data_avg()-> StatDataForInit:
     results = []
     # 여기서 직접 DB 연결을 설정
     connection = get_db_connection()
@@ -318,7 +318,7 @@ def get_stat_data_avg()-> StatDataForInit:
 
     try:
         query = """
-            (SELECT 
+            SELECT 
                 city.city_id AS CITY_ID, 
                 city.city_name AS CITY_NAME, 
                 district.district_id AS DISTRICT_ID, 
@@ -334,29 +334,8 @@ def get_stat_data_avg()-> StatDataForInit:
             WHERE li.city_id = 1
             AND li.district_id = 1
             AND li.sub_district_id = 1
-            AND li.REF_DATE = '2024-08-01'
-            LIMIT 9)
-
-            UNION ALL
-
-            (SELECT 
-                city.city_id AS CITY_ID, 
-                city.city_name AS CITY_NAME, 
-                district.district_id AS DISTRICT_ID, 
-                district.district_name AS DISTRICT_NAME, 
-                sub_district.sub_district_id AS SUB_DISTRICT_ID,
-                sub_district.sub_district_name AS SUB_DISTRICT_NAME,
-                TARGET_ITEM, REF_DATE,
-                AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL
-            FROM loc_info_statistics li
-            JOIN city ON li.city_id = city.city_id
-            JOIN district ON li.district_id = district.district_id
-            JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
-            WHERE li.city_id = 1
-            AND li.district_id = 1
-            AND li.sub_district_id = 1
-            AND li.REF_DATE = '2024-10-01'
-            LIMIT 9);
+            AND li.REF_DATE = (select max(ref_date) from loc_info_statistics)
+            LIMIT 9;
         """
         query_params = []
 

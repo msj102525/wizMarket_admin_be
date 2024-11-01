@@ -90,7 +90,7 @@ def get_filtered_loc_store(filters: dict):
                 local_store.store_business_number, local_store.store_name, local_store.branch_name, local_store.road_name_address,
                 local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                 local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info, local_store.floor_info,
-                local_store.unit_info, local_store.local_year, local_store.local_quarter, local_store.CREATED_AT, local_store.UPDATED_AT,
+                local_store.unit_info, local_store.local_year, local_store.local_quarter,
                 city.city_name AS city_name, 
                 district.district_name AS district_name, 
                 sub_district.sub_district_name AS sub_district_name

@@ -8,10 +8,10 @@ router = APIRouter()
 
 @router.post("/select_nation_stat_corr")
 async def init_data():
-    stat_data = select_stat_data_avg()
-    all_corr_matrix = init_corr_data()
-
-    return {"all_corr" : all_corr_matrix, "total_stat":stat_data} 
+    init_stat_data = get_init_stat_data()
+    init_all_corr_matrix = get_init_corr_data()
+    print(init_stat_data)
+    return {"init_all_corr" : init_all_corr_matrix, "init_stat_data":init_stat_data} 
 
 @router.post("/select_loc_info")
 async def filter_data(filters: FilterRequest):

@@ -13,7 +13,12 @@ from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.statistics import DataRefDateSubDistrictName, LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
 
 
-def init_corr_data():
+
+def get_init_stat_data():
+    result = select_stat_data_avg()
+    return result
+
+def get_init_corr_data():
     years = ['2024-08-01', '2024-10-01']
 
     # 년도별로 결과를 저장하기 위한 딕셔너리
@@ -88,9 +93,7 @@ def filter_location_info(filters: dict):
 
 
 # 추가 j_score 로직 변경
-def select_stat_data_avg():
-    result = get_stat_data_avg()
-    return result
+
 
 def select_stat_data(filters_dict):
     result = get_stat_data(filters_dict)
