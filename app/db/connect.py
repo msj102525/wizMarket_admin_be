@@ -6,14 +6,14 @@ from pymysql import OperationalError, InternalError, ProgrammingError, Error
 load_dotenv()
 
 
-def get_db_connection():
+def get_db_connection(db_database=None):
     connection = None
     try:
         connection = pymysql.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_DATABASE"),
+            database=db_database or os.getenv("DB_DATABASE"),
             autocommit=False,
         )
         # print("TEST Database connection established successfully.")

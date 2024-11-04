@@ -20,6 +20,7 @@ from app.api.endpoints import (
     reference,
     rising_business,
     commercial_district,
+    local_store_content
 )
 from app.api.endpoints import loc_info
 from app.api.endpoints import population
@@ -68,6 +69,7 @@ app.include_router(business_area_category.router, prefix="/business_area_categor
 app.include_router(category.router, prefix="/category")
 app.include_router(classification.router, prefix="/classification")
 app.include_router(statistics.router, prefix="/statistics")
+app.include_router(local_store_content.router, prefix="/local_store_content")
 
 
 if __name__ == "__main__":

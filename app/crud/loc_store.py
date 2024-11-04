@@ -11,8 +11,10 @@ from app.schemas.loc_store import (
     BusinessAreaCategoryReportOutput,
     BizDetailCategoryIdOutPut,
     RisingMenuOutPut,
-    BizCategoriesNameOutPut
+    BizCategoriesNameOutPut,
+    LocStoreInfoForContentOutPut
 )
+from fastapi import HTTPException
 
 # crud/loc_store.py
 
@@ -717,3 +719,57 @@ def get_region_id_by_store_business_number(
             close_connection(connection)
 
 
+def select_loc_store_for_content_by_store_business_number(
+    store_business_number:str
+) -> LocStoreInfoForContentOutPut:
+    
+    connection = get_db_connection()
+    cursor = connection.cursor(pymysql.cursors.DictCursor)
+    logger = logging.getLogger(__name__)
+
+    try:
+        if connection.open:
+
+            select_query = """
+                SELECT 
+                STORE_BUSINESS_NUMBER, 
+                STORE_NAME,
+                ROAD_NAME_ADDRESS
+            FROM
+                LOCAL_STORE
+            WHERE
+                STORE_BUSINESS_NUMBER = %s
+            ;
+            """
+
+            cursor.execute(select_query, (store_business_number,))
+
+
+            row = cursor.fetchone()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"LocStoreInfoForContentOutPut {store_business_number}에 해당하는 매장 정보를 찾을 수 없습니다.",
+                )
+
+            result = LocStoreInfoForContentOutPut(
+                store_business_number=row.get("STORE_BUSINESS_NUMBER"),
+                store_name=row.get("STORE_NAME"),
+                road_name_address=row.get("ROAD_NAME_ADDRESS")
+            )
+
+            # logger.info(f"Result for business ID {store_business_id}: {result}")
+            return result
+
+    except pymysql.MySQLError as e:
+        logger.error(f"MySQL Error: {e}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected Error select_loc_store_for_content_by_store_business_number: {e}"
+        )
+    finally:
+        if cursor:
+            close_cursor(cursor)
+        if connection:
+            close_connection(connection)

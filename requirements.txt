@@ -16,3 +16,4 @@ aiomysql==0.2.0
 pandas==2.2.2
 xlsxwriter==3.2.0
 openai==1.51.2
+python-multipart==0.0.17

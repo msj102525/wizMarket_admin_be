@@ -162,4 +162,17 @@ class LocalStoreCityDistrictSubDistrict(BaseModel):
     class Config:
         from_attributes = True
 
-  
+
+class StoreBusinessNumberInput(BaseModel):
+    store_business_number: str
+
+    class Config:
+        from_attributes = True
+
+class LocStoreInfoForContentOutPut(BaseModel):
+    store_business_number: str
+    store_name:str
+    road_name_address:str
+
+    class Config:
+        from_attributes = True
