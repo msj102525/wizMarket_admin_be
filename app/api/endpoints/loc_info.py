@@ -10,7 +10,7 @@ router = APIRouter()
 async def init_data():
     init_stat_data = get_init_stat_data()
     init_all_corr_matrix = get_init_corr_data()
-    print(init_stat_data)
+
     return {"init_all_corr" : init_all_corr_matrix, "init_stat_data":init_stat_data} 
 
 @router.post("/select_loc_info")

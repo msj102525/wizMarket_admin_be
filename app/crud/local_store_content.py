@@ -211,7 +211,7 @@ def select_loc_store_for_detail_content(local_store_content_id: int):
                 ),
                 image=image_urls
             )
-            print(result)
+         
             return result
 
     except pymysql.Error as e:
