@@ -1,12 +1,18 @@
+from datetime import date
 import pymysql
 from app.db.connect import close_connection, close_cursor, get_db_connection
 from app.schemas.statistics import CommercialStatistics
 
 
 def select_commercial_district_market_size_info(
-    city_id: int, district_id: int, sub_district_id: int, detail_category_id: int
+    city_id: int,
+    district_id: int,
+    sub_district_id: int,
+    detail_category_id: int,
+    y_m: date,
 ):
     try:
+        print(y_m)
         with get_db_connection() as connection:
             with connection.cursor(pymysql.cursors.DictCursor) as cursor:
                 select_query = """
@@ -19,11 +25,12 @@ def select_commercial_district_market_size_info(
                         J_SCORE
                     FROM COMMERCIAL_DISTRICT_MARKET_SIZE_STATISTICS
                     WHERE CITY_ID = %s AND DISTRICT_ID = %s AND SUB_DISTRICT_ID=%s AND BIZ_DETAIL_CATEGORY_ID = %s
+                    AND REF_DATE = %s
                     ;
                 """
                 cursor.execute(
                     select_query,
-                    (city_id, district_id, sub_district_id, detail_category_id),
+                    (city_id, district_id, sub_district_id, detail_category_id, y_m),
                 )
                 row = cursor.fetchone()
 

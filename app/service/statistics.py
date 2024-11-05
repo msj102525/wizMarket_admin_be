@@ -1,3 +1,4 @@
+from datetime import date
 import numpy as np
 from tqdm import tqdm
 from app.crud.biz_detail_category import (
@@ -813,6 +814,7 @@ def select_statistics_by_sub_district_detail_category_new(
     district_name: str,
     sub_district_name: str,
     biz_detail_category_name: str,
+    y_m: date
 ):
 
     city_id = crud_get_city_id(city_name)
@@ -832,19 +834,19 @@ def select_statistics_by_sub_district_detail_category_new(
 
     statistics_data = CommercialStatisticsData(
         market_size=select_commercial_district_market_size_info(
-            city_id, district_id, sub_district_id, detail_category_id
+            city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
         average_sales=select_commercial_district_average_sales_info(
-            city_id, district_id, sub_district_id, detail_category_id
+            city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
         average_payment=select_commercial_district_average_payment_info(
-            city_id, district_id, sub_district_id, detail_category_id
+            city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
         usage_count=select_commercial_district_usage_count_info(
-            city_id, district_id, sub_district_id, detail_category_id
+            city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
         sub_district_density=select_commercial_district_sub_district_density_info(
-            city_id, district_id, sub_district_id, detail_category_id
+            city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
     )
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 
@@ -208,6 +208,8 @@ class CommercialDistrictOutput(BaseModel):
     top_menu_3: Optional[str] = None
     top_menu_4: Optional[str] = None
     top_menu_5: Optional[str] = None
+
+    y_m: date
 
     created_at: datetime
     updated_at: datetime

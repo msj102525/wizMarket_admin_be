@@ -1,3 +1,4 @@
+from datetime import date
 import logging
 from fastapi import logger
 import pymysql
@@ -9,7 +10,11 @@ import logging
 
 
 def select_commercial_district_sub_district_density_info(
-    city_id: int, district_id: int, sub_district_id: int, detail_category_id: int
+    city_id: int,
+    district_id: int,
+    sub_district_id: int,
+    detail_category_id: int,
+    y_m: date,
 ):
     logger = logging.getLogger(__name__)
 
@@ -26,11 +31,12 @@ def select_commercial_district_sub_district_density_info(
                         J_SCORE
                     FROM COMMERCIAL_DISTRICT_SUB_DISTRICT_DENSITY_STATISTICS
                     WHERE CITY_ID = %s AND DISTRICT_ID = %s AND SUB_DISTRICT_ID=%s AND BIZ_DETAIL_CATEGORY_ID = %s
+                    AND REF_DATE = %s
                     ;
                 """
                 cursor.execute(
                     select_query,
-                    (city_id, district_id, sub_district_id, detail_category_id),
+                    (city_id, district_id, sub_district_id, detail_category_id, y_m),
                 )
                 row = cursor.fetchone()
 

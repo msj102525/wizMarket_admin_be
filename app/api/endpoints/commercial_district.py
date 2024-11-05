@@ -93,6 +93,7 @@ def get_commercial_district_by_query(
                     item.district_name,
                     item.sub_district_name,
                     item.biz_detail_category_name,
+                    item.y_m,
                 )
             )
 

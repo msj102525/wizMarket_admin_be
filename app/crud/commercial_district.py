@@ -306,6 +306,7 @@ def select_commercial_district_by_dynamic_query(
                 CD.TOP_MENU_3,
                 CD.TOP_MENU_4,
                 CD.TOP_MENU_5,
+                CD.Y_M,
                 CD.CREATED_AT,
                 CD.UPDATED_AT
             FROM 
@@ -461,6 +462,7 @@ def select_commercial_district_by_dynamic_query(
                     top_menu_5=row.get("TOP_MENU_5"),
                     created_at=row.get("CREATED_AT"),
                     updated_at=row.get("UPDATED_AT"),
+                    y_m =row.get("Y_M"),
                 )
                 # print(row)
                 results.append(commercial_district_output)
