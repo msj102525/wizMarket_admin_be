@@ -16,17 +16,27 @@ from app.service.local_store_content import (
     insert_store_content as service_insert_store_content,
     select_loc_store_content_list as service_select_loc_store_content_list,
     select_loc_store_category as service_select_loc_store_category,
-    update_loc_store_is_publish as service_update_loc_store_is_publish,
-    select_loc_store_for_detail_content as service_select_loc_store_for_detail_content
+    update_loc_store_content_status as service_update_loc_store_content_status,
+    select_loc_store_for_detail_content as service_select_loc_store_for_detail_content,
+    delete_loc_store_content_status as service_delete_loc_store_content_status,
+    update_loc_store_content as service_update_loc_store_content
 )
 from pathlib import Path
 import shutil
+from typing import Optional
+from dotenv import load_dotenv
+import os
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-IMAGE_DIR = BASE_DIR / "static/images/content"
+load_dotenv()
+
+REPORT_PATH = Path(os.getenv("REPORT_PATH"))
+IMAGE_DIR = Path(os.getenv("IMAGE_DIR"))
+FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/")
+
+FULL_PATH.mkdir(parents=True, exist_ok=True)
 
 # 신규 등록
 @router.post("/insert_store_content_image")
@@ -38,10 +48,11 @@ def save_store_content(
 ):
     # 이미지 파일 처리
     image_urls = []
+
     if images:
         for image in images:
             # 파일 저장 경로 지정
-            file_path = IMAGE_DIR / image.filename
+            file_path = FULL_PATH / image.filename
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
             
@@ -95,14 +106,14 @@ def get_store_category(request: StoreBusinessNumberListRequest):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-# 계시 여부 상태 변경
-@router.post("/update_loc_store_is_publish")
-def update_loc_store_is_publish(request: UpdatePublishStatusRequest):
+# 게시 여부 상태 변경
+@router.post("/update_loc_store_content_status")
+def update_loc_store_content_status(request: UpdatePublishStatusRequest):
     try:
         # 서비스 레이어를 통해 업데이트 작업 수행
-        service_update_loc_store_is_publish(
+        service_update_loc_store_content_status(
             request.local_store_content_id,
-            request.is_publish
+            request.status
         )
         return {"message": "Publish status updated successfully"}
     except Exception as e:
@@ -119,6 +130,60 @@ def select_loc_store_for_detail_content(request: LocStoreDetailRequest):
     try:
         result = service_select_loc_store_for_detail_content(local_store_content_id)
         return result
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+
+# 게시글 삭제
+@router.post("/delete_loc_store_content")
+def delete_loc_store_content_status(request: LocStoreDetailRequest):
+    try:
+        # 서비스 레이어를 통해 업데이트 작업 수행
+        service_delete_loc_store_content_status(
+            request.local_store_content_id,
+        )
+        return {"message": "Publish status updated successfully"}
+    except Exception as e:
+        # 예외 처리
+        print(f"Error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+
+# 게시글 수정
+@router.post("/update_loc_store_content")
+async def update_loc_store_content(
+    local_store_content_id: int = Form(...),
+    title: str = Form(...),
+    content: str = Form(...),
+    existing_images: List[str] = Form(...),
+    new_images: List[UploadFile] = File(None)
+):
+    try:
+        # 새로운 이미지가 있을 때 파일 저장 경로를 생성하여 URL 목록 작성
+        new_image_urls = []
+        if new_images:
+            for image in new_images:
+                file_path = FULL_PATH / image.filename
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(image.file, buffer)
+                image_url = f"/static/images/content/{image.filename}"
+                new_image_urls.append(image_url)
+
+        # 서비스 레이어 호출
+        success = service_update_loc_store_content(
+            local_store_content_id=local_store_content_id,
+            title=title,
+            content=content,
+            existing_images=existing_images,
+            new_image_urls=new_image_urls
+        )
+
+        if not success:
+            raise HTTPException(status_code=404, detail="Content not found for updating")
+
+        return {"message": "Content updated successfully"}
+
     except Exception as e:
         print(f"Error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")

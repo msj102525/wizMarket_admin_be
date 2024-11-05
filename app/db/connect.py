@@ -5,7 +5,7 @@ from pymysql import OperationalError, InternalError, ProgrammingError, Error
 
 load_dotenv()
 
-
+# 소스 DB 연결
 def get_db_connection(db_database=None):
     connection = None
     try:
@@ -14,6 +14,30 @@ def get_db_connection(db_database=None):
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
             database=db_database or os.getenv("DB_DATABASE"),
+            autocommit=False,
+        )
+        # print("TEST Database connection established successfully.")
+    except OperationalError as e:
+        print(f"OperationalError: {e}")
+    except InternalError as e:
+        print(f"InternalError: {e}")
+    except ProgrammingError as e:
+        print(f"ProgrammingError: {e}")
+    except Error as e:
+        print(f"Error: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    return connection
+
+# 리포트 DB 연결
+def get_re_db_connection():
+    connection = None
+    try:
+        connection = pymysql.connect(
+            host=os.getenv("DB_RE_HOST"),
+            user=os.getenv("DB_RE_USER"),
+            password=os.getenv("DB_RE_PASSWORD"),
+            database=os.getenv("DB_RE_DATABASE"),
             autocommit=False,
         )
         # print("TEST Database connection established successfully.")

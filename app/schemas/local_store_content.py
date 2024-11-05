@@ -1,13 +1,14 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime 
+from fastapi import UploadFile, File
 
 class LocStoreContentList(BaseModel):
     local_store_content_id: int
     store_business_number: str
     store_name:str
     road_name:str
-    is_publish: bool
+    status: str
     title :str
     content :str
     created_at:datetime  
@@ -31,10 +32,10 @@ class StoreBusinessNumberListRequest(BaseModel):
     class Config:
         from_attributes = True
 
-# 계시 상태 여부 업데이트
+# 게시 상태 여부 업데이트
 class UpdatePublishStatusRequest(BaseModel):
     local_store_content_id: int
-    is_publish: bool
+    status: str
 
     class Config:
         from_attributes = True
@@ -51,7 +52,7 @@ class LocStoreDetailContent(BaseModel):
     local_store_content_id: int
     title: str
     content: str
-    is_publish: bool
+    status: str
 
     class Config:
         form_mode = True
@@ -69,3 +70,12 @@ class LocStoreDetailContentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# 게시글 수정용
+class LocStoreUpdateRequest(BaseModel):
+    local_store_content_id: int  # 업데이트할 항목의 ID
+    title: str
+    content: str
+    existing_images: List[str]  # 기존 이미지 파일 경로 또는 파일명
+    new_images: Optional[List[UploadFile]] = File(None) 

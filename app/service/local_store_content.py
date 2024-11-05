@@ -3,8 +3,14 @@ from app.crud.local_store_content import (
     insert_store_content as crud_insert_store_content,
     select_loc_store_content_list as crud_select_loc_store_content_list,
     select_loc_store_category as crud_select_loc_store_category,
-    update_loc_store_is_publish as crud_update_loc_store_is_publish,
-    select_loc_store_for_detail_content as crud_select_loc_store_for_detail_content
+    update_loc_store_content_status as crud_update_loc_store_content_status,
+    select_loc_store_for_detail_content as crud_select_loc_store_for_detail_content,
+    delete_loc_store_content_status as crud_delete_loc_store_content_status,
+    update_loc_store_content as crud_update_loc_store_content,
+    select_loc_store_existing_image as crud_select_loc_store_existing_image,
+    delete_loc_store_existing_image as crud_delete_loc_store_existing_image,
+    insert_loc_store_new_image as crud_insert_loc_store_new_image
+
 )
 from app.crud.local_store_content_image import(
     insert_store_content_image as crud_insert_store_content_image
@@ -28,6 +34,7 @@ def insert_store_content(
 
 # 추가 정보 불러오기
 def select_loc_store_content_list():
+
     try:
         return crud_select_loc_store_content_list()
     except HTTPException:
@@ -56,11 +63,11 @@ def select_loc_store_category(store_business_number_list: List[str]):
             status_code=500, detail=f"Service loc_store_content_list Error: {str(e)}"
         )
 
-# 계시 여부 상태 변경
-def update_loc_store_is_publish(local_store_content_id: int, is_publish: bool):
+# 게시 여부 상태 변경
+def update_loc_store_content_status(local_store_content_id: int, status: str):
     try:
         # CRUD 레이어에 값을 전달하여 업데이트 작업 수행
-        success = crud_update_loc_store_is_publish(local_store_content_id, is_publish)
+        success = crud_update_loc_store_content_status(local_store_content_id, status)
         if not success:
             raise HTTPException(status_code=404, detail="Content not found for updating")
     except Exception as e:
@@ -80,3 +87,44 @@ def select_loc_store_for_detail_content(local_store_content_id: int):
         raise HTTPException(
             status_code=500, detail=f"Service loc_store_content_list Error: {str(e)}"
         )
+    
+# 게시글 삭제
+def delete_loc_store_content_status(local_store_content_id: int):
+    try:
+        # CRUD 레이어에 값을 전달하여 업데이트 작업 수행
+        success = crud_delete_loc_store_content_status(local_store_content_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Content not found for updating")
+    except Exception as e:
+        print(f"Service error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+# 게시글 수정
+def update_loc_store_content(local_store_content_id: int, title: str, content: str, existing_images: List[str], new_image_urls: List[bytes]):
+    try:
+        # 1. 제목, 글은 무조건 update
+        crud_update_loc_store_content(local_store_content_id, title, content)
+        
+        # 2. 이미지
+        # current_images에서 URL만 추출
+        current_image_urls = [img.local_store_image_url for img in crud_select_loc_store_existing_image(local_store_content_id)]
+        
+        # 2-1. 기존 이미지 삭제 되었을 경우
+        images_to_delete = [img for img in current_image_urls if img not in existing_images]
+        if images_to_delete:
+            print('기존 이미지:', current_image_urls)
+            print('삭제할 이미지:', images_to_delete)
+            crud_delete_loc_store_existing_image(local_store_content_id, images_to_delete)
+
+        # 2-2. 새로 이미지 추가 됬었을 경우
+        if new_image_urls:
+            print(new_image_urls)
+            crud_insert_loc_store_new_image(local_store_content_id, new_image_urls)
+
+        # 2-3. 그대로 일 경우
+        return True
+
+    except Exception as e:
+        print(f"Service error occurred: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
