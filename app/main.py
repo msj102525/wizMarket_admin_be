@@ -13,6 +13,7 @@ from app.api.endpoints import (
     biz_sub_category,
     cai_info,
     category,
+    category_content,
     city,
     classification,
     district,
@@ -54,8 +55,8 @@ async def read_root():
 
 app.include_router(hello.router, prefix="/hello")
 app.include_router(population.router, prefix="/population")
-app.include_router(loc_info.router, prefix="/loc_info")
-app.include_router(loc_store.router, prefix="/loc_store")
+app.include_router(loc_info.router, prefix="/loc/info")
+app.include_router(loc_store.router, prefix="/loc/store")
 app.include_router(commercial_district.router, prefix="/commercial")
 app.include_router(rising_business.router, prefix="/rising")
 app.include_router(cai_info.router, prefix="/cai")
@@ -69,7 +70,8 @@ app.include_router(business_area_category.router, prefix="/business_area_categor
 app.include_router(category.router, prefix="/category")
 app.include_router(classification.router, prefix="/classification")
 app.include_router(statistics.router, prefix="/statistics")
-app.include_router(local_store_content.router, prefix="/local_store_content")
+app.include_router(local_store_content.router, prefix="/store/content")
+app.include_router(category_content.router, prefix="/category/content")
 
 
 if __name__ == "__main__":

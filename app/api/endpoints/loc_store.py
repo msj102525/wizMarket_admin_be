@@ -11,7 +11,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # 엔드포인트
-@router.post("/select_loc_store")
+@router.post("/select/store/list")
 async def filter_data(filters: FilterRequest):
     # 필터 정보를 서비스 레이어로 전달
     data, total_items = await filter_loc_store(filters)
@@ -22,7 +22,8 @@ async def filter_data(filters: FilterRequest):
     }
     
 
-@router.post("/select_loc_store_for_content", response_model=LocStoreInfoForContentOutPut)
+# 매장 리스트에서 모달창 띄우기
+@router.post("/select/init/content", response_model=LocStoreInfoForContentOutPut)
 def select_loc_store_for_content_by_store_business_number(store_business_number: str):
     # 쿼리 매개변수로 전달된 store_business_number 값 수신
     try:

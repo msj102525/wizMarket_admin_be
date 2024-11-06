@@ -17,6 +17,9 @@ from app.crud.local_store_content_image import(
 )
 from fastapi import HTTPException
 import logging
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +102,14 @@ def delete_loc_store_content_status(local_store_content_id: int):
         print(f"Service error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-
 # 게시글 수정
+load_dotenv()
+
+REPORT_PATH = Path(os.getenv("REPORT_PATH"))
+IMAGE_DIR = Path(os.getenv("IMAGE_DIR"))
+FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/") / "content"
+
+
 def update_loc_store_content(local_store_content_id: int, title: str, content: str, existing_images: List[str], new_image_urls: List[bytes]):
     try:
         # 1. 제목, 글은 무조건 update
@@ -113,6 +122,12 @@ def update_loc_store_content(local_store_content_id: int, title: str, content: s
         # 2-1. 기존 이미지 삭제 되었을 경우
         images_to_delete = [img for img in current_image_urls if img not in existing_images]
         if images_to_delete:
+            for image_url in images_to_delete:
+                # 파일 시스템에서 이미지 파일 삭제
+                file_path = FULL_PATH / image_url.split("/")[-1]  # 이미지 파일 경로 추출
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            # DB 에서 삭제
             crud_delete_loc_store_existing_image(local_store_content_id, images_to_delete)
 
         # 2-2. 새로 이미지 추가 됬었을 경우

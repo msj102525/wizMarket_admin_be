@@ -306,10 +306,8 @@ def select_loc_store_existing_image(local_store_content_id : int):
             cursor.execute(select_query, (local_store_content_id))
             rows = cursor.fetchall()
             if not rows:
-                raise HTTPException(
-                    status_code=404,
-                    detail="LocStoreContentList 해당하는 매장 정보를 찾을 수 없습니다.",
-                )
+                return []
+            
             result = [
                 LocStoreImage(
                     local_store_image_url=row["LOCAL_STORE_CONTENT_IMAGE_URL"],

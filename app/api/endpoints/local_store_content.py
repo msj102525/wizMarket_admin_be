@@ -34,12 +34,12 @@ load_dotenv()
 
 REPORT_PATH = Path(os.getenv("REPORT_PATH"))
 IMAGE_DIR = Path(os.getenv("IMAGE_DIR"))
-FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/")
+FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/") / "content"
 
 FULL_PATH.mkdir(parents=True, exist_ok=True)
 
 # 신규 등록
-@router.post("/insert_store_content_image")
+@router.post("/insert/content")
 def save_store_content(
     store_business_number: str = Form(...),
     title: str = Form(...),
@@ -73,7 +73,7 @@ def save_store_content(
 
 
 # 리스트 컨텐츠 정보 조회
-@router.get("/select_loc_store_content_list", response_model=List[LocStoreContentList])
+@router.get("/select/list", response_model=List[LocStoreContentList])
 def get_store_content():
     try:
         # 서비스에서 데이터를 가져와 result 변수에 저장
@@ -93,7 +93,7 @@ def get_store_content():
     
 
 # 업종 조회
-@router.post("/select_loc_store_category", response_model=List[LocStoreCategoryList])
+@router.post("/select/category", response_model=List[LocStoreCategoryList])
 def get_store_category(request: StoreBusinessNumberListRequest):
     store_business_number_list = request.store_business_number_list
     try:
@@ -107,7 +107,7 @@ def get_store_category(request: StoreBusinessNumberListRequest):
 
 
 # 게시 여부 상태 변경
-@router.post("/update_loc_store_content_status")
+@router.post("/update/status")
 def update_loc_store_content_status(request: UpdatePublishStatusRequest):
     try:
         # 서비스 레이어를 통해 업데이트 작업 수행
@@ -123,7 +123,7 @@ def update_loc_store_content_status(request: UpdatePublishStatusRequest):
     
 
 # 상세 조회
-@router.post("/select_loc_store_for_detail_content", response_model=LocStoreDetailContentResponse)
+@router.post("/select/detail/content", response_model=LocStoreDetailContentResponse)
 def select_loc_store_for_detail_content(request: LocStoreDetailRequest):
     local_store_content_id = request.local_store_content_id
 
@@ -136,7 +136,7 @@ def select_loc_store_for_detail_content(request: LocStoreDetailRequest):
     
 
 # 게시글 삭제
-@router.post("/delete_loc_store_content")
+@router.post("/delete/content")
 def delete_loc_store_content_status(request: LocStoreDetailRequest):
     try:
         # 서비스 레이어를 통해 업데이트 작업 수행
@@ -151,12 +151,12 @@ def delete_loc_store_content_status(request: LocStoreDetailRequest):
     
 
 # 게시글 수정
-@router.post("/update_loc_store_content")
+@router.post("/update/content")
 async def update_loc_store_content(
     local_store_content_id: int = Form(...),
     title: str = Form(...),
     content: str = Form(...),
-    existing_images: List[str] = Form(...),
+    existing_images: str = Form("[]"),  
     new_images: List[UploadFile] = File(None)
 ):
     try:

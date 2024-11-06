@@ -3,11 +3,9 @@ from typing import Optional, List
 from datetime import datetime 
 from fastapi import UploadFile, File
 
-class LocStoreContentList(BaseModel):
-    local_store_content_id: int
-    store_business_number: str
-    store_name:str
-    road_name:str
+class CategoryContentList(BaseModel):
+    biz_detail_category_content_id: int
+    detail_category_id: int
     status: str
     title :str
     content :str
@@ -16,25 +14,27 @@ class LocStoreContentList(BaseModel):
     class Config:
         from_attributes = True
 
-class LocStoreCategoryList(BaseModel):
-    store_business_number: str
-    large_category_name:str
-    medium_category_name:str
-    small_category_name: str
-
-    class Config:
-        from_attributes = True
-
 # 업종 조회
-class StoreBusinessNumberListRequest(BaseModel):
-    store_business_number_list: List[str]
+class CategoryBizCategoryList(BaseModel):
+    biz_detail_category_id: int
+    biz_main_category_name:str
+    biz_sub_category_name:str
+    biz_detail_category_name: str
+
 
     class Config:
         from_attributes = True
+
+class BizCategoryNumberListRequest(BaseModel):
+    biz_category_number_list: List[int]
+
+    class Config:
+        from_attributes = True
+
 
 # 게시 상태 여부 업데이트
 class UpdatePublishStatusRequest(BaseModel):
-    local_store_content_id: int
+    biz_detail_category_content_id: int
     status: str
 
     class Config:
@@ -42,14 +42,14 @@ class UpdatePublishStatusRequest(BaseModel):
 
 
 # 글 상세 조회
-class LocStoreDetailRequest(BaseModel):
-    local_store_content_id: int
+class CategoryDetailRequest(BaseModel):
+    biz_detail_category_content_id: int
     
     class Config:
         from_attributes = True
 
-class LocStoreDetailContent(BaseModel):
-    local_store_content_id: int
+class CategoryDetailContent(BaseModel):
+    biz_detail_category_content_id: int
     title: str
     content: str
     status: str
@@ -57,19 +57,20 @@ class LocStoreDetailContent(BaseModel):
     class Config:
         form_mode = True
 
-class LocStoreImage(BaseModel):
-    local_store_image_url: str
+class CategoryImage(BaseModel):
+    biz_detail_category_content_image_url: str
 
     class Config:
         from_attributes = True
 
 
-class LocStoreDetailContentResponse(BaseModel):
-    local_store_detail_content: LocStoreDetailContent
-    image: List[LocStoreImage]
+class CategoryDetailContentResponse(BaseModel):
+    category_detail_content: CategoryDetailContent
+    image: List[CategoryImage]
 
     class Config:
         from_attributes = True
+
 
 
 # 게시글 수정용

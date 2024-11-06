@@ -1,25 +1,26 @@
 from fastapi import (
     APIRouter, UploadFile, File, Form, HTTPException
 )
-from app.schemas.local_store_content import (
-    LocStoreContentList,
-    LocStoreCategoryList,
-    StoreBusinessNumberListRequest,
+import json
+from app.schemas.category_content import (
+    CategoryContentList,
+    CategoryBizCategoryList,
+    BizCategoryNumberListRequest,
     UpdatePublishStatusRequest,
-    LocStoreDetailContentResponse,
-    LocStoreDetailRequest
+    CategoryDetailContentResponse,
+    CategoryDetailRequest
 )
 from fastapi import Request
 import logging
 from typing import List
-from app.service.local_store_content import (
-    insert_store_content as service_insert_store_content,
-    select_loc_store_content_list as service_select_loc_store_content_list,
-    select_loc_store_category as service_select_loc_store_category,
-    update_loc_store_content_status as service_update_loc_store_content_status,
-    select_loc_store_for_detail_content as service_select_loc_store_for_detail_content,
-    delete_loc_store_content_status as service_delete_loc_store_content_status,
-    update_loc_store_content as service_update_loc_store_content
+from app.service.category_content import (
+    insert_category_content as service_insert_category_content,
+    select_category_content_list as service_select_category_content_list,
+    select_category_biz_category as service_select_category_biz_category,
+    update_category_content_status as service_update_category_content_status,
+    select_category_for_detail_content as service_select_category_for_detail_content,
+    delete_category_content_status as service_delete_category_content_status,
+    update_category_content as service_update_category_content
 )
 from pathlib import Path
 import shutil
@@ -34,14 +35,14 @@ load_dotenv()
 
 REPORT_PATH = Path(os.getenv("REPORT_PATH"))
 IMAGE_DIR = Path(os.getenv("IMAGE_DIR"))
-FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/")
+FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/") / "category"
 
 FULL_PATH.mkdir(parents=True, exist_ok=True)
 
 # 신규 등록
-@router.post("/insert_store_content_image/biz")
-def save_store_content(
-    store_business_number: str = Form(...),
+@router.post("/insert/content")
+def insert_category_content(
+    detail_category: int = Form(...),
     title: str = Form(...),
     content: str = Form(...),
     images: List[UploadFile] = File(None)  # 이미지 파일을 리스트로 받음, 최대 4장
@@ -57,14 +58,14 @@ def save_store_content(
                 shutil.copyfileobj(image.file, buffer)
             
             # 이미지 URL 생성 (예: "/static/images/content/filename.jpg")
-            image_url = f"/static/images/content/{image.filename}"
+            image_url = f"/static/images/category/{image.filename}"
             image_urls.append(image_url)
 
-    service_insert_store_content(store_business_number, title, content, image_urls)
+    service_insert_category_content(detail_category, title, content, image_urls)
 
     # 예시 응답 데이터
     return {
-        "store_business_number": store_business_number,
+        "detail_category": detail_category,
         "title": title,
         "content": content,
         "image_filenames": image_urls
@@ -73,11 +74,11 @@ def save_store_content(
 
 
 # 리스트 컨텐츠 정보 조회
-@router.get("/select_loc_store_content_list/biz", response_model=List[LocStoreContentList])
-def get_store_content():
+@router.get("/select/list", response_model=List[CategoryContentList])
+def get_category_content():
     try:
         # 서비스에서 데이터를 가져와 result 변수에 저장
-        result: LocStoreContentList = service_select_loc_store_content_list()
+        result: CategoryContentList = service_select_category_content_list()
         return result  # result를 반환
 
     except HTTPException as http_ex:
@@ -93,12 +94,12 @@ def get_store_content():
     
 
 # 업종 조회
-@router.post("/select_loc_store_category/biz", response_model=List[LocStoreCategoryList])
-def get_store_category(request: StoreBusinessNumberListRequest):
-    store_business_number_list = request.store_business_number_list
+@router.post("/select/biz/category/list", response_model=List[CategoryBizCategoryList])
+def get_category_biz_category(request: BizCategoryNumberListRequest):
+    biz_category_number_list = request.biz_category_number_list
     try:
         # 서비스에서 데이터를 가져와 result 변수에 저장
-        result = service_select_loc_store_category(store_business_number_list)
+        result = service_select_category_biz_category(biz_category_number_list)
         return result  # result를 반환
     except Exception as e:
         # 예외 처리
@@ -107,12 +108,12 @@ def get_store_category(request: StoreBusinessNumberListRequest):
 
 
 # 게시 여부 상태 변경
-@router.post("/update_loc_store_content_status/biz")
-def update_loc_store_content_status(request: UpdatePublishStatusRequest):
+@router.post("/update/status")
+def update_category_content_status(request: UpdatePublishStatusRequest):
     try:
         # 서비스 레이어를 통해 업데이트 작업 수행
-        service_update_loc_store_content_status(
-            request.local_store_content_id,
+        service_update_category_content_status(
+            request.biz_detail_category_content_id,
             request.status
         )
         return {"message": "Publish status updated successfully"}
@@ -123,12 +124,11 @@ def update_loc_store_content_status(request: UpdatePublishStatusRequest):
     
 
 # 상세 조회
-@router.post("/select_loc_store_for_detail_content/biz", response_model=LocStoreDetailContentResponse)
-def select_loc_store_for_detail_content(request: LocStoreDetailRequest):
-    local_store_content_id = request.local_store_content_id
-
+@router.post("/select/detail/content", response_model=CategoryDetailContentResponse)
+def select_category_for_detail_content(request: CategoryDetailRequest):
+    biz_detail_category_content_id = request.biz_detail_category_content_id
     try:
-        result = service_select_loc_store_for_detail_content(local_store_content_id)
+        result = service_select_category_for_detail_content(biz_detail_category_content_id)
         return result
     except Exception as e:
         print(f"Error occurred: {e}")
@@ -136,12 +136,12 @@ def select_loc_store_for_detail_content(request: LocStoreDetailRequest):
     
 
 # 게시글 삭제
-@router.post("/delete_loc_store_content/biz")
-def delete_loc_store_content_status(request: LocStoreDetailRequest):
+@router.post("/delete/content")
+def delete_loc_store_content_status(request: CategoryDetailRequest):
     try:
         # 서비스 레이어를 통해 업데이트 작업 수행
-        service_delete_loc_store_content_status(
-            request.local_store_content_id,
+        service_delete_category_content_status(
+            request.biz_detail_category_content_id,
         )
         return {"message": "Publish status updated successfully"}
     except Exception as e:
@@ -151,28 +151,30 @@ def delete_loc_store_content_status(request: LocStoreDetailRequest):
     
 
 # 게시글 수정
-@router.post("/update_loc_store_content/biz")
+@router.post("/update/content")
 async def update_loc_store_content(
-    local_store_content_id: int = Form(...),
+    biz_detail_category_content_id: int = Form(...),
     title: str = Form(...),
     content: str = Form(...),
-    existing_images: List[str] = Form(...),
+    existing_images: str = Form("[]"),  # 기존 이미지를 문자열로 받아 JSON 디코딩
     new_images: List[UploadFile] = File(None)
 ):
+
     try:
         # 새로운 이미지가 있을 때 파일 저장 경로를 생성하여 URL 목록 작성
+        existing_images = existing_images or []
         new_image_urls = []
         if new_images:
             for image in new_images:
                 file_path = FULL_PATH / image.filename
                 with open(file_path, "wb") as buffer:
                     shutil.copyfileobj(image.file, buffer)
-                image_url = f"/static/images/content/{image.filename}"
+                image_url = f"/static/images/category/{image.filename}"
                 new_image_urls.append(image_url)
 
         # 서비스 레이어 호출
-        success = service_update_loc_store_content(
-            local_store_content_id=local_store_content_id,
+        success = service_update_category_content(
+            biz_detail_category_content_id=biz_detail_category_content_id,
             title=title,
             content=content,
             existing_images=existing_images,

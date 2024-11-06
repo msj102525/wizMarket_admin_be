@@ -6,14 +6,20 @@ import pymysql
 import os
 from fastapi import HTTPException
 import logging
-from app.schemas.local_store_content import LocStoreContentList, LocStoreCategoryList, LocStoreDetailContent, LocStoreDetailContentResponse,LocStoreImage
+from app.schemas.category_content import (
+    CategoryContentList, 
+    CategoryBizCategoryList, 
+    CategoryDetailContent, 
+    CategoryDetailContentResponse,
+    CategoryImage
+)
 from typing import Optional, List
 
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-def insert_store_content(store_business_number: str, title: str, content: str):
+def insert_category_content(detail_category: int, title: str, content: str):
     # 데이터베이스 연결 설정
     connection = get_re_db_connection()
     
@@ -21,12 +27,12 @@ def insert_store_content(store_business_number: str, title: str, content: str):
         with connection.cursor() as cursor:
             # 데이터 인서트 쿼리
             insert_query = """
-                INSERT INTO LOCAL_STORE_CONTENT 
-                (STORE_BUSINESS_NUMBER, TITLE, CONTENT) 
+                INSERT INTO BIZ_DETAIL_CATEGORY_CONTENT 
+                (DETAIL_CATEGORY_ID, TITLE, CONTENT) 
                 VALUES (%s, %s, %s)
             """
             # 쿼리 실행
-            cursor.execute(insert_query, (store_business_number, title, content))
+            cursor.execute(insert_query, (detail_category, title, content))
             # 자동 생성된 PK 가져오기
             pk = cursor.lastrowid
             # 커밋하여 DB에 반영
@@ -44,26 +50,22 @@ def insert_store_content(store_business_number: str, title: str, content: str):
 
 
 
-def select_loc_store_content_list():
+def select_category_content_list():
     connection = get_re_db_connection()
 
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             select_query = """
                 SELECT 
-                    ls.LOCAL_STORE_CONTENT_ID,
-                    ls.STORE_BUSINESS_NUMBER,
-                    r.STORE_NAME,
-                    r.ROAD_NAME,
-                    ls.TITLE,
-                    ls.CONTENT,
-                    ls.STATUS,
-                    ls.CREATED_AT
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID,
+                    DETAIL_CATEGORY_ID,
+                    TITLE,
+                    CONTENT,
+                    STATUS,
+                    CREATED_AT
                 FROM
-                    LOCAL_STORE_CONTENT ls
-                STRAIGHT_JOIN REPORT r
-                ON r.STORE_BUSINESS_NUMBER = ls.STORE_BUSINESS_NUMBER
-                AND ls.STATUS != 'D';
+                    BIZ_DETAIL_CATEGORY_CONTENT
+                WHERE STATUS != 'D';
 
             """
             cursor.execute(select_query)
@@ -71,14 +73,12 @@ def select_loc_store_content_list():
             if not rows:
                 raise HTTPException(
                     status_code=404,
-                    detail="LocStoreContentList 해당하는 매장 정보를 찾을 수 없습니다.",
+                    detail="CategoryContentList 해당하는 업종 정보를 찾을 수 없습니다.",
                 )
             result = [
-                LocStoreContentList(
-                    local_store_content_id=row["LOCAL_STORE_CONTENT_ID"],
-                    store_business_number=row["STORE_BUSINESS_NUMBER"],
-                    store_name=row["STORE_NAME"],
-                    road_name=row["ROAD_NAME"],
+                CategoryContentList(
+                    biz_detail_category_content_id = row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
+                    detail_category_id = row["DETAIL_CATEGORY_ID"],
                     title=row["TITLE"],
                     content=row["CONTENT"],
                     status=row["STATUS"],
@@ -91,7 +91,7 @@ def select_loc_store_content_list():
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocalStoreBasicInfo: {str(e)}")
+        logger.error(f"Unexpected error occurred CategoryContentList: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
     finally:
         close_connection(connection)  # connection만 닫기
@@ -99,35 +99,40 @@ def select_loc_store_content_list():
 
 
 # 업종 조회
-def select_loc_store_category(store_business_number: str):
+def select_category_biz_category(biz_category_number: int):
     connection = get_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             select_query = """
                 SELECT 
-                    STORE_BUSINESS_NUMBER,
-                    LARGE_CATEGORY_NAME,
-                    MEDIUM_CATEGORY_NAME,
-                    SMALL_CATEGORY_NAME
+                    main.BIZ_MAIN_CATEGORY_NAME AS BIZ_MAIN_CATEGORY_NAME,
+                    sub.BIZ_SUB_CATEGORY_NAME AS BIZ_SUB_CATEGORY_NAME,
+                    detail.BIZ_DETAIL_CATEGORY_NAME AS BIZ_DETAIL_CATEGORY_NAME,
+                    detail.BIZ_DETAIL_CATEGORY_ID AS BIZ_DETAIL_CATEGORY_ID
                 FROM
-                    LOCAL_STORE
+                    BIZ_DETAIL_CATEGORY AS detail
+                JOIN
+                    BIZ_SUB_CATEGORY AS sub ON detail.BIZ_SUB_CATEGORY_ID = sub.BIZ_SUB_CATEGORY_ID
+                JOIN
+                    BIZ_MAIN_CATEGORY AS main ON sub.BIZ_MAIN_CATEGORY_ID = main.BIZ_MAIN_CATEGORY_ID
                 WHERE
-                    STORE_BUSINESS_NUMBER = %s
+                    detail.BIZ_DETAIL_CATEGORY_ID = %s
                 """
-            cursor.execute(select_query, (store_business_number,))
+            cursor.execute(select_query, (biz_category_number,))
             row = cursor.fetchone()
 
             if not row:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"LocStoreCategoryList 해당하는 매장 정보를 찾을 수 없습니다.",
+                    detail="CategoryBizCategoryList에 해당하는 매장 정보를 찾을 수 없습니다.",
                 )
 
-            result = LocStoreCategoryList(
-                store_business_number=row["STORE_BUSINESS_NUMBER"],
-                large_category_name=row["LARGE_CATEGORY_NAME"],
-                medium_category_name=row["MEDIUM_CATEGORY_NAME"],
-                small_category_name=row["SMALL_CATEGORY_NAME"]
+            # Pydantic 모델에 맞춰 데이터 반환
+            result = CategoryBizCategoryList(
+                biz_main_category_name=row["BIZ_MAIN_CATEGORY_NAME"],
+                biz_sub_category_name=row["BIZ_SUB_CATEGORY_NAME"],
+                biz_detail_category_name=row["BIZ_DETAIL_CATEGORY_NAME"],
+                biz_detail_category_id=row["BIZ_DETAIL_CATEGORY_ID"]
             )
             return result
 
@@ -135,29 +140,27 @@ def select_loc_store_category(store_business_number: str):
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocalStoreBasicInfo: {str(e)}")
+        logger.error(f"Unexpected error occurred in CategoryBizCategoryList: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
     finally:
-        if cursor:
-            close_cursor(cursor)
         close_connection(connection)
 
 
 
 # 게시 상태 여부 업데이트
-def update_loc_store_content_status(local_store_content_id: int, status: str) -> bool:
+def update_category_content_status(biz_detail_category_content_id: int, status: str) -> bool:
     connection = get_re_db_connection()
 
     try:
         with connection.cursor() as cursor:
             # 업데이트 쿼리 작성
             update_query = """
-                UPDATE LOCAL_STORE_CONTENT
+                UPDATE BIZ_DETAIL_CATEGORY_CONTENT
                 SET STATUS = %s
-                WHERE LOCAL_STORE_CONTENT_ID = %s
+                WHERE BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
             # 쿼리 실행
-            cursor.execute(update_query, (status, local_store_content_id))
+            cursor.execute(update_query, (status, biz_detail_category_content_id))
             connection.commit()
             
             # rowcount를 통해 업데이트 성공 여부 확인
@@ -175,23 +178,23 @@ def update_loc_store_content_status(local_store_content_id: int, status: str) ->
 
 
 # 글 상세 조회
-def select_loc_store_for_detail_content(local_store_content_id: int):
+def select_category_for_detail_content(biz_detail_category_content_id: int):
     connection = get_re_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            # 첫 번째 쿼리: 매장 기본 정보 조회
+            # 첫 번째 쿼리: 제목, 내용 정보 조회
             select_content_query = """
                 SELECT 
-                    LOCAL_STORE_CONTENT_ID,
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID,
                     TITLE,
                     CONTENT,
                     STATUS
                 FROM
-                    LOCAL_STORE_CONTENT
+                    BIZ_DETAIL_CATEGORY_CONTENT
                 WHERE
-                    LOCAL_STORE_CONTENT_ID = %s
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
-            cursor.execute(select_content_query, (local_store_content_id,))
+            cursor.execute(select_content_query, (biz_detail_category_content_id,))
             row = cursor.fetchone()
 
             if not row:
@@ -203,21 +206,21 @@ def select_loc_store_for_detail_content(local_store_content_id: int):
             # 두 번째 쿼리: 이미지 정보 조회
             select_images_query = """
                 SELECT 
-                    LOCAL_STORE_CONTENT_IMAGE_URL
+                    BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL
                 FROM
-                    LOCAL_STORE_CONTENT_IMAGE  
+                    BIZ_DETAIL_CATEGORY_CONTENT_IMAGE  
                 WHERE
-                    LOCAL_STORE_CONTENT_ID = %s
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
 
-            cursor.execute(select_images_query, (local_store_content_id,))
+            cursor.execute(select_images_query, (biz_detail_category_content_id,))
             images = cursor.fetchall()
-            image_urls = [LocStoreImage(local_store_image_url=image["LOCAL_STORE_CONTENT_IMAGE_URL"]) for image in images]
+            image_urls = [CategoryImage(biz_detail_category_content_image_url=image["BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL"]) for image in images]
 
             # 결과를 Pydantic 모델 형식에 맞춰 반환
-            result = LocStoreDetailContentResponse(
-                local_store_detail_content=LocStoreDetailContent(
-                    local_store_content_id=row["LOCAL_STORE_CONTENT_ID"],
+            result = CategoryDetailContentResponse(
+                category_detail_content=CategoryDetailContent(
+                    biz_detail_category_content_id=row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
                     title=row["TITLE"],
                     content=row["CONTENT"],
                     status=row["STATUS"]
@@ -229,25 +232,25 @@ def select_loc_store_for_detail_content(local_store_content_id: int):
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocStoreDetailContent: {str(e)}")
+        logger.error(f"Unexpected error occurred CategoryDetailContent: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
 
 
 
 # 게시글 삭제
-def delete_loc_store_content_status(local_store_content_id: int) -> bool:
+def delete_category_content_status(biz_detail_category_content_id: int) -> bool:
     connection = get_re_db_connection()
 
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             # 업데이트 쿼리 작성
             delete_query = """
-                UPDATE LOCAL_STORE_CONTENT
+                UPDATE BIZ_DETAIL_CATEGORY_CONTENT
                 SET STATUS = 'D'
-                WHERE LOCAL_STORE_CONTENT_ID = %s
+                WHERE BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
             # 쿼리 실행
-            cursor.execute(delete_query, (local_store_content_id))
+            cursor.execute(delete_query, (biz_detail_category_content_id))
             connection.commit()
             
             # rowcount를 통해 업데이트 성공 여부 확인
@@ -265,19 +268,21 @@ def delete_loc_store_content_status(local_store_content_id: int) -> bool:
 
 
 # 게시글 수정
-def update_loc_store_content(local_store_content_id: int, title: str, content: str) -> bool:
+def update_category_content(biz_detail_category_content_id: int, title: str, content: str) -> bool:
     connection = get_re_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             # 업데이트 쿼리 작성
             update_query = """
-                UPDATE LOCAL_STORE_CONTENT
-                SET TITLE = %s,
+                UPDATE 
+                    BIZ_DETAIL_CATEGORY_CONTENT
+                SET 
+                    TITLE = %s,
                     CONTENT = %s
-                WHERE LOCAL_STORE_CONTENT_ID = %s
+                WHERE BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
             # 쿼리 실행
-            cursor.execute(update_query, (title, content, local_store_content_id))
+            cursor.execute(update_query, (title, content, biz_detail_category_content_id))
             connection.commit()
 
             # rowcount를 통해 업데이트 성공 여부 확인
@@ -291,28 +296,26 @@ def update_loc_store_content(local_store_content_id: int, title: str, content: s
     finally:
         connection.close()
 
-def select_loc_store_existing_image(local_store_content_id : int):
+def select_category_existing_image(biz_detail_category_content_id : int):
     connection = get_re_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             # 업데이트 쿼리 작성
             select_query = """
                 SELECT 
-                    LOCAL_STORE_CONTENT_IMAGE_URL
-                FROM LOCAL_STORE_CONTENT_IMAGE
-                WHERE LOCAL_STORE_CONTENT_ID = %s
+                    BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL
+                FROM BIZ_DETAIL_CATEGORY_CONTENT_IMAGE
+                WHERE BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
             # 쿼리 실행
-            cursor.execute(select_query, (local_store_content_id))
+            cursor.execute(select_query, (biz_detail_category_content_id))
             rows = cursor.fetchall()
             if not rows:
-                raise HTTPException(
-                    status_code=404,
-                    detail="LocStoreContentList 해당하는 매장 정보를 찾을 수 없습니다.",
-                )
+                return []
+
             result = [
-                LocStoreImage(
-                    local_store_image_url=row["LOCAL_STORE_CONTENT_IMAGE_URL"],
+                CategoryImage(
+                    biz_detail_category_content_image_url=row["BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL"],
                 )
                 for row in rows
             ]
@@ -327,18 +330,18 @@ def select_loc_store_existing_image(local_store_content_id : int):
         connection.close()
 
 # 기존 이미지 삭제
-def delete_loc_store_existing_image(local_store_content_id: int, images_to_delete: List[str]):
+def delete_category_existing_image(biz_detail_category_content_id: int, images_to_delete: List[str]):
     connection = get_re_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             # 기존 이미지 목록에서 삭제할 이미지 조건을 추가
             delete_query = """
-                DELETE FROM LOCAL_STORE_CONTENT_IMAGE
-                WHERE LOCAL_STORE_CONTENT_ID = %s AND LOCAL_STORE_CONTENT_IMAGE_URL IN (%s)
+                DELETE FROM BIZ_DETAIL_CATEGORY_CONTENT_IMAGE
+                WHERE BIZ_DETAIL_CATEGORY_CONTENT_ID = %s AND BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL IN (%s)
             """
             # 이미지 URL 리스트를 쿼리에 맞게 변환
             formatted_urls = ', '.join(['%s'] * len(images_to_delete))
-            final_query = delete_query % (local_store_content_id, formatted_urls)
+            final_query = delete_query % (biz_detail_category_content_id, formatted_urls)
 
             # 쿼리 실행
             cursor.execute(final_query, images_to_delete)
@@ -362,18 +365,18 @@ def delete_loc_store_existing_image(local_store_content_id: int, images_to_delet
 
 
 
-def insert_loc_store_new_image(local_store_content_id: int, new_image_urls: List[str]):
+def insert_category_new_image(biz_detail_category_content_id: int, new_image_urls: List[str]):
     connection = get_re_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
             # 데이터 인서트 쿼리
             insert_query = """
-                INSERT INTO LOCAL_STORE_CONTENT_IMAGE
-                (LOCAL_STORE_CONTENT_ID, LOCAL_STORE_CONTENT_IMAGE_URL) 
+                INSERT INTO BIZ_DETAIL_CATEGORY_CONTENT_IMAGE
+                (BIZ_DETAIL_CATEGORY_CONTENT_ID, BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL) 
                 VALUES (%s, %s)
             """
             # URL 리스트를 각 튜플로 구성
-            data_to_insert = [(local_store_content_id, url) for url in new_image_urls]
+            data_to_insert = [(biz_detail_category_content_id, url) for url in new_image_urls]
             
             # 여러 개의 레코드 삽입
             cursor.executemany(insert_query, data_to_insert)

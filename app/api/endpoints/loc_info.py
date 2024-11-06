@@ -6,16 +6,15 @@ from fastapi import Request
 
 router = APIRouter()
 
-@router.post("/select_nation_stat_corr")
+@router.post("/select/init/stat/corr")
 async def init_data():
     init_stat_data = get_init_stat_data()
     init_all_corr_matrix = get_init_corr_data()
 
     return {"init_all_corr" : init_all_corr_matrix, "init_stat_data":init_stat_data} 
 
-@router.post("/select_loc_info")
+@router.post("/select/list")
 async def filter_data(filters: FilterRequest):
-
     # 1. 기본 입지분성 값, 상관 분석 값 조회
     filters_dict = filters.dict(exclude_unset=True)
     # 필터 데이터를 서비스 레이어로 전달
