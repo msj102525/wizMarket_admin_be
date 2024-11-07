@@ -117,13 +117,6 @@ def delete_category_content_status(biz_detail_category_content_id: int):
         print(f"Service error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-
-load_dotenv()
-
-REPORT_PATH = Path(os.getenv("REPORT_PATH"))
-IMAGE_DIR = Path(os.getenv("IMAGE_DIR"))
-FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/") / "category"
-
 # 게시글 수정
 def update_category_content(biz_detail_category_content_id: int, title: str, content: str, existing_images: List[str], new_image_urls: List[bytes]):
     try:
@@ -137,12 +130,6 @@ def update_category_content(biz_detail_category_content_id: int, title: str, con
         # 2-1. 기존 이미지 삭제 되었을 경우
         images_to_delete = [img for img in current_image_urls if img not in existing_images]
         if images_to_delete:
-            for image_url in images_to_delete:
-                # 파일 시스템에서 이미지 파일 삭제
-                file_path = FULL_PATH / image_url.split("/")[-1]  # 이미지 파일 경로 추출
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-        
             # 데이터베이스에서 이미지 URL 삭제
             crud_delete_category_existing_image(biz_detail_category_content_id, images_to_delete)
 

@@ -27,16 +27,16 @@ async def filter_data(filters: FilterRequest):
     
     # 2-1. 전국 범위 J-Score 조회
     if city is None:
-        region_stat = select_stat_data(filters_dict)
+        stat_by_region = select_stat_data(filters_dict)
     # 2-2. 시/도 범위 J-Score 조회
     elif district is None:
-        region_stat = select_stat_data_by_city(filters_dict)
+        stat_by_region = select_stat_data_by_city(filters_dict)
     # 2-3. 시/군/구 범위 J-Score 조회
     elif sub_district is None:
-        region_stat = select_stat_data_by_district(filters_dict)
+        stat_by_region = select_stat_data_by_district(filters_dict)
     else:
-        region_stat = select_stat_data_by_sub_district(filters_dict)
+        stat_by_region = select_stat_data_by_sub_district(filters_dict)
     
     nation_j_score = select_nation_j_score(filters_dict)
 
-    return {"filtered_data": result, "filter_corr" : filter_corr_matrix, "region_j_score":region_stat, "nation_j_score":nation_j_score}
+    return {"filtered_data": result, "filter_corr" : filter_corr_matrix, "stat_by_region":stat_by_region, "nation_j_score":nation_j_score}

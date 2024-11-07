@@ -282,41 +282,41 @@ def update_loc_store_content(local_store_content_id: int, title: str, content: s
             connection.commit()
 
             # 업데이트 성공 시 데이터 다시 조회
-            if cursor.rowcount > 0:  # 업데이트된 행이 있는 경우에만 조회 수행
-                select_query = """
-                    SELECT 
-                        ls.LOCAL_STORE_CONTENT_ID,
-                        ls.STORE_BUSINESS_NUMBER,
-                        r.STORE_NAME,
-                        r.ROAD_NAME,
-                        ls.TITLE,
-                        ls.CONTENT,
-                        ls.STATUS,
-                        ls.CREATED_AT
-                    FROM
-                        LOCAL_STORE_CONTENT ls
-                    STRAIGHT_JOIN REPORT r
-                    ON 
-                        r.STORE_BUSINESS_NUMBER = ls.STORE_BUSINESS_NUMBER
-                    WHERE 
-                        ls.LOCAL_STORE_CONTENT_ID = %s;
-                """
-                cursor.execute(select_query, (local_store_content_id,))
-                row = cursor.fetchone()  # 조회된 데이터 가져오기
-                
-                updated_item = LocStoreContentList(
-                    local_store_content_id=row["LOCAL_STORE_CONTENT_ID"],
-                    store_business_number=row["STORE_BUSINESS_NUMBER"],
-                    store_name= row["STORE_NAME"],
-                    road_name= row["ROAD_NAME"],
-                    title=row["TITLE"],
-                    content=row["CONTENT"],
-                    status=row["STATUS"],
-                    created_at=row["CREATED_AT"]
-                )
-                return updated_item
 
-            return None  # 업데이트된 행이 없을 경우 None 반환
+            select_query = """
+                SELECT 
+                    ls.LOCAL_STORE_CONTENT_ID,
+                    ls.STORE_BUSINESS_NUMBER,
+                    r.STORE_NAME,
+                    r.ROAD_NAME,
+                    ls.TITLE,
+                    ls.CONTENT,
+                    ls.STATUS,
+                    ls.CREATED_AT
+                FROM
+                    LOCAL_STORE_CONTENT ls
+                STRAIGHT_JOIN REPORT r
+                ON 
+                    r.STORE_BUSINESS_NUMBER = ls.STORE_BUSINESS_NUMBER
+                WHERE 
+                    ls.LOCAL_STORE_CONTENT_ID = %s;
+                """
+            cursor.execute(select_query, (local_store_content_id,))
+            row = cursor.fetchone()  # 조회된 데이터 가져오기
+                
+            updated_item = LocStoreContentList(
+                local_store_content_id=row["LOCAL_STORE_CONTENT_ID"],
+                store_business_number=row["STORE_BUSINESS_NUMBER"],
+                store_name= row["STORE_NAME"],
+                road_name= row["ROAD_NAME"],
+                title=row["TITLE"],
+                content=row["CONTENT"],
+                status=row["STATUS"],
+                created_at=row["CREATED_AT"]
+            )
+            return updated_item
+
+
     except pymysql.Error as e:
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")

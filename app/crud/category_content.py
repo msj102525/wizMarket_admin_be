@@ -309,34 +309,32 @@ def update_category_content(biz_detail_category_content_id: int, title: str, con
             connection.commit()
 
             # 업데이트 성공 시 데이터 다시 조회
-            if cursor.rowcount > 0:  # 업데이트된 행이 있는 경우에만 조회 수행
-                select_query = """
-                    SELECT 
-                        BIZ_DETAIL_CATEGORY_CONTENT_ID, 
-                        DETAIL_CATEGORY_ID, 
-                        TITLE, 
-                        CONTENT, 
-                        STATUS, 
-                        CREATED_AT
-                    FROM 
-                        BIZ_DETAIL_CATEGORY_CONTENT
-                    WHERE 
-                        BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
-                """
-                cursor.execute(select_query, (biz_detail_category_content_id,))
-                row = cursor.fetchone()  # 조회된 데이터 가져오기
-                
-                updated_item = CategoryContentList(
-                    biz_detail_category_content_id=row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
-                    detail_category_id=row["DETAIL_CATEGORY_ID"],
-                    title=row["TITLE"],
-                    content=row["CONTENT"],
-                    status=row["STATUS"],
-                    created_at=row["CREATED_AT"]
-                )
-                return updated_item
 
-            return None  # 업데이트된 행이 없을 경우 None 반환
+            select_query = """
+                SELECT 
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID, 
+                    DETAIL_CATEGORY_ID, 
+                    TITLE, 
+                    CONTENT, 
+                    STATUS, 
+                    CREATED_AT
+                FROM 
+                    BIZ_DETAIL_CATEGORY_CONTENT
+                WHERE 
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
+                """
+            cursor.execute(select_query, (biz_detail_category_content_id,))
+            row = cursor.fetchone()  # 조회된 데이터 가져오기
+                
+            updated_item = CategoryContentList(
+                biz_detail_category_content_id=row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
+                detail_category_id=row["DETAIL_CATEGORY_ID"],
+                title=row["TITLE"],
+                content=row["CONTENT"],
+                status=row["STATUS"],
+                created_at=row["CREATED_AT"]
+            )
+            return updated_item
 
     except pymysql.Error as e:
         logger.error(f"Database error occurred: {str(e)}")

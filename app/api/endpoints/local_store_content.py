@@ -26,6 +26,7 @@ import shutil
 from typing import Optional
 from dotenv import load_dotenv
 import os
+import uuid
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -51,15 +52,19 @@ def save_store_content(
 
     if images:
         for image in images:
+            # 고유 이미지 명 생성
+            filename, ext = os.path.splitext(image.filename)
+            unique_filename = f"{filename}_jyes_{uuid.uuid4()}{ext}"
+
             # 파일 저장 경로 지정
-            file_path = FULL_PATH / image.filename
+            file_path = FULL_PATH / unique_filename
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
             
             # 이미지 URL 생성 (예: "/static/images/content/filename.jpg")
-            image_url = f"/static/images/content/{image.filename}"
+            image_url = f"/static/images/content/{unique_filename}"
             image_urls.append(image_url)
-
+    print(image_urls)
     service_insert_store_content(store_business_number, title, content, image_urls)
 
     # 예시 응답 데이터
@@ -163,12 +168,19 @@ async def update_loc_store_content(
         # 새로운 이미지가 있을 때 파일 저장 경로를 생성하여 URL 목록 작성
         existing_images = existing_images or []
         new_image_urls = []
+        
         if new_images:
             for image in new_images:
-                file_path = FULL_PATH / image.filename
+                filename, ext = os.path.splitext(image.filename)
+                unique_filename = f"{filename}_jyes_{uuid.uuid4()}{ext}"
+                
+                # 파일 저장 경로 지정
+                file_path = FULL_PATH / unique_filename
                 with open(file_path, "wb") as buffer:
                     shutil.copyfileobj(image.file, buffer)
-                image_url = f"/static/images/content/{image.filename}"
+                
+                # 이미지 URL 생성
+                image_url = f"/static/images/content/{unique_filename}"
                 new_image_urls.append(image_url)
 
         # 서비스 레이어 호출
