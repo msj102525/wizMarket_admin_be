@@ -235,3 +235,10 @@ class CommercialStatisticsOutput(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CommercialStatisticsDataDate(BaseModel):
+    y_m: date
+
+    class Config:
+        from_attributes = True

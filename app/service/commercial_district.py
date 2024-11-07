@@ -1,36 +1,23 @@
+from datetime import date
+import logging
 from typing import List, Optional
 
 from fastapi import HTTPException
 
 from app.crud.city import get_or_create_city_id
 from app.crud.commercial_district import (
-    select_all_commercial_district_by_sub_district_id,
     select_commercial_district_by_dynamic_query as crud_select_commercial_district_by_dynamic_query,
+    select_commercial_district_data_date as crud_select_commercial_district_data_date,
 )
 
 from app.crud.district import get_district_id
 from app.crud.sub_district import get_sub_district_id_by
 from app.schemas.commercial_district import (
     CommercialDistrictOutput,
+    CommercialStatisticsDataDate,
 )
 
-
-def get_all_commercial_district_by_sub_district_id(
-    city: str, district: str, sub_district: str
-) -> List[CommercialDistrictOutput]:
-    city_id = get_or_create_city_id(city)
-    if city_id <= 0:
-        raise HTTPException(status_code=404, detail="City not found")
-
-    district_id = get_district_id(city_id, district)
-    if district_id <= 0:
-        raise HTTPException(status_code=404, detail="District not found")
-
-    sub_district_id = get_sub_district_id_by(city_id, district_id, sub_district)
-    if sub_district_id <= 0:
-        raise HTTPException(status_code=404, detail="Sub-district not found")
-    else:
-        return select_all_commercial_district_by_sub_district_id(sub_district_id)
+logger = logging.getLogger(__name__)
 
 
 def select_commercial_district_by_dynamic_query(
@@ -48,12 +35,13 @@ def select_commercial_district_by_dynamic_query(
     operating_cost_max: Optional[int] = None,
     food_cost_min: Optional[int] = None,
     food_cost_max: Optional[int] = None,
-    employee_cost_min: Optional[int] = None, # 인건비X -> 평균 결제
-    employee_cost_max: Optional[int] = None, # 인건비X -> 평균 결제
+    employee_cost_min: Optional[int] = None,  # 인건비X -> 평균 결제
+    employee_cost_max: Optional[int] = None,  # 인건비X -> 평균 결제
     rental_cost_min: Optional[int] = None,
     rental_cost_max: Optional[int] = None,
     avg_profit_min: Optional[int] = None,
     avg_profit_max: Optional[int] = None,
+    y_m: Optional[date] = None,
 ) -> List[CommercialDistrictOutput]:
     try:
         return crud_select_commercial_district_by_dynamic_query(
@@ -77,6 +65,24 @@ def select_commercial_district_by_dynamic_query(
             rental_cost_max,
             avg_profit_min,
             avg_profit_max,
+            y_m,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+def select_commercial_district_data_date() -> List[CommercialStatisticsDataDate]:
+
+    try:
+
+        # logger.info(f"detail_category_id_list: {detail_category_id_list}")
+
+        return crud_select_commercial_district_data_date()
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Service CommercialStatisticsDataDate Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Service CommercialStatisticsDataDate Error: {str(e)}",
+        )
