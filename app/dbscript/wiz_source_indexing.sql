@@ -10,7 +10,7 @@ ON DISTRICT (DISTRICT_ID);
 CREATE INDEX idx_sub_district_id
 ON SUB_DISTRICT (SUB_DISTRICT_ID);
 
-
+--------------------------------------------------------
 -- 상권 정보 외래 키 인덱스
 CREATE INDEX idx_city_id ON `COMMERCIAL_DISTRICT` (`CITY_ID`);
 CREATE INDEX idx_district_id ON `COMMERCIAL_DISTRICT` (`DISTRICT_ID`);
@@ -28,6 +28,32 @@ CREATE INDEX idx_employee_cost ON `COMMERCIAL_DISTRICT` (`AVERAGE_PAYMENT`); -- 
 CREATE INDEX idx_rental_cost ON `COMMERCIAL_DISTRICT` (`RENTAL_COST`);
 CREATE INDEX idx_average_profit ON `COMMERCIAL_DISTRICT` (`AVERAGE_PROFIT`);
 
+-- 지역 검색을 위한 복합 인덱스
+CREATE INDEX idx_commercial_district_location 
+ON COMMERCIAL_DISTRICT(CITY_ID, DISTRICT_ID, SUB_DISTRICT_ID);
+
+-- 업종 검색을 위한 복합 인덱스
+CREATE INDEX idx_commercial_district_business 
+ON COMMERCIAL_DISTRICT(BIZ_MAIN_CATEGORY_ID, BIZ_SUB_CATEGORY_ID, BIZ_DETAIL_CATEGORY_ID);
+
+-- 주요 검색 조건을 커버하는 복합 인덱스들
+CREATE INDEX idx_location_business ON COMMERCIAL_DISTRICT(
+    CITY_ID, 
+    DISTRICT_ID, 
+    SUB_DISTRICT_ID,
+    BIZ_MAIN_CATEGORY_ID, 
+    BIZ_SUB_CATEGORY_ID, 
+    BIZ_DETAIL_CATEGORY_ID,
+    COMMERCIAL_DISTRICT_ID
+);
+
+-- 기준년월에 대한 인덱스 (시계열 데이터 조회 최적화)
+CREATE INDEX idx_y_m ON COMMERCIAL_DISTRICT(Y_M);
+
+-- 생성/수정일시 인덱스
+CREATE INDEX idx_created_updated 
+ON COMMERCIAL_DISTRICT(CREATED_AT, UPDATED_AT);
+--------------------------------------------------------
 
 -- 매장 정보 외래키 인덱스
 CREATE INDEX idx_local_store_city_id ON LOCAL_STORE (CITY_ID);

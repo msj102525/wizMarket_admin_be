@@ -12,7 +12,6 @@ def select_commercial_district_market_size_info(
     y_m: date,
 ):
     try:
-        print(y_m)
         with get_db_connection() as connection:
             with connection.cursor(pymysql.cursors.DictCursor) as cursor:
                 select_query = """
