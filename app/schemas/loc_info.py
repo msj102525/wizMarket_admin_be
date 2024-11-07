@@ -207,3 +207,10 @@ class StatDataForInit(BaseModel):
     max_val: Optional[float]
     min_val: Optional[float]
     ref_date : date
+
+
+class LocInfoDataDate(BaseModel):
+    y_m: date
+
+    class Config:
+        from_attributes = True

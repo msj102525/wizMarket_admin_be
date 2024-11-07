@@ -4,9 +4,14 @@ from typing import Optional
 from app.schemas.loc_info import LocalInfoStatisticsResponse, StatisticsResult, LocInfoResult
 from app.db.connect import get_db_connection, close_connection, close_cursor
 from app.schemas.loc_info import (
-    StatDataForExetend, StatDataByCityForExetend, StatDataByDistrictForExetend, StatDataForNation, StatDataForInit
+    StatDataForExetend, StatDataByCityForExetend, StatDataByDistrictForExetend, StatDataForNation, StatDataForInit,LocInfoDataDate
 )
 import pandas as pd
+from typing import List, Optional
+import logging
+from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
 
 def fetch_loc_info_by_ids(city_id: int, district_id: int, sub_district_id: int) -> Optional[dict]:
     connection = get_db_connection()
@@ -791,3 +796,39 @@ def get_nation_j_score(filters_dict)-> StatDataForNation:
 
 
 
+def select_loc_info_data_date() -> List[LocInfoDataDate]:
+
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+                select_query = """
+                    SELECT
+                        Y_M
+                    FROM
+                        LOC_INFO
+                    GROUP BY Y_M
+                    ;
+                """
+
+                cursor.execute(select_query)
+                rows = cursor.fetchall()
+
+                # logger.info(f"rows: {rows}")
+
+                results = []
+
+                for row in rows:
+                    result = LocInfoDataDate(y_m=row["Y_M"])
+
+                    results.append(result)
+
+                return results
+
+    except pymysql.Error as e:
+        logger.error(f"Database error occurred: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected error occurred in select_commercial_district_data_date: {str(e)}"
+        )
+        raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")

@@ -1,6 +1,20 @@
 from fastapi import HTTPException
 from datetime import date
 from app.crud.loc_info import *
+from app.crud.loc_info import (
+    select_stat_data_avg,
+    get_all_corr,
+    get_filtered_locations,
+    get_filter_corr,
+    get_stat_data,
+    get_stat_data_by_city,
+    get_stat_data_by_distirct,
+    get_stat_data_by_sub_distirct,
+    get_nation_j_score,
+    select_loc_info_data_date as crud_select_loc_info_data_date
+
+
+)
 import pandas as pd
 from app.crud.loc_store import (
     select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number, 
@@ -11,8 +25,11 @@ from app.crud.statistics import (
 )
 from app.schemas.loc_store import LocalStoreSubdistrict
 from app.schemas.statistics import DataRefDateSubDistrictName, LocInfoStatisticsDataRefOutput, LocInfoStatisticsOutput
+from typing import List, Optional
+from app.schemas.loc_info import LocInfoDataDate
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 def get_init_stat_data():
     result = select_stat_data_avg()
@@ -115,6 +132,20 @@ def select_nation_j_score(filters_dict):
     result = get_nation_j_score(filters_dict)
     return result
 
+
+# 기준 날짜 조회
+def select_loc_info_data_date() -> List[LocInfoDataDate]:
+    try:
+        # logger.info(f"detail_category_id_list: {detail_category_id_list}")
+        return crud_select_loc_info_data_date()
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Service LocInfoDataDate Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Service LocInfoDataDate Error: {str(e)}",
+        )
 
 
 def select_report_loc_info_by_store_business_number(

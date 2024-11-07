@@ -1,9 +1,20 @@
 from fastapi import APIRouter, HTTPException
-from app.service.loc_info import *
+from app.service.loc_info import (
+    get_init_stat_data,
+    get_init_corr_data,
+    filter_location_info,
+    select_stat_data,
+    select_stat_data_by_city,
+    select_stat_data_by_district,
+    select_stat_data_by_sub_district,
+    select_nation_j_score,
+    select_loc_info_data_date as service_select_loc_info_data_date
+)
 from app.schemas.loc_info import *
 from fastapi import Request
+import logging
 
-
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/select/init/stat/corr")
@@ -40,3 +51,18 @@ async def filter_data(filters: FilterRequest):
     nation_j_score = select_nation_j_score(filters_dict)
 
     return {"filtered_data": result, "filter_corr" : filter_corr_matrix, "stat_by_region":stat_by_region, "nation_j_score":nation_j_score}
+
+# 기준 날짜 조회
+@router.get("/data/date")
+def select_loc_info_data_date() -> List[LocInfoDataDate]:
+    try:
+        return service_select_loc_info_data_date()
+
+    except HTTPException as http_ex:
+        logger.error(f"HTTP error occurred: {http_ex.detail}")
+        raise http_ex
+
+    except Exception as e:
+        error_msg = f"Unexpected error while processing request: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
