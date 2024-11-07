@@ -113,7 +113,7 @@ FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/") / "content"
 def update_loc_store_content(local_store_content_id: int, title: str, content: str, existing_images: List[str], new_image_urls: List[bytes]):
     try:
         # 1. 제목, 글은 무조건 update
-        crud_update_loc_store_content(local_store_content_id, title, content)
+        updated_item = crud_update_loc_store_content(local_store_content_id, title, content)
         
         # 2. 이미지
         # current_images에서 URL만 추출
@@ -132,11 +132,9 @@ def update_loc_store_content(local_store_content_id: int, title: str, content: s
 
         # 2-2. 새로 이미지 추가 됬었을 경우
         if new_image_urls:
-            print(new_image_urls)
             crud_insert_loc_store_new_image(local_store_content_id, new_image_urls)
 
-        # 2-3. 그대로 일 경우
-        return True
+        return updated_item
 
     except Exception as e:
         print(f"Service error occurred: {e}")

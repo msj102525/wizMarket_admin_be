@@ -3,6 +3,18 @@ from typing import Optional, List
 from datetime import datetime 
 from fastapi import UploadFile, File
 
+class LocStoreContent(BaseModel):
+    local_store_content_id: int
+    store_business_number: str
+    status: str
+    title :str
+    content :str
+    created_at:datetime  
+
+    class Config:
+        from_attributes = True
+
+
 class LocStoreContentList(BaseModel):
     local_store_content_id: int
     store_business_number: str

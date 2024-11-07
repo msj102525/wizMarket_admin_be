@@ -6,7 +6,7 @@ import pymysql
 import os
 from fastapi import HTTPException
 import logging
-from app.schemas.local_store_content import LocStoreContentList, LocStoreCategoryList, LocStoreDetailContent, LocStoreDetailContentResponse,LocStoreImage
+from app.schemas.local_store_content import LocStoreContent, LocStoreContentList, LocStoreCategoryList, LocStoreDetailContent, LocStoreDetailContentResponse,LocStoreImage
 from typing import Optional, List
 
 
@@ -229,7 +229,7 @@ def select_loc_store_for_detail_content(local_store_content_id: int):
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocStoreDetailContent: {str(e)}")
+        logger.error(f"Unexpected error occurred LocStoreDetailContentResponse: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
 
 
@@ -258,7 +258,7 @@ def delete_loc_store_content_status(local_store_content_id: int) -> bool:
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocStoreDetailContent: {str(e)}")
+        logger.error(f"Unexpected error occurred delete: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
     finally:
         connection.close()
@@ -272,7 +272,8 @@ def update_loc_store_content(local_store_content_id: int, title: str, content: s
             # 업데이트 쿼리 작성
             update_query = """
                 UPDATE LOCAL_STORE_CONTENT
-                SET TITLE = %s,
+                SET 
+                    TITLE = %s,
                     CONTENT = %s
                 WHERE LOCAL_STORE_CONTENT_ID = %s
             """
@@ -280,8 +281,42 @@ def update_loc_store_content(local_store_content_id: int, title: str, content: s
             cursor.execute(update_query, (title, content, local_store_content_id))
             connection.commit()
 
-            # rowcount를 통해 업데이트 성공 여부 확인
-            return cursor.rowcount > 0  # 업데이트된 행이 없으면 False 반환
+            # 업데이트 성공 시 데이터 다시 조회
+            if cursor.rowcount > 0:  # 업데이트된 행이 있는 경우에만 조회 수행
+                select_query = """
+                    SELECT 
+                        ls.LOCAL_STORE_CONTENT_ID,
+                        ls.STORE_BUSINESS_NUMBER,
+                        r.STORE_NAME,
+                        r.ROAD_NAME,
+                        ls.TITLE,
+                        ls.CONTENT,
+                        ls.STATUS,
+                        ls.CREATED_AT
+                    FROM
+                        LOCAL_STORE_CONTENT ls
+                    STRAIGHT_JOIN REPORT r
+                    ON 
+                        r.STORE_BUSINESS_NUMBER = ls.STORE_BUSINESS_NUMBER
+                    WHERE 
+                        ls.LOCAL_STORE_CONTENT_ID = %s;
+                """
+                cursor.execute(select_query, (local_store_content_id,))
+                row = cursor.fetchone()  # 조회된 데이터 가져오기
+                
+                updated_item = LocStoreContentList(
+                    local_store_content_id=row["LOCAL_STORE_CONTENT_ID"],
+                    store_business_number=row["STORE_BUSINESS_NUMBER"],
+                    store_name= row["STORE_NAME"],
+                    road_name= row["ROAD_NAME"],
+                    title=row["TITLE"],
+                    content=row["CONTENT"],
+                    status=row["STATUS"],
+                    created_at=row["CREATED_AT"]
+                )
+                return updated_item
+
+            return None  # 업데이트된 행이 없을 경우 None 반환
     except pymysql.Error as e:
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
@@ -319,7 +354,7 @@ def select_loc_store_existing_image(local_store_content_id : int):
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocStoreDetailContent: {str(e)}")
+        logger.error(f"Unexpected error occurred LocStoreImage: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
     finally:
         connection.close()

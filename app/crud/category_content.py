@@ -20,33 +20,56 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 def insert_category_content(detail_category: int, title: str, content: str):
-    # 데이터베이스 연결 설정
     connection = get_re_db_connection()
-    
     try:
-        with connection.cursor() as cursor:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor: 
             # 데이터 인서트 쿼리
             insert_query = """
                 INSERT INTO BIZ_DETAIL_CATEGORY_CONTENT 
                 (DETAIL_CATEGORY_ID, TITLE, CONTENT) 
                 VALUES (%s, %s, %s)
             """
-            # 쿼리 실행
             cursor.execute(insert_query, (detail_category, title, content))
-            # 자동 생성된 PK 가져오기
-            pk = cursor.lastrowid
-            # 커밋하여 DB에 반영
             commit(connection)
-            return pk
+            pk = cursor.lastrowid  # 새로 생성된 PK 가져오기
+
+            if cursor.rowcount > 0:
+                select_query = """
+                    SELECT 
+                        BIZ_DETAIL_CATEGORY_CONTENT_ID, 
+                        DETAIL_CATEGORY_ID, 
+                        TITLE, 
+                        CONTENT, 
+                        STATUS, 
+                        CREATED_AT
+                    FROM 
+                        BIZ_DETAIL_CATEGORY_CONTENT
+                    WHERE 
+                        BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
+                """
+                cursor.execute(select_query, (pk,))
+                row = cursor.fetchone()  # 조회된 데이터 가져오기
+                    
+                insert_item = CategoryContentList(
+                    biz_detail_category_content_id=row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
+                    detail_category_id=row["DETAIL_CATEGORY_ID"],
+                    title=row["TITLE"],
+                    content=row["CONTENT"],
+                    status=row["STATUS"],
+                    created_at=row["CREATED_AT"]
+                )
+                return insert_item
+            return None
 
     except pymysql.MySQLError as e:
-        rollback(connection)  # 오류 시 롤백
+        rollback(connection)
         print(f"Database error: {e}")
         raise
 
     finally:
-        close_cursor(cursor)   # 커서 종료
-        close_connection(connection)  # 연결 종료
+        close_cursor(cursor)
+        close_connection(connection)
+
 
 
 
@@ -268,7 +291,7 @@ def delete_category_content_status(biz_detail_category_content_id: int) -> bool:
 
 
 # 게시글 수정
-def update_category_content(biz_detail_category_content_id: int, title: str, content: str) -> bool:
+def update_category_content(biz_detail_category_content_id: int, title: str, content: str):
     connection = get_re_db_connection()
     try:
         with connection.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -281,20 +304,49 @@ def update_category_content(biz_detail_category_content_id: int, title: str, con
                     CONTENT = %s
                 WHERE BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
             """
-            # 쿼리 실행
+            # 업데이트 쿼리 실행
             cursor.execute(update_query, (title, content, biz_detail_category_content_id))
             connection.commit()
 
-            # rowcount를 통해 업데이트 성공 여부 확인
-            return cursor.rowcount > 0  # 업데이트된 행이 없으면 False 반환
+            # 업데이트 성공 시 데이터 다시 조회
+            if cursor.rowcount > 0:  # 업데이트된 행이 있는 경우에만 조회 수행
+                select_query = """
+                    SELECT 
+                        BIZ_DETAIL_CATEGORY_CONTENT_ID, 
+                        DETAIL_CATEGORY_ID, 
+                        TITLE, 
+                        CONTENT, 
+                        STATUS, 
+                        CREATED_AT
+                    FROM 
+                        BIZ_DETAIL_CATEGORY_CONTENT
+                    WHERE 
+                        BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
+                """
+                cursor.execute(select_query, (biz_detail_category_content_id,))
+                row = cursor.fetchone()  # 조회된 데이터 가져오기
+                
+                updated_item = CategoryContentList(
+                    biz_detail_category_content_id=row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
+                    detail_category_id=row["DETAIL_CATEGORY_ID"],
+                    title=row["TITLE"],
+                    content=row["CONTENT"],
+                    status=row["STATUS"],
+                    created_at=row["CREATED_AT"]
+                )
+                return updated_item
+
+            return None  # 업데이트된 행이 없을 경우 None 반환
+
     except pymysql.Error as e:
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error occurred LocStoreDetailContent: {str(e)}")
+        logger.error(f"Unexpected error occurred in update_category_content: {str(e)}")
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
     finally:
         connection.close()
+
 
 def select_category_existing_image(biz_detail_category_content_id : int):
     connection = get_re_db_connection()

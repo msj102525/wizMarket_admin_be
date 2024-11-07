@@ -26,14 +26,29 @@ from dotenv import load_dotenv
 logger = logging.getLogger(__name__)
 
 
-# 추가 정보 저장
 def insert_category_content(
-    detail_category : int, title : str, content : str, image_urls : List[str]
+    detail_category: int, title: str, content: str, image_urls: List[str]
 ):
-    # 글 먼저 저장
-    category_content_pk = crud_insert_category_content(detail_category, title, content)
-    # 글 pk 로 이미지 저장
+    # 글 먼저 저장하고, category_content_pk와 created_at 값을 반환받음
+    insert_item = crud_insert_category_content(detail_category, title, content)
+
+    category_content_pk = insert_item.biz_detail_category_content_id
+    status = insert_item.status
+    created_at = insert_item.created_at
+
+    # 글 pk로 이미지 저장
     crud_insert_category_content_image(category_content_pk, image_urls)
+
+    insert_item = {
+        "biz_detail_category_content_id": category_content_pk,
+        "detail_category_id": detail_category,
+        "title": title,
+        "content": content,
+        "status": status,
+        "created_at": created_at, 
+        "images": image_urls
+    }
+    return insert_item
 
 
 # 컨텐츠 정보 리스트 불러오기
@@ -113,7 +128,7 @@ FULL_PATH = REPORT_PATH / IMAGE_DIR.relative_to("/") / "category"
 def update_category_content(biz_detail_category_content_id: int, title: str, content: str, existing_images: List[str], new_image_urls: List[bytes]):
     try:
         # 1. 제목, 글은 무조건 update
-        crud_update_category_content(biz_detail_category_content_id, title, content)
+        updated_item = crud_update_category_content(biz_detail_category_content_id, title, content)
 
         # 2. 이미지
         # current_images에서 URL만 추출
@@ -135,8 +150,7 @@ def update_category_content(biz_detail_category_content_id: int, title: str, con
         if new_image_urls:
             crud_insert_category_new_image(biz_detail_category_content_id, new_image_urls)
 
-        # 2-3. 그대로 일 경우
-        return True
+        return updated_item
 
     except Exception as e:
         print(f"Service error occurred: {e}")

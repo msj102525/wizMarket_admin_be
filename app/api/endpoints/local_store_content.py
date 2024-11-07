@@ -161,6 +161,7 @@ async def update_loc_store_content(
 ):
     try:
         # 새로운 이미지가 있을 때 파일 저장 경로를 생성하여 URL 목록 작성
+        existing_images = existing_images or []
         new_image_urls = []
         if new_images:
             for image in new_images:
@@ -171,7 +172,7 @@ async def update_loc_store_content(
                 new_image_urls.append(image_url)
 
         # 서비스 레이어 호출
-        success = service_update_loc_store_content(
+        updated_item = service_update_loc_store_content(
             local_store_content_id=local_store_content_id,
             title=title,
             content=content,
@@ -179,10 +180,10 @@ async def update_loc_store_content(
             new_image_urls=new_image_urls
         )
 
-        if not success:
+        if not updated_item:
             raise HTTPException(status_code=404, detail="Content not found for updating")
 
-        return {"message": "Content updated successfully"}
+        return updated_item
 
     except Exception as e:
         print(f"Error occurred: {e}")

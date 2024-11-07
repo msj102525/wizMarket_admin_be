@@ -61,15 +61,9 @@ def insert_category_content(
             image_url = f"/static/images/category/{image.filename}"
             image_urls.append(image_url)
 
-    service_insert_category_content(detail_category, title, content, image_urls)
+    insert_item = service_insert_category_content(detail_category, title, content, image_urls)
 
-    # 예시 응답 데이터
-    return {
-        "detail_category": detail_category,
-        "title": title,
-        "content": content,
-        "image_filenames": image_urls
-    }
+    return insert_item
 
 
 
@@ -97,6 +91,7 @@ def get_category_content():
 @router.post("/select/biz/category/list", response_model=List[CategoryBizCategoryList])
 def get_category_biz_category(request: BizCategoryNumberListRequest):
     biz_category_number_list = request.biz_category_number_list
+
     try:
         # 서비스에서 데이터를 가져와 result 변수에 저장
         result = service_select_category_biz_category(biz_category_number_list)
@@ -159,7 +154,6 @@ async def update_loc_store_content(
     existing_images: str = Form("[]"),  # 기존 이미지를 문자열로 받아 JSON 디코딩
     new_images: List[UploadFile] = File(None)
 ):
-
     try:
         # 새로운 이미지가 있을 때 파일 저장 경로를 생성하여 URL 목록 작성
         existing_images = existing_images or []
@@ -173,7 +167,7 @@ async def update_loc_store_content(
                 new_image_urls.append(image_url)
 
         # 서비스 레이어 호출
-        success = service_update_category_content(
+        updated_item = service_update_category_content(
             biz_detail_category_content_id=biz_detail_category_content_id,
             title=title,
             content=content,
@@ -181,10 +175,10 @@ async def update_loc_store_content(
             new_image_urls=new_image_urls
         )
 
-        if not success:
+        if not updated_item:
             raise HTTPException(status_code=404, detail="Content not found for updating")
 
-        return {"message": "Content updated successfully"}
+        return updated_item
 
     except Exception as e:
         print(f"Error occurred: {e}")
