@@ -795,9 +795,8 @@ def get_nation_j_score(filters_dict)-> StatDataForNation:
 
 
 
-
+# 기준 날짜 조회
 def select_loc_info_data_date() -> List[LocInfoDataDate]:
-
     try:
         with get_db_connection() as connection:
             with connection.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -809,7 +808,6 @@ def select_loc_info_data_date() -> List[LocInfoDataDate]:
                     GROUP BY Y_M
                     ;
                 """
-
                 cursor.execute(select_query)
                 rows = cursor.fetchall()
 
@@ -819,16 +817,13 @@ def select_loc_info_data_date() -> List[LocInfoDataDate]:
 
                 for row in rows:
                     result = LocInfoDataDate(y_m=row["Y_M"])
-
                     results.append(result)
-
                 return results
-
     except pymysql.Error as e:
         logger.error(f"Database error occurred: {str(e)}")
         raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
     except Exception as e:
         logger.error(
-            f"Unexpected error occurred in select_commercial_district_data_date: {str(e)}"
+            f"Unexpected error occurred in loc_info_data_date: {str(e)}"
         )
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")

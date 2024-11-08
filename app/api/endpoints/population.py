@@ -1,11 +1,17 @@
 from fastapi import APIRouter, HTTPException, Body
 from app.schemas.population import *
 from app.service.population import *
+from app.service.population import (
+    filter_population_data,
+    download_data,
+    select_population_data_date as service_select_population_data_date
+)
 import pandas as pd
 import io
 from fastapi.responses import StreamingResponse
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -88,3 +94,20 @@ async def download(filters: PopulationSearch):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"검색 중 오류가 발생했습니다: {str(e)}")
+    
+
+
+# 기준 날짜 조회
+@router.get("/data/date")
+def select_population_data_date() -> List[PopulationDataDate]:
+    try:
+        return service_select_population_data_date()
+
+    except HTTPException as http_ex:
+        logger.error(f"HTTP error occurred: {http_ex.detail}")
+        raise http_ex
+
+    except Exception as e:
+        error_msg = f"Unexpected error while processing request: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)

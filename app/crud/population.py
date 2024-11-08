@@ -8,12 +8,14 @@ from app.db.connect import (
     commit,
     rollback,
 )
-from app.schemas.population import Population, PopulationOutput, Population_by_ages, Population_by_gender, PopulationFindByFilter
+from app.schemas.population import Population, PopulationOutput, Population_by_ages, Population_by_gender, PopulationFindByFilter, PopulationDataDate
 from typing import List
 from mysql.connector.cursor import MySQLCursorDict
 from typing import List, Dict
 import decimal
+from fastapi import HTTPException
 
+logger = logging.getLogger(__name__)
 
 def download_data_ex(filters):
     # 데이터베이스 연결
@@ -458,3 +460,38 @@ def get_latest_population_data_by_subdistrict_id(sub_district_id: int) -> Popula
             cursor.close()
         if connection:
             connection.close()
+
+
+
+# 기준 날짜 조회
+def select_population_data_date() -> List[PopulationDataDate]:
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+                select_query = """
+                    SELECT
+                        REF_DATE
+                    FROM
+                        POPULATION_AGE
+                    GROUP BY REF_DATE
+                    ;
+                """
+                cursor.execute(select_query)
+                rows = cursor.fetchall()
+
+                # logger.info(f"rows: {rows}")
+
+                results = []
+
+                for row in rows:
+                    result = PopulationDataDate(ref_date=row["REF_DATE"])
+                    results.append(result)
+                return results
+    except pymysql.Error as e:
+        logger.error(f"Database error occurred: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
+    except Exception as e:
+        logger.error(
+            f"Unexpected error occurred in population_data_date: {str(e)}"
+        )
+        raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")

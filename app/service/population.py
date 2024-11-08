@@ -6,18 +6,20 @@ from app.crud.statistics import (
 )
 from app.schemas.loc_info import LocationInfoReportOutput
 from app.schemas.loc_store import LocalStoreSubdistrict
-from app.schemas.population import PopulationJScoreOutput
+from app.schemas.population import PopulationJScoreOutput, PopulationDataDate
 from app.schemas.statistics import LocStatisticsOutput
 from app.db.connect import *
 from app.crud.population import (
     get_latest_population_data_by_subdistrict_id as crud_get_latest_population_data_by_subdistrict_id,
+    select_population_data_date as crud_select_population_data_date
 )
-
 from app.crud.loc_store import (
     select_loc_info_report_data_by_sub_district_id as crud_select_loc_info_report_data_by_sub_district_id,
     select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
 )
+import logging
 
+logger = logging.getLogger(__name__)
 
 # 상세 조회
 async def filter_population_data(filters: dict):
@@ -39,6 +41,20 @@ async def download_data(filters: dict):
     except Exception as e:
         raise Exception(f"Error in filtering population data: {str(e)}")
 
+
+# 기준 날짜 조회
+def select_population_data_date() -> List[PopulationDataDate]:
+    try:
+        # logger.info(f"detail_category_id_list: {detail_category_id_list}")
+        return crud_select_population_data_date()
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Service PopulationDataDate Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Service PopulationDataDate Error: {str(e)}",
+        )
 
 def select_report_population_by_store_business_number(
     store_business_id: str,

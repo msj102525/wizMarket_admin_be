@@ -229,3 +229,9 @@ class PopulationFindByFilter(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PopulationDataDate(BaseModel):
+    ref_date: date
+
+    class Config:
+        from_attributes = True

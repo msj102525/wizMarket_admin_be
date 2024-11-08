@@ -12,8 +12,6 @@ from app.crud.loc_info import (
     get_stat_data_by_sub_distirct,
     get_nation_j_score,
     select_loc_info_data_date as crud_select_loc_info_data_date
-
-
 )
 import pandas as pd
 from app.crud.loc_store import (
@@ -136,7 +134,6 @@ def select_nation_j_score(filters_dict):
 # 기준 날짜 조회
 def select_loc_info_data_date() -> List[LocInfoDataDate]:
     try:
-        # logger.info(f"detail_category_id_list: {detail_category_id_list}")
         return crud_select_loc_info_data_date()
     except HTTPException:
         raise
