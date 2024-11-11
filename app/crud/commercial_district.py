@@ -51,78 +51,82 @@ def select_commercial_district_by_dynamic_query(
         if connection.open:
             select_query = """
                 SELECT 
-                CD.BIZ_DETAIL_CATEGORY_ID,
-                CD.SUB_DISTRICT_ID,
-                CD.COMMERCIAL_DISTRICT_ID,
-                CI.CITY_NAME,
-                DI.DISTRICT_NAME,
-                SD.SUB_DISTRICT_NAME,
-                BMC.BIZ_MAIN_CATEGORY_NAME,
-                BSC.BIZ_SUB_CATEGORY_NAME,
-                BDC.BIZ_DETAIL_CATEGORY_NAME,
-                CD.NATIONAL_DENSITY,
-                CD.CITY_DENSITY,
-                CD.DISTRICT_DENSITY,
-                CD.SUB_DISTRICT_DENSITY,
-                CD.MARKET_SIZE,
-                CD.AVERAGE_SALES,
-                CD.AVERAGE_PAYMENT,
-                CD.USAGE_COUNT,
-                CD.OPERATING_COST,
-                CD.FOOD_COST,
-                CD.EMPLOYEE_COST,
-                CD.RENTAL_COST,
-                CD.TAX_COST,
-                CD.FAMILY_EMPLOYEE_COST,
-                CD.CEO_COST,
-                CD.ETC_COST,
-                CD.AVERAGE_PROFIT,
-                CD.AVG_PROFIT_PER_MON,
-                CD.AVG_PROFIT_PER_TUE,
-                CD.AVG_PROFIT_PER_WED,
-                CD.AVG_PROFIT_PER_THU,
-                CD.AVG_PROFIT_PER_FRI,
-                CD.AVG_PROFIT_PER_SAT,
-                CD.AVG_PROFIT_PER_SUN,
-                CD.AVG_PROFIT_PER_06_09,
-                CD.AVG_PROFIT_PER_09_12,
-                CD.AVG_PROFIT_PER_12_15,
-                CD.AVG_PROFIT_PER_15_18,
-                CD.AVG_PROFIT_PER_18_21,
-                CD.AVG_PROFIT_PER_21_24,
-                CD.AVG_PROFIT_PER_24_06,
-                CD.AVG_CLIENT_PER_M_20,
-                CD.AVG_CLIENT_PER_M_30,
-                CD.AVG_CLIENT_PER_M_40,
-                CD.AVG_CLIENT_PER_M_50,
-                CD.AVG_CLIENT_PER_M_60,
-                CD.AVG_CLIENT_PER_F_20,
-                CD.AVG_CLIENT_PER_F_30,
-                CD.AVG_CLIENT_PER_F_40,
-                CD.AVG_CLIENT_PER_F_50,
-                CD.AVG_CLIENT_PER_F_60,
-                CD.TOP_MENU_1,
-                CD.TOP_MENU_2,
-                CD.TOP_MENU_3,
-                CD.TOP_MENU_4,
-                CD.TOP_MENU_5,
-                CD.Y_M,
-                CD.CREATED_AT,
-                CD.UPDATED_AT
-            FROM 
-                    COMMERCIAL_DISTRICT cd
-                JOIN
-                    CITY CI ON cd.CITY_ID = CI.CITY_ID
-                JOIN
-                    DISTRICT DI ON cd.DISTRICT_ID = DI.DISTRICT_ID
-                JOIN
-                    SUB_DISTRICT SD ON cd.SUB_DISTRICT_ID = SD.SUB_DISTRICT_ID
-                JOIN
-                    BIZ_MAIN_CATEGORY BMC ON cd.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
-                JOIN
-                    BIZ_SUB_CATEGORY BSC ON cd.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
-                JOIN
-                    BIZ_DETAIL_CATEGORY BDC ON cd.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
+                    CD.BIZ_DETAIL_CATEGORY_ID,
+                    CD.SUB_DISTRICT_ID,
+                    CD.COMMERCIAL_DISTRICT_ID,
+                    CI.CITY_NAME,
+                    DI.DISTRICT_NAME,
+                    SD.SUB_DISTRICT_NAME,
+                    BMC.BIZ_MAIN_CATEGORY_NAME,
+                    BSC.BIZ_SUB_CATEGORY_NAME,
+                    BDC.BIZ_DETAIL_CATEGORY_NAME,
+                    CD.NATIONAL_DENSITY,
+                    CD.CITY_DENSITY,
+                    CD.DISTRICT_DENSITY,
+                    CD.SUB_DISTRICT_DENSITY,
+                    CD.MARKET_SIZE,
+                    CD.AVERAGE_SALES,
+                    CD.AVERAGE_PAYMENT,
+                    CD.USAGE_COUNT,
+                    CD.OPERATING_COST,
+                    CD.FOOD_COST,
+                    CD.EMPLOYEE_COST,
+                    CD.RENTAL_COST,
+                    CD.TAX_COST,
+                    CD.FAMILY_EMPLOYEE_COST,
+                    CD.CEO_COST,
+                    CD.ETC_COST,
+                    CD.AVERAGE_PROFIT,
+                    CD.AVG_PROFIT_PER_MON,
+                    CD.AVG_PROFIT_PER_TUE,
+                    CD.AVG_PROFIT_PER_WED,
+                    CD.AVG_PROFIT_PER_THU,
+                    CD.AVG_PROFIT_PER_FRI,
+                    CD.AVG_PROFIT_PER_SAT,
+                    CD.AVG_PROFIT_PER_SUN,
+                    CD.AVG_PROFIT_PER_06_09,
+                    CD.AVG_PROFIT_PER_09_12,
+                    CD.AVG_PROFIT_PER_12_15,
+                    CD.AVG_PROFIT_PER_15_18,
+                    CD.AVG_PROFIT_PER_18_21,
+                    CD.AVG_PROFIT_PER_21_24,
+                    CD.AVG_PROFIT_PER_24_06,
+                    CD.AVG_CLIENT_PER_M_20,
+                    CD.AVG_CLIENT_PER_M_30,
+                    CD.AVG_CLIENT_PER_M_40,
+                    CD.AVG_CLIENT_PER_M_50,
+                    CD.AVG_CLIENT_PER_M_60,
+                    CD.AVG_CLIENT_PER_F_20,
+                    CD.AVG_CLIENT_PER_F_30,
+                    CD.AVG_CLIENT_PER_F_40,
+                    CD.AVG_CLIENT_PER_F_50,
+                    CD.AVG_CLIENT_PER_F_60,
+                    CD.TOP_MENU_1,
+                    CD.TOP_MENU_2,
+                    CD.TOP_MENU_3,
+                    CD.TOP_MENU_4,
+                    CD.TOP_MENU_5,
+                    CD.Y_M,
+                    CD.CREATED_AT,
+                    CD.UPDATED_AT
+                FROM 
+                    CITY CI
+                    JOIN DISTRICT DI 
+                        ON CI.CITY_ID = DI.CITY_ID
+                    JOIN SUB_DISTRICT SD 
+                        ON DI.DISTRICT_ID = SD.DISTRICT_ID
+                    JOIN BIZ_MAIN_CATEGORY BMC 
+                    JOIN BIZ_SUB_CATEGORY BSC 
+                        ON BSC.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
+                    JOIN BIZ_DETAIL_CATEGORY BDC 
+                        ON BDC.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
+                    JOIN COMMERCIAL_DISTRICT CD
+                        ON CD.CITY_ID = CI.CITY_ID
+                        AND CD.DISTRICT_ID = DI.DISTRICT_ID
+                        AND CD.SUB_DISTRICT_ID = SD.SUB_DISTRICT_ID
+                        AND CD.BIZ_MAIN_CATEGORY_ID = BMC.BIZ_MAIN_CATEGORY_ID
+                        AND CD.BIZ_SUB_CATEGORY_ID = BSC.BIZ_SUB_CATEGORY_ID
+                        AND CD.BIZ_DETAIL_CATEGORY_ID = BDC.BIZ_DETAIL_CATEGORY_ID
                 WHERE 1=1
             """
 

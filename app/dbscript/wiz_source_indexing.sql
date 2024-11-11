@@ -54,6 +54,48 @@ CREATE INDEX idx_y_m ON COMMERCIAL_DISTRICT(Y_M);
 CREATE INDEX idx_created_updated 
 ON COMMERCIAL_DISTRICT(CREATED_AT, UPDATED_AT);
 --------------------------------------------------------
+-- 상권분석 통계 indexing
+CREATE INDEX idx_city_district_subdistrict_category_refdate
+ON COMMERCIAL_DISTRICT_MARKET_SIZE_STATISTICS (
+    CITY_ID,
+    DISTRICT_ID,
+    SUB_DISTRICT_ID,
+    BIZ_DETAIL_CATEGORY_ID,
+    REF_DATE
+);
+CREATE INDEX idx_city_district_subdistrict_category_refdate
+ON COMMERCIAL_DISTRICT_USEAGE_COUNT_STATISTICS (
+    CITY_ID,
+    DISTRICT_ID,
+    SUB_DISTRICT_ID,
+    BIZ_DETAIL_CATEGORY_ID,
+    REF_DATE
+);
+CREATE INDEX idx_city_district_subdistrict_category_refdate
+ON COMMERCIAL_DISTRICT_AVERAGE_SALES_STATISTICS (
+    CITY_ID,
+    DISTRICT_ID,
+    SUB_DISTRICT_ID,
+    BIZ_DETAIL_CATEGORY_ID,
+    REF_DATE
+);
+CREATE INDEX idx_city_district_subdistrict_category_refdate
+ON COMMERCIAL_DISTRICT_SUB_DISTRICT_DENSITY_STATISTICS (
+    CITY_ID,
+    DISTRICT_ID,
+    SUB_DISTRICT_ID,
+    BIZ_DETAIL_CATEGORY_ID,
+    REF_DATE
+);
+CREATE INDEX idx_city_district_subdistrict_category_refdate
+ON COMMERCIAL_DISTRICT_AVERAGE_PAYMENT_STATISTICS (
+    CITY_ID,
+    DISTRICT_ID,
+    SUB_DISTRICT_ID,
+    BIZ_DETAIL_CATEGORY_ID,
+    REF_DATE
+);
+--------------------------------------------------------
 
 -- 매장 정보 외래키 인덱스
 CREATE INDEX idx_local_store_city_id ON LOCAL_STORE (CITY_ID);
