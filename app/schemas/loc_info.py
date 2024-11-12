@@ -128,6 +128,8 @@ class StatDataForExetend(BaseModel):
     j_score_per: Optional[float]
     j_score_rank: Optional[float]
     j_score: Optional[float]
+    j_score_per_non_outliers: Optional[float]
+    j_score_non_outliers: Optional[float]
     ref_date : date
 
     class Config:
@@ -149,6 +151,8 @@ class StatDataByCityForExetend(BaseModel):
     j_score_per: Optional[float]
     j_score_rank: Optional[float]
     j_score: Optional[float]
+    j_score_per_non_outliers: Optional[float]
+    j_score_non_outliers: Optional[float]
     ref_date : date
 
     class Config:
@@ -169,6 +173,8 @@ class StatDataByDistrictForExetend(BaseModel):
     j_score_per: Optional[float]
     j_score_rank: Optional[float]
     j_score: Optional[float]
+    j_score_per_non_outliers: Optional[float]
+    j_score_non_outliers: Optional[float]
     ref_date : date
 
     class Config:
@@ -187,6 +193,8 @@ class StatDataForNation(BaseModel):
     j_score: Optional[float]
     j_score_per: Optional[float]
     j_score_rank: Optional[float]
+    j_score_per_non_outliers: Optional[float]
+    j_score_non_outliers: Optional[float]
     ref_date : date
 
     class Config:

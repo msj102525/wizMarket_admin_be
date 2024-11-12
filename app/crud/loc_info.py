@@ -238,6 +238,8 @@ def get_filtered_locations(filters):
                 loc_info_statistics.j_score_rank,
                 loc_info_statistics.j_score_per,
                 loc_info_statistics.j_score,
+                loc_info_statistics.j_score_per_non_outliers,
+                loc_info_statistics.j_score_non_outliers,
                 loc_info_statistics.ref_date
             FROM loc_info_statistics
             LEFT JOIN city ON loc_info_statistics.city_id = city.city_id
@@ -394,7 +396,9 @@ def get_stat_data(filters_dict)-> StatDataForExetend:
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
                    TARGET_ITEM, REF_DATE,
-                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE
+                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, 
+                   J_SCORE_PER, J_SCORE_RANK, J_SCORE,
+                   J_SCORE_PER_NON_OUTLIERS, J_SCORE_NON_OUTLIERS
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
             JOIN district ON li.district_id = district.district_id
@@ -435,7 +439,9 @@ def get_stat_data(filters_dict)-> StatDataForExetend:
                 min_val= row.get("MIN_VAL"),
                 j_score= row.get("J_SCORE"),
                 j_score_rank = row.get("J_SCORE_RANK"),
-                j_score_per = row.get("J_SCORE_PER")
+                j_score_per = row.get("J_SCORE_PER"),
+                j_score_non_outliers= row.get("J_SCORE_NON_OUTLIERS"),
+                j_score_per_non_outliers = row.get("J_SCORE_PER_NON_OUTLIERS")
             )
             results.append(loc_info_by_region)
         
@@ -462,7 +468,8 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCityForExetend:
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
                    TARGET_ITEM, REF_DATE,
-                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE
+                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE,
+                   J_SCORE_PER_NON_OUTLIERS, J_SCORE_NON_OUTLIERS
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
             JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
@@ -528,7 +535,9 @@ def get_stat_data_by_city(filters_dict: dict) -> StatDataByCityForExetend:
                 min_val= row.get("MIN_VAL"),
                 j_score= row.get("J_SCORE"),
                 j_score_rank= row.get("J_SCORE_RANK"),
-                j_score_per= row.get("J_SCORE_PER")
+                j_score_per= row.get("J_SCORE_PER"),
+                j_score_non_outliers= row.get("J_SCORE_NON_OUTLIERS"),
+                j_score_per_non_outliers = row.get("J_SCORE_PER_NON_OUTLIERS")
             )
             results.append(loc_info_by_region)
 
@@ -558,7 +567,8 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrictForExeten
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
                    TARGET_ITEM, REF_DATE,
-                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE
+                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE,
+                   J_SCORE_PER_NON_OUTLIERS, J_SCORE_NON_OUTLIERS
             FROM loc_info_statistics li
             JOIN district ON li.district_id = district.district_id
             JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
@@ -623,7 +633,9 @@ def get_stat_data_by_distirct(filters_dict: dict) -> StatDataByDistrictForExeten
                 min_val= row.get("MIN_VAL"),
                 j_score= row.get("J_SCORE"),
                 j_score_rank = row.get("J_SCORE_RANK"),
-                j_score_per= row.get("J_SCORE_PER")
+                j_score_per= row.get("J_SCORE_PER"),
+                j_score_non_outliers= row.get("J_SCORE_NON_OUTLIERS"),
+                j_score_per_non_outliers = row.get("J_SCORE_PER_NON_OUTLIERS")
             )
             results.append(loc_info_by_region)
 
@@ -653,7 +665,8 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatDataForExetend:
                    sub_district.sub_district_id AS SUB_DISTRICT_ID,
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
                    TARGET_ITEM, REF_DATE,
-                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE
+                   AVG_VAL, MED_VAL, STD_VAL, MAX_VAL, MIN_VAL, J_SCORE_PER, J_SCORE_RANK, J_SCORE,
+                   J_SCORE_PER_NON_OUTLIERS, J_SCORE_NON_OUTLIERS
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
             JOIN district ON li.district_id = district.district_id
@@ -708,7 +721,9 @@ def get_stat_data_by_sub_distirct(filters_dict: dict) -> StatDataForExetend:
                 min_val= row.get("MIN_VAL"),
                 j_score= row.get("J_SCORE"),
                 j_score_per= row.get("J_SCORE_PER"),
-                j_score_rank= row.get("J_SCORE_RANK")
+                j_score_rank= row.get("J_SCORE_RANK"),
+                j_score_non_outliers= row.get("J_SCORE_NON_OUTLIERS"),
+                j_score_per_non_outliers = row.get("J_SCORE_PER_NON_OUTLIERS")
             )
             results.append(loc_info_by_region)
 
@@ -742,6 +757,7 @@ def get_nation_j_score(filters_dict)-> StatDataForNation:
                    sub_district.sub_district_name AS SUB_DISTRICT_NAME,
                    li.TARGET_ITEM, li.REF_DATE,
                    li.J_SCORE, li.J_SCORE_PER, li.J_SCORE_RANK,
+                   li.J_SCORE_PER_NON_OUTLIERS, li.J_SCORE_NON_OUTLIERS,
                    li.REF_DATE
             FROM loc_info_statistics li
             JOIN city ON li.city_id = city.city_id
@@ -780,6 +796,8 @@ def get_nation_j_score(filters_dict)-> StatDataForNation:
                 j_score = row.get("J_SCORE"),
                 j_score_rank = row.get("J_SCORE_RANK"),
                 j_score_per = row.get("J_SCORE_PER"),
+                j_score_non_outliers= row.get("J_SCORE_NON_OUTLIERS"),
+                j_score_per_non_outliers = row.get("J_SCORE_PER_NON_OUTLIERS"),
                 ref_date=row.get("REF_DATE")
             )
             results.append(loc_info_by_region)
