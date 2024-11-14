@@ -249,23 +249,48 @@ def get_filtered_locations(filters):
             {location_conditions} {date_conditions_statistics}
         """
         
+        additional_conditions_statistics = [
+            ("jScoreMin", "j_score_non_outliers >= %s"),
+            ("jScoreMax", "j_score_non_outliers <= %s"),
+        ]
+
+        for filter_key, condition in additional_conditions_statistics:
+            if filters.get(filter_key) is not None:
+                query_2 += f" AND {condition}"
+                query_params_statistics.append(filters[filter_key])
+
+
         cursor.execute(query_2, query_params_statistics)
         statistics_results = cursor.fetchall()
 
-        # loc_info_results와 statistics_results를 병합
-        merged_results = []
-        for loc_info in loc_info_results:
-            matching_stats = next(
-                (stats for stats in statistics_results 
-                 if stats['city_id'] == loc_info['city_id'] and 
-                    stats['district_id'] == loc_info['district_id'] and 
-                    stats['sub_district_id'] == loc_info['sub_district_id'] and
-                    stats['ref_date'] == loc_info['y_m']), 
-                {}
-            )
-            merged_record = {**loc_info, **matching_stats}
-            merged_results.append(merged_record)
+        # 기준을 레코드 수가 적은 쪽으로 설정
+        if len(loc_info_results) <= len(statistics_results):
+            primary_results = loc_info_results
+            secondary_results = statistics_results
+            match_keys = ["city_id", "district_id", "sub_district_id"]
+        else:
+            primary_results = statistics_results
+            secondary_results = loc_info_results
+            match_keys = ["city_id", "district_id", "sub_district_id"]
 
+        # 병합 수행
+        merged_results = []
+        for primary in primary_results:
+            # primary 결과에 대해 matching되는 secondary 결과 찾기
+            matching_secondary = next(
+                (secondary for secondary in secondary_results
+                if all(primary[key] == secondary[key] for key in match_keys)),
+                None
+            )
+
+            # 병합: matching되는 secondary가 있는 경우 합치고, 없으면 primary만 추가
+            if matching_secondary:
+                merged_record = {**primary, **matching_secondary}
+            else:
+                merged_record = primary
+
+            merged_results.append(merged_record)
+        # print(merged_results)
         return merged_results
 
     finally:
