@@ -21,7 +21,8 @@ from app.api.endpoints import (
     reference,
     rising_business,
     commercial_district,
-    local_store_content
+    local_store_content,
+    ads
 )
 from app.api.endpoints import loc_info
 from app.api.endpoints import population
@@ -72,7 +73,7 @@ app.include_router(classification.router, prefix="/classification")
 app.include_router(statistics.router, prefix="/statistics")
 app.include_router(local_store_content.router, prefix="/store/content")
 app.include_router(category_content.router, prefix="/category/content")
-
+app.include_router(ads.router, prefix="/ads")
 
 if __name__ == "__main__":
     import uvicorn
