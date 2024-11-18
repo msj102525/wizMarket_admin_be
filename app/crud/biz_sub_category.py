@@ -119,14 +119,15 @@ def get_all_biz_sub_category_by_biz_main_category_id(
             for row in rows:
                 biz_sub_category_id = row.get("BIZ_SUB_CATEGORY_ID")
                 if row.get("BIZ_SUB_CATEGORY_ID") != 2:
-                    biz_main_category = BizSubCategoryOutput(
-                        biz_sub_category_id=biz_sub_category_id,
-                        biz_sub_category_name=row.get("BIZ_SUB_CATEGORY_NAME"),
-                        biz_detail_cateogry_count=detail_category_count_dict.get(
-                            biz_sub_category_id, 0
-                        ),
-                    )
-                    results.append(biz_main_category)
+                    if row.get("BIZ_SUB_CATEGORY_NAME") != "":
+                        biz_main_category = BizSubCategoryOutput(
+                            biz_sub_category_id=biz_sub_category_id,
+                            biz_sub_category_name=row.get("BIZ_SUB_CATEGORY_NAME"),
+                            biz_detail_cateogry_count=detail_category_count_dict.get(
+                                biz_sub_category_id, 0
+                            ),
+                        )
+                        results.append(biz_main_category)
 
             return results
     except Exception as e:
