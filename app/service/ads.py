@@ -13,7 +13,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 from openai import OpenAI
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 from io import BytesIO
 import os
 from typing import List
@@ -147,13 +147,53 @@ def generate_content(
     else :
         use_option = '구글 광고 배너'
 
+    # 요일 매핑
+    day_map = {
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON": "월요일",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_TUE": "화요일",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_WED": "수요일",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_THU": "목요일",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_FRI": "금요일",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SAT": "토요일",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SUN": "일요일",
+    }
+
+    time_map = {
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_06_09" : "06~09시",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_09_12" : "09~12시",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_12_15" : "12~15시",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_15_18" : "15~18시",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_18_21" : "18~21시",
+        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_21_24" : "21~24시"
+    }
+
+    male_map = {
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_20S" : "남자 20대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_30S" : "남자 30대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_40S" : "남자 40대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_50S" : "남자 50대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_60_OVER" : "남자 60대 이상"
+    }
+
+    female_map = {
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_20S" : "여자 20대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_30S" : "여자 30대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_40S" : "여자 40대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_50S" : "여자 50대",
+        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_60_OVER" : "여자 60대 이상"
+    }
+
+    max_sales_day_kor = day_map.get(max_sales_day, max_sales_day)
+    max_sales_time_kor = time_map.get(max_sales_time, max_sales_time)
+    max_sales_male_kor = male_map.get(max_sales_male, max_sales_male)
+    max_sales_female_kor = female_map.get(max_sales_female, max_sales_female)
+
     full_region = f"{city_name} {district_name} {sub_district_name}"
 
     # gpt 영역
     gpt_content = """
         다음과 같은 내용을 바탕으로 온라인 광고 콘텐츠를 제작하려고 합니다. 
-        내용에 부합하는 광고문구를 30자 이내로 작성해주세요.
-        슬로건 마다 <br> 태그를 사용해서 줄 나눔 해주세요.
+        내용에 부합하는 광고 문구를 20자 이하로 문구 3개를 <br> 태그를 사용해 줄 나눔해서 작성해주세요.
     """    
     content = f"""
         가게명 : {store_name}
@@ -162,12 +202,12 @@ def generate_content(
         채널 : {use_option} 이미지에 사용
         주소 : {road_name}
         {full_region}의 평균 월 매출 : {loc_info_average_sales_k} * k
-        {full_region}의 매출이 가장 높은 요일 : {max_sales_day}, {max_sales_day_value}%
-        {full_region}의 매출이 가장 높은 시간대 : {max_sales_time}, {max_sales_time_value}%
-        {full_region}의 매출이 가장 높은 남자 연령대 : {max_sales_male}, {max_sales_male_value}%
-        {full_region}의 매출이 가장 높은 여자 연령대 : {max_sales_female}, {max_sales_female_value}%
-
+        {full_region}의 매출이 가장 높은 요일 : {max_sales_day_kor}, {max_sales_day_value}%
+        {full_region}의 매출이 가장 높은 시간대 : {max_sales_time_kor}, {max_sales_time_value}%
+        {full_region}의 매출이 가장 높은 남자 연령대 : {max_sales_male_kor}, {max_sales_male_value}%
+        {full_region}의 매출이 가장 높은 여자 연령대 : {max_sales_female_kor}, {max_sales_female_value}%
     """
+
     client = OpenAI(api_key=os.getenv("GPT_KEY"))
     completion = client.chat.completions.create(
         model="gpt-4o",
@@ -350,28 +390,52 @@ def generate_image(
             return {"error": f"이미지 생성 중 오류 발생: {e}"}
 
 
-
 # 주제 + 문구 + 이미지 합치기
-def combine_ads(content, image_width, image_height, image, alignment="center"):
+def combine_ads(store_name, content, image_width, image_height, image, alignment="center", transparency=0.6):
     root_path = os.getenv("ROOT_PATH", ".")
-    font_path = os.path.join(root_path, "app", "font", "yang.otf")
-    font_size = 40
-    font = ImageFont.truetype(font_path, font_size)
+    font_path = os.path.join(root_path, "app", "font", "yang.otf")  # Bold 폰트 사용
+    top_font_size = 36
+    bottom_font_size = 32
+
+    # 폰트 설정
+    top_font = ImageFont.truetype(font_path, top_font_size)
+    bottom_font = ImageFont.truetype(font_path, bottom_font_size)
+    store_name_font = ImageFont.truetype(font_path, 14)  # store_name은 작은 폰트 사용
+
+    # RGBA 모드로 변환
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    # 투명도 조정
+    alpha = image.split()[3]  # 알파 채널
+    alpha = ImageEnhance.Brightness(alpha).enhance(transparency)  # 투명도 적용 (0.6 = 60%)
+    image.putalpha(alpha)
+
     draw = ImageDraw.Draw(image)
 
     # 텍스트를 '<br>'로 구분하여 줄 나누기
     lines = content.split('<br>')
 
-    # 줄 높이 계산
-    line_height = font.getbbox("A")[3] + 10  # 줄 간격 포함
+    if len(lines) > 0:
+        # 첫 번째 문장은 상단에 배치
+        top_line = lines[0].strip()
+        top_text_width = top_font.getbbox(top_line)[2]
+        top_text_height = top_font.getbbox("A")[3] + 10  # 줄 높이 계산
+        top_text_x = (image_width - top_text_width) // 2  # 중앙 정렬
+        top_text_y = 60  # 상단에서 40px 여백
 
-    # 텍스트 위치 초기값
-    text_y = image_height - (line_height * len(lines)) - 40  # 하단에서 여백 확보
+        # 흰색(80% 투명도)으로 top_line 추가
+        draw.text((top_text_x, top_text_y), top_line, font=top_font, fill=(255, 255, 255, int(255 * 0.8)))  # 흰색 80% 투명도
 
-    # 각 줄 텍스트 추가
-    for line in lines:
+    # 나머지 문장은 하단에 배치
+    bottom_lines = lines[1:]  # 첫 번째 문장 제외
+    line_height = bottom_font.getbbox("A")[3] + 10  # 줄 간격 포함
+    text_y = (image_height * 3) // 4  # 이미지 높이의 3/4 지점에서 시작
+
+    # 하단 텍스트 추가
+    for line in bottom_lines:
         line = line.strip()
-        text_width = font.getbbox(line)[2]
+        text_width = bottom_font.getbbox(line)[2]
 
         # 정렬 설정
         if alignment == "center":
@@ -383,9 +447,15 @@ def combine_ads(content, image_width, image_height, image, alignment="center"):
         else:
             raise ValueError("Invalid alignment option. Choose 'center', 'left', or 'right'.")
 
-        # 텍스트 추가
-        draw.text((text_x, text_y), line, font=font, fill="white")
+        # 초록색(100% 불투명도)으로 bottom_lines 추가
+        draw.text((text_x, text_y), line, font=bottom_font, fill="#03FF57")  # 초록색
         text_y += line_height  # 다음 줄로 이동
+
+    # store_name 추가 (하단의 하단)
+    store_name_width = store_name_font.getbbox(store_name)[2]
+    store_name_x = (image_width - store_name_width) // 2  # 중앙 정렬
+    store_name_y = image_height -  50
+    draw.text((store_name_x, store_name_y), store_name, font=store_name_font, fill="white")
 
     # 이미지 메모리에 저장
     buffer = BytesIO()
@@ -397,6 +467,3 @@ def combine_ads(content, image_width, image_height, image, alignment="center"):
 
     return f"data:image/png;base64,{base64_image}"
 
-
-if __name__ == "__main__":
-    pass

@@ -127,6 +127,7 @@ def generate_image(request: AdsImageRequest):
 # ADS 텍스트, 이미지 합성
 @router.post("/combine/image/text")
 def combine_ads(
+    store_name: str = Form(...),
     content: str = Form(...),
     image_width: int = Form(...),
     image_height: int = Form(...),
@@ -139,7 +140,7 @@ def combine_ads(
         return {"error": f"Failed to open image: {str(e)}"}
 
     # 서비스 레이어 호출 (Base64 이미지 반환)
-    base64_image = service_combine_ads(content, image_width, image_height, pil_image)
+    base64_image = service_combine_ads(store_name, content, image_width, image_height, pil_image)
 
     # JSON 응답으로 Base64 이미지 반환
     return JSONResponse(content={"image": base64_image})
