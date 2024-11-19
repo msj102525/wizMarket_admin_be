@@ -186,7 +186,7 @@ client = OpenAI(api_key=api_key)
 
 # 이미지 생성
 def generate_image(
-    use_option, model_option, title, content_info, store_name, detail_category_name, 
+    use_option, model_option, title, store_name, detail_category_name, 
 ):
     # gpt 영역
     gpt_content = """
@@ -210,6 +210,20 @@ def generate_image(
     prompt = completion.choices[0].message.content
     print(prompt)
 
+    if use_option == 'MMS':
+        resize = (262, 362)
+    elif use_option == 'youtube thumbnail':
+        resize = (412, 232)
+    elif use_option == 'instagram story':
+        resize = (412, 732)
+    elif use_option == 'instagram feed':
+        resize = (412, 514)
+    elif use_option == 'google advertising banner':
+        resize = (377, 377)
+    else :
+        resize= None
+
+
     token = os.getenv("FACE_KEY")
     if model_option == 'basic':
         API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large"
@@ -223,6 +237,11 @@ def generate_image(
 
             # 응답 바이너리 데이터를 PIL 이미지로 변환
             image = Image.open(BytesIO(response.content))
+
+            # 이미지 리사이즈
+            if resize:
+                print(f"Resizing image to: {resize}")
+                image = image.resize(resize, Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
             buffered = BytesIO()
@@ -248,6 +267,11 @@ def generate_image(
 
             # 응답 바이너리 데이터를 PIL 이미지로 변환
             image = Image.open(BytesIO(response.content))
+
+            # 이미지 리사이즈
+            if resize:
+                print(f"Resizing image to: {resize}")
+                image = image.resize(resize, Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
             buffered = BytesIO()
@@ -275,6 +299,11 @@ def generate_image(
             # 응답 바이너리 데이터를 PIL 이미지로 변환
             image = Image.open(BytesIO(response.content))
 
+            # 이미지 리사이즈
+            if resize:
+                print(f"Resizing image to: {resize}")
+                image = image.resize(resize, Image.LANCZOS)
+
             # 이미지를 Base64로 인코딩
             buffered = BytesIO()
             image.save(buffered, format="PNG")  # PNG 형식으로 저장
@@ -289,10 +318,23 @@ def generate_image(
         
     elif model_option == 'dalle':
         try:
+            if use_option == 'MMS':
+                resize = (256, 256)
+            elif use_option == 'youtube thumbnail':
+                resize = (1792, 1024)
+            elif use_option == 'instagram story':
+                resize = (1024, 1792)
+            elif use_option == 'instagram feed':
+                resize = (512, 512)
+            elif use_option == 'google advertising banner':
+                resize = (256, 256)
+            else :
+                resize= None
+            resize_str = f"{resize[0]}x{resize[1]}"
             response = client.images.generate(
                 model="dall-e-3",
                 prompt=prompt,
-                size="1024x1024",
+                size=resize_str,
                 n=1
             )
             image_url = response.data[0].url

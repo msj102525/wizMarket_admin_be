@@ -110,7 +110,6 @@ def generate_image(request: AdsImageRequest):
             request.use_option,
             request.ai_model_option,
             request.title,
-            request.content,
             request.store_name, 
             request.detail_category_name, 
         )

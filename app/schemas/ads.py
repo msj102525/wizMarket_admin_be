@@ -104,7 +104,6 @@ class AdsImageRequest(BaseModel):
     use_option: str
     ai_model_option: str
     title : str
-    content : str
     store_name: str
     detail_category_name: str
     
