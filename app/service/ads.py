@@ -352,34 +352,50 @@ def generate_image(
 
 
 # 주제 + 문구 + 이미지 합치기
-def combine_ads(content, image):
-    root_path = os.getenv("ROOT_PATH")
-    font_path = os.path.join(root_path, "app", "font", "yang.otf") 
+def combine_ads(content, image_width, image_height, image, alignment="center"):
+    root_path = os.getenv("ROOT_PATH", ".")
+    font_path = os.path.join(root_path, "app", "font", "yang.otf")
     font_size = 40
     font = ImageFont.truetype(font_path, font_size)
-    img_width, img_height = image.size
     draw = ImageDraw.Draw(image)
 
-    # 텍스트를 세미콜론으로 구분하여 줄 나누기
-    lines = content.split('<br>')  # 세미콜론으로 텍스트를 나누어 각 문장을 줄로 처리
-    
-    # 줄 높이 계산 (getbbox 사용)
-    line_height = font.getbbox("A")[3] + 10  # 줄 간격을 약간 추가
+    # 텍스트를 '<br>'로 구분하여 줄 나누기
+    lines = content.split('<br>')
 
-    # 텍스트 위치 설정
-    
-    text_y = img_height - (line_height * len(lines)) - 40  # 하단에서 여백 확보
+    # 줄 높이 계산
+    line_height = font.getbbox("A")[3] + 10  # 줄 간격 포함
 
-    # 여러 줄로 텍스트 추가
+    # 텍스트 위치 초기값
+    text_y = image_height - (line_height * len(lines)) - 40  # 하단에서 여백 확보
+
+    # 각 줄 텍스트 추가
     for line in lines:
-        line = line.strip()  # 각 문장 앞뒤 공백 제거
-        text_width = font.getbbox(line)[2]  # 현재 줄의 텍스트 너비 계산
-        text_x = (img_width - text_width) // 2
+        line = line.strip()
+        text_width = font.getbbox(line)[2]
+
+        # 정렬 설정
+        if alignment == "center":
+            text_x = (image_width - text_width) // 2
+        elif alignment == "left":
+            text_x = 10
+        elif alignment == "right":
+            text_x = image_width - text_width - 10
+        else:
+            raise ValueError("Invalid alignment option. Choose 'center', 'left', or 'right'.")
+
+        # 텍스트 추가
         draw.text((text_x, text_y), line, font=font, fill="white")
         text_y += line_height  # 다음 줄로 이동
 
-    image.show()
+    # 이미지 메모리에 저장
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
 
+    # Base64 인코딩
+    base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    return f"data:image/png;base64,{base64_image}"
 
 
 if __name__ == "__main__":
