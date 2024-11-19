@@ -68,7 +68,7 @@ def select_ads_list():
         close_connection(connection)  # connection만 닫기
 
 
-
+# 기본 정보 가져오기
 def select_ads_init_info(store_business_number: str) -> AdsInitInfo:
     connection = get_re_db_connection()
     cursor = connection.cursor(pymysql.cursors.DictCursor)
@@ -86,45 +86,35 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfo:
                     SUB_DISTRICT_NAME,
                     DETAIL_CATEGORY_NAME,
                     LOC_INFO_AVERAGE_SALES_K,
-                    GREATEST(
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_TUE,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_WED,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_THU,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_FRI,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SAT,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SUN
-                    ) AS COMMERCIAL_DISTRICT_MAX_SALES_DAY,
-                    GREATEST(
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_TUE,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_WED,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_THU,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_FRI,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SAT,
-                        COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SUN
-                    ) AS COMMERCIAL_DISTRICT_MAX_SALES_TIME,
-                    GREATEST(
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_20S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_30S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_40S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_50S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_60_OVER
-                    ) AS COMMERCIAL_DISTRICT_MAX_SALES_M_AGE,
-                    GREATEST(
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_20S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_30S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_40S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_50S,
-                        COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_60_OVER
-                    ) AS COMMERCIAL_DISTRICT_MAX_SALES_F_AGE
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_TUE,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_WED,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_THU,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_FRI,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SAT,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SUN, 
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_06_09,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_09_12,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_12_15,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_15_18,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_18_21,
+                    COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_21_24,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_20S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_30S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_40S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_50S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_60_OVER,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_20S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_30S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_40S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_50S,
+                    COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_60_OVER
                 FROM
                     REPORT
                 WHERE
                     STORE_BUSINESS_NUMBER = %s
                 ;
             """
-
             cursor.execute(select_query, (store_business_number,))
             row = cursor.fetchone()  # 한 행만 가져옴
 
@@ -144,14 +134,31 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfo:
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
                 detail_category_name=row.get("DETAIL_CATEGORY_NAME"),
                 loc_info_average_sales_k=row.get("LOC_INFO_AVERAGE_SALES_K"),
-                commercial_district_max_sales_day=row.get("COMMERCIAL_DISTRICT_MAX_SALES_DAY"),
-                commercial_district_max_sales_time=row.get("COMMERCIAL_DISTRICT_MAX_SALES_TIME"),
-                commercial_district_max_sales_m_age=row.get("COMMERCIAL_DISTRICT_MAX_SALES_M_AGE"),
-                commercial_district_max_sales_f_age=row.get("COMMERCIAL_DISTRICT_MAX_SALES_F_AGE")
+                commercial_district_average_percent_mon = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON"),
+                commercial_district_average_percent_tue = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_TUE"),
+                commercial_district_average_percent_wed = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_WED"),
+                commercial_district_average_percent_thu = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_THU"),
+                commercial_district_average_percent_fri = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_FRi"),
+                commercial_district_average_percent_sat = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SAT"),
+                commercial_district_average_percent_sun = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SUN"),
+                commercial_district_average_percent_06_09 = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_06_09"),
+                commercial_district_average_percent_09_12 = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_09_12"),
+                commercial_district_average_percent_12_15 = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_12_15"),
+                commercial_district_average_percent_15_18 = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_15_18"),
+                commercial_district_average_percent_18_21 = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_18_21"),
+                commercial_district_average_percent_21_24 = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_21_24"),
+                commercial_district_avg_client_per_m_20s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_20S"),
+                commercial_district_avg_client_per_m_30s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_30S"),
+                commercial_district_avg_client_per_m_40s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_40S"),
+                commercial_district_avg_client_per_m_50s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_50S"),
+                commercial_district_avg_client_per_m_60_over = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_60_OVER"),
+                commercial_district_avg_client_per_f_20s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_20S"),
+                commercial_district_avg_client_per_f_30s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_30S"),
+                commercial_district_avg_client_per_f_40s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_40S"),
+                commercial_district_avg_client_per_f_50s = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_50S"),
+                commercial_district_avg_client_per_f_60_over = row.get("COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_60_OVER"),
             )
-
             return ads_init_info
-
     except pymysql.MySQLError as e:
         logger.error(f"MySQL Error: {e}")
         raise HTTPException(status_code=500, detail="데이터베이스 오류가 발생했습니다.")

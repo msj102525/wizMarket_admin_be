@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List,Tuple
 from datetime import datetime 
 from fastapi import UploadFile, File
 
@@ -18,6 +18,7 @@ class AdsList(BaseModel):
         from_attributes = True
 
 
+# 등록 모달 창 열 때 기본 정보 가져오기
 class AdsInitInfo(BaseModel):
     store_business_number: str
     store_name:str
@@ -26,16 +27,89 @@ class AdsInitInfo(BaseModel):
     district_name: str
     sub_district_name: str
     detail_category_name: str
-    loc_info_average_sales_k: float
-    commercial_district_max_sales_day : Optional[float]
-    commercial_district_max_sales_time: Optional[float]
-    commercial_district_max_sales_m_age: Optional[float]
-    commercial_district_max_sales_f_age: Optional[float]
+    loc_info_average_sales_k: Optional[float] = None
+    commercial_district_average_percent_mon : Optional[float]= None
+    commercial_district_average_percent_tue : Optional[float]= None
+    commercial_district_average_percent_wed : Optional[float]= None
+    commercial_district_average_percent_thu : Optional[float]= None
+    commercial_district_average_percent_fri : Optional[float]= None
+    commercial_district_average_percent_sat : Optional[float]= None
+    commercial_district_average_percent_sun : Optional[float]= None
 
+    commercial_district_average_percent_06_09: Optional[float]= None
+    commercial_district_average_percent_09_12: Optional[float]= None
+    commercial_district_average_percent_12_15: Optional[float]= None
+    commercial_district_average_percent_15_18: Optional[float]= None
+    commercial_district_average_percent_18_21: Optional[float]= None
+    commercial_district_average_percent_21_24: Optional[float]= None
+
+    commercial_district_avg_client_per_m_20s: Optional[float]= None
+    commercial_district_avg_client_per_m_30s: Optional[float]= None
+    commercial_district_avg_client_per_m_40s: Optional[float]= None
+    commercial_district_avg_client_per_m_50s: Optional[float]= None
+    commercial_district_avg_client_per_m_60_over: Optional[float]= None
+
+    commercial_district_avg_client_per_f_20s: Optional[float]= None
+    commercial_district_avg_client_per_f_30s: Optional[float]= None
+    commercial_district_avg_client_per_f_40s: Optional[float]= None
+    commercial_district_avg_client_per_f_50s: Optional[float]= None
+    commercial_district_avg_client_per_f_60_over: Optional[float]= None
 
     class Config:
         from_attributes = True
 
-
+# 등록 모달 창 열 때 기본 정보 MAX 값으로 내보내기
 class AdsInitInfoOutPut(BaseModel):
-    pass
+    store_business_number: str
+    store_name: str
+    road_name: str
+    city_name: str
+    district_name: str
+    sub_district_name: str
+    detail_category_name: str
+    loc_info_average_sales_k: Optional[float] = None
+    commercial_district_max_sales_day: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
+    commercial_district_max_sales_time: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
+    commercial_district_max_sales_m_age: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
+    commercial_district_max_sales_f_age: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
+
+
+# 문구 생성
+class AdsContentRequest(BaseModel):
+    use_option: str
+    title: str
+    store_name: str
+    road_name: str
+    city_name: str
+    district_name: str
+    sub_district_name: str
+    detail_category_name: str
+    loc_info_average_sales_k: float
+    max_sales_day: Optional[str]
+    max_sales_day_value: Optional[float]
+    max_sales_time: Optional[str]
+    max_sales_time_value: Optional[float]
+    max_sales_male: Optional[str]
+    max_sales_male_value: Optional[float]
+    max_sales_female: Optional[str]
+    max_sales_female_value: Optional[float]
+
+
+class AdsGenerateContentOutPut(BaseModel):
+    content: str
+
+
+# 이미지 생성
+class AdsImageRequest(BaseModel):
+    use_option: str
+    ai_model_option: str
+    title : str
+    content : str
+    store_name: str
+    detail_category_name: str
+    
+
+class AdsGenerateImageOutPut(BaseModel):
+    image: str
+
+
