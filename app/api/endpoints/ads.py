@@ -74,23 +74,9 @@ def generate_content(request: AdsContentRequest):
     try:
         # 서비스 레이어 호출: 요청의 데이터 필드를 unpack
         data = service_generate_content(
-            request.use_option,
-            request.title,
-            request.store_name, 
-            request.road_name,
-            request.city_name, 
-            request.district_name, 
-            request.sub_district_name,
-            request.detail_category_name, 
-            request.loc_info_average_sales_k,
-            request.max_sales_day, 
-            request.max_sales_day_value,
-            request.max_sales_time, 
-            request.max_sales_time_value,
-            request.max_sales_male, 
-            request.max_sales_male_value,
-            request.max_sales_female, 
-            request.max_sales_female_value
+            request.prompt,
+            request.gpt_role,
+            request.detail_content
         )
         return {"content": data}  
     except HTTPException as http_ex:
@@ -106,7 +92,6 @@ def generate_content(request: AdsContentRequest):
 @router.post("/generate/image", response_model=AdsGenerateImageOutPut)
 def generate_image(request: AdsImageRequest):
     try:
-        print("이미지 생성")
         # 서비스 레이어 호출: 요청의 데이터 필드를 unpack
         data = service_generate_image(
             request.use_option,

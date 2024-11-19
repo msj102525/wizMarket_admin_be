@@ -125,87 +125,11 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfoOutPut:
 
 # 문구 생성
 def generate_content(
-    use_option, title, store_name, road_name,
-    city_name, district_name, sub_district_name,
-    detail_category_name, loc_info_average_sales_k,
-    max_sales_day, max_sales_day_value,
-    max_sales_time, max_sales_time_value,
-    max_sales_male, max_sales_male_value,
-    max_sales_female, max_sales_female_value
+    prompt, gpt_role, detail_content
 ):
-    if use_option == 'MMS':
-        use_option = 'MMS(문자)'
-    elif use_option == 'youtube thumbnail':
-        use_option = '유튜브 썸네일'
-    elif use_option == 'instagram story':
-        use_option = '인스타그램 스토리'
-    elif use_option == 'instagram feed':
-        use_option = '인스타그램 피드'
-    elif use_option == 'naver blog':
-        use_option = '네이버 블로그'
-    else :
-        use_option = '구글 광고 배너'
-
-    # 요일 매핑
-    day_map = {
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON": "월요일",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_TUE": "화요일",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_WED": "수요일",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_THU": "목요일",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_FRI": "금요일",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SAT": "토요일",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_SUN": "일요일",
-    }
-
-    time_map = {
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_06_09" : "06~09시",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_09_12" : "09~12시",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_12_15" : "12~15시",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_15_18" : "15~18시",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_18_21" : "18~21시",
-        "COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_21_24" : "21~24시"
-    }
-
-    male_map = {
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_20S" : "남자 20대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_30S" : "남자 30대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_40S" : "남자 40대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_50S" : "남자 50대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_M_60_OVER" : "남자 60대 이상"
-    }
-
-    female_map = {
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_20S" : "여자 20대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_30S" : "여자 30대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_40S" : "여자 40대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_50S" : "여자 50대",
-        "COMMERCIAL_DISTRICT_AVG_CLIENT_PER_F_60_OVER" : "여자 60대 이상"
-    }
-
-    max_sales_day_kor = day_map.get(max_sales_day, max_sales_day)
-    max_sales_time_kor = time_map.get(max_sales_time, max_sales_time)
-    max_sales_male_kor = male_map.get(max_sales_male, max_sales_male)
-    max_sales_female_kor = female_map.get(max_sales_female, max_sales_female)
-
-    full_region = f"{city_name} {district_name} {sub_district_name}"
-
     # gpt 영역
-    gpt_content = """
-        다음과 같은 내용을 바탕으로 온라인 광고 콘텐츠를 제작하려고 합니다. 
-        내용에 부합하는 광고 문구를 20자 이하로 문구 3개를 <br> 태그를 사용해 줄 나눔해서 작성해주세요.
-    """    
-    content = f"""
-        가게명 : {store_name}
-        업종 : {detail_category_name}
-        용도: {title}
-        채널 : {use_option} 이미지에 사용
-        주소 : {road_name}
-        {full_region}의 평균 월 매출 : {loc_info_average_sales_k} * k
-        {full_region}의 매출이 가장 높은 요일 : {max_sales_day_kor}, {max_sales_day_value}%
-        {full_region}의 매출이 가장 높은 시간대 : {max_sales_time_kor}, {max_sales_time_value}%
-        {full_region}의 매출이 가장 높은 남자 연령대 : {max_sales_male_kor}, {max_sales_male_value}%
-        {full_region}의 매출이 가장 높은 여자 연령대 : {max_sales_female_kor}, {max_sales_female_value}%
-    """
+    gpt_content = gpt_role
+    content = prompt + detail_content
 
     client = OpenAI(api_key=os.getenv("GPT_KEY"))
     completion = client.chat.completions.create(

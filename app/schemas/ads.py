@@ -76,23 +76,9 @@ class AdsInitInfoOutPut(BaseModel):
 
 # 문구 생성
 class AdsContentRequest(BaseModel):
-    use_option: str
-    title: str
-    store_name: str
-    road_name: str
-    city_name: str
-    district_name: str
-    sub_district_name: str
-    detail_category_name: str
-    loc_info_average_sales_k: float
-    max_sales_day: Optional[str]
-    max_sales_day_value: Optional[float]
-    max_sales_time: Optional[str]
-    max_sales_time_value: Optional[float]
-    max_sales_male: Optional[str]
-    max_sales_male_value: Optional[float]
-    max_sales_female: Optional[str]
-    max_sales_female_value: Optional[float]
+    prompt : str
+    gpt_role: str
+    detail_content: str
 
 
 class AdsGenerateContentOutPut(BaseModel):
