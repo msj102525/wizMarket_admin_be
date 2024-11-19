@@ -18,3 +18,4 @@ xlsxwriter==3.2.0
 openai==1.51.2
 python-multipart==0.0.17
 translate==3.6.1
+pillow==11.0.0

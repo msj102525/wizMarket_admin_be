@@ -5,7 +5,6 @@ from app.crud.ads import (
 from app.schemas.ads import(
     AdsInitInfoOutPut, AdsInitInfo
 )
-from translate import Translator
 from fastapi import HTTPException
 import logging
 import os
