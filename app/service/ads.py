@@ -130,8 +130,7 @@ def generate_content(
 ):
     # gpt 영역
     gpt_content = gpt_role
-    content = prompt + detail_content
-
+    content = prompt + '\n내용 : ' + detail_content
     client = OpenAI(api_key=os.getenv("GPT_KEY"))
     completion = client.chat.completions.create(
         model="gpt-4o",
@@ -170,10 +169,7 @@ def generate_image(
         영어로 번역해줘
     """    
     content = f"""
-        다음과 같은 내용을 바탕으로 글씨가 없는 온라인 광고 콘텐츠 이미지를 생성해주세요. 
-        형태 : {use_option}
         용도 : {title}
-        가게명 : {store_name}
         업종 : {detail_category_name}
         사이즈 : {resize}
     """
@@ -186,7 +182,7 @@ def generate_image(
         ],
     )
     prompt = completion.choices[0].message.content
-
+    # print(prompt)
     token = os.getenv("FACE_KEY")
     if model_option == 'basic':
         API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large"
