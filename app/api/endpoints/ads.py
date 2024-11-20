@@ -96,9 +96,7 @@ def generate_image(request: AdsImageRequest):
         data = service_generate_image(
             request.use_option,
             request.ai_model_option,
-            request.title,
-            request.store_name, 
-            request.detail_category_name, 
+            request.ai_prompt,
         )
         return data
     except HTTPException as http_ex:

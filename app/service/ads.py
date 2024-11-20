@@ -149,7 +149,7 @@ client = OpenAI(api_key=api_key)
 
 # 이미지 생성
 def generate_image(
-    use_option, model_option, title, store_name, detail_category_name, 
+    use_option, model_option, ai_prompt
 ):
     if use_option == 'MMS':
         resize = (262, 362)
@@ -166,13 +166,9 @@ def generate_image(
 
     # gpt 영역
     gpt_content = """
-        영어로 번역해줘
+        당신은 전문 번역가입니다. 사용자가 제공한 내용을 정확히 영어로 번역하세요. 번역 외의 부가적인 설명이나 추가적인 내용을 작성하지 마세요.
     """    
-    content = f"""
-        용도 : {title}
-        업종 : {detail_category_name}
-        사이즈 : {resize}
-    """
+    content = ai_prompt
     client = OpenAI(api_key=os.getenv("GPT_KEY"))
     completion = client.chat.completions.create(
         model="gpt-4o",
@@ -182,7 +178,8 @@ def generate_image(
         ],
     )
     prompt = completion.choices[0].message.content
-    # print(prompt)
+    # prompt = "Silent forest, sun barely piercing treetops, mysterious lake turns dark red at dawn, reflecting colorful sky. Lone tree on shore with diamond-like dewdrops, photorealistic."
+    print(prompt)
     token = os.getenv("FACE_KEY")
     if model_option == 'basic':
         API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large"
@@ -199,7 +196,6 @@ def generate_image(
 
             # 이미지 리사이즈
             if resize:
-                print(f"Resizing image to: {resize}")
                 image = image.resize(resize, Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
@@ -229,7 +225,6 @@ def generate_image(
 
             # 이미지 리사이즈
             if resize:
-                print(f"Resizing image to: {resize}")
                 image = image.resize(resize, Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
@@ -260,7 +255,6 @@ def generate_image(
 
             # 이미지 리사이즈
             if resize:
-                print(f"Resizing image to: {resize}")
                 image = image.resize(resize, Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
@@ -455,7 +449,7 @@ def combine_ads(store_name, content, image_width, image_height, image, alignment
 
     # 하단 텍스트 추가
     bottom_lines = lines[1:]
-    print(bottom_lines)
+    # print(bottom_lines)
     line_height = bottom_font.getbbox("A")[3] + 10
     text_y = (image_height * 3) // 5
     for line in bottom_lines:

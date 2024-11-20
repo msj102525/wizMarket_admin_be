@@ -89,9 +89,7 @@ class AdsGenerateContentOutPut(BaseModel):
 class AdsImageRequest(BaseModel):
     use_option: str
     ai_model_option: str
-    title : str
-    store_name: str
-    detail_category_name: str
+    ai_prompt: str
     
 
 class AdsGenerateImageOutPut(BaseModel):
