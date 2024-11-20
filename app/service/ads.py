@@ -7,8 +7,8 @@ from app.schemas.ads import(
 )
 from fastapi import HTTPException
 import logging
+import io
 import os
-from pathlib import Path
 from dotenv import load_dotenv
 import requests
 from openai import OpenAI
@@ -17,6 +17,7 @@ from io import BytesIO
 import os
 from typing import List
 import base64
+import re
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -151,6 +152,19 @@ client = OpenAI(api_key=api_key)
 def generate_image(
     use_option, model_option, title, store_name, detail_category_name, 
 ):
+    if use_option == 'MMS':
+        resize = (262, 362)
+    elif use_option == '유튜브 썸네일':
+        resize = (412, 232)
+    elif use_option == '인스타그램 스토리':
+        resize = (412, 732)
+    elif use_option == '인스타그램 피드':
+        resize = (412, 514)
+    elif use_option == '배너':
+        resize = (377, 377)
+    else :
+        resize= None
+
     # gpt 영역
     gpt_content = """
         영어로 번역해줘
@@ -161,6 +175,7 @@ def generate_image(
         용도 : {title}
         가게명 : {store_name}
         업종 : {detail_category_name}
+        사이즈 : {resize}
     """
     client = OpenAI(api_key=os.getenv("GPT_KEY"))
     completion = client.chat.completions.create(
@@ -171,21 +186,6 @@ def generate_image(
         ],
     )
     prompt = completion.choices[0].message.content
-    print(prompt)
-
-    if use_option == 'MMS':
-        resize = (262, 362)
-    elif use_option == 'youtube thumbnail':
-        resize = (412, 232)
-    elif use_option == 'instagram story':
-        resize = (412, 732)
-    elif use_option == 'instagram feed':
-        resize = (412, 514)
-    elif use_option == 'google advertising banner':
-        resize = (377, 377)
-    else :
-        resize= None
-
 
     token = os.getenv("FACE_KEY")
     if model_option == 'basic':
@@ -282,15 +282,15 @@ def generate_image(
     elif model_option == 'dalle':
         try:
             if use_option == 'MMS':
-                resize = (256, 256)
-            elif use_option == 'youtube thumbnail':
-                resize = (1792, 1024)
-            elif use_option == 'instagram story':
                 resize = (1024, 1792)
-            elif use_option == 'instagram feed':
-                resize = (512, 512)
-            elif use_option == 'google advertising banner':
-                resize = (256, 256)
+            elif use_option == '유튜브 썸네일':
+                resize = (1792, 1024)
+            elif use_option == '인스타그램 스토리':
+                resize = (1024, 1792)
+            elif use_option == '인스타그램 피드':
+                resize = (1024, 1792)
+            elif use_option == '배너':
+                resize = (1024, 1024)
             else :
                 resize= None
             resize_str = f"{resize[0]}x{resize[1]}"
@@ -298,6 +298,7 @@ def generate_image(
                 model="dall-e-3",
                 prompt=prompt,
                 size=resize_str,
+                quality="hd", 
                 n=1
             )
             image_url = response.data[0].url
@@ -306,61 +307,164 @@ def generate_image(
             image_response = requests.get(image_url)
             image_response.raise_for_status()
 
+            # Pillow를 사용한 리사이즈
+            img = Image.open(io.BytesIO(image_response.content))
+
+            # 원하는 크기로 다시 리사이즈 (예: 800x800)
+            if use_option == 'MMS':
+                final_size = (263, 362)
+            elif use_option == '유튜브 썸네일':
+                final_size = (412, 232)
+            elif use_option == '인스타그램 스토리':
+                final_size = (412, 732)
+            elif use_option == '인스타그램 피드':
+                final_size = (412, 514)
+            elif use_option == '배너':
+                final_size = (377, 377)
+            else :
+                final_size= None
+            resized_img = img.resize(final_size, Image.LANCZOS)
+
             # Base64 인코딩
-            img_str = base64.b64encode(image_response.content).decode("utf-8")
+            buffer = io.BytesIO()
+            resized_img.save(buffer, format="PNG")
+            img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
             return {"image": f"data:image/png;base64,{img_str}"}
         except Exception as e:
             return {"error": f"이미지 생성 중 오류 발생: {e}"}
 
 
+
+# 텍스트 나누기
+# def split_top_line(text, max_length=9):
+#     """
+#     top_line을 최대 글자 수(max_length)에 따라 나눔.
+#     - 두 번째 띄어쓰기, 특수기호, 또는 중간에서 나누는 기준 적용.
+#     """
+#     split_idx = None
+#     # 두 번째 띄어쓰기 찾기
+#     space_matches = [m.start() for m in re.finditer(r' ', text)]
+#     if len(space_matches) >= 2:
+#         split_idx = space_matches[1]
+#     # 특수기호 찾기 (띄어쓰기로 나눌 기준이 없을 때)
+#     if not split_idx:
+#         special_char_match = re.search(r'[!@#$%^&*()\-_=+[\]{};:\'",.<>?/]', text)
+#         if special_char_match:
+#             split_idx = special_char_match.start()
+#     # 나눌 기준이 없으면 중간에서 나눔
+#     if not split_idx and len(text) > max_length:
+#         split_idx = len(text) // 2
+#     # 문자열 나누기
+#     if split_idx:
+#         return text[:split_idx].strip(), text[split_idx:].strip()
+#     else:
+#         return text.strip(), None
+
+def split_top_line(text, max_length=9):
+    """
+    입력된 text를 띄어쓰기를 기준으로 나눔.
+    - text가 9글자 이상일 경우, 모든 단어를 띄어쓰기 기준으로 나눠 반환.
+    - text가 9글자 이하일 경우, 그대로 반환.
+    """
+    # 9글자 이하라면 그대로 반환
+    if len(text) <= max_length:
+        return [text.strip()]
+    
+    # 띄어쓰기를 기준으로 나누기
+    parts = text.split()
+    
+    return parts
+
+
 # 주제 + 문구 + 이미지 합치기
-def combine_ads(store_name, content, image_width, image_height, image, alignment="center", transparency=0.6):
+def combine_ads(store_name, content, image_width, image_height, image, alignment="center"):
     root_path = os.getenv("ROOT_PATH", ".")
-    font_path = os.path.join(root_path, "app", "font", "yang.otf")  # Bold 폰트 사용
-    top_font_size = 36
-    bottom_font_size = 32
-
-    # 폰트 설정
-    top_font = ImageFont.truetype(font_path, top_font_size)
-    bottom_font = ImageFont.truetype(font_path, bottom_font_size)
-    store_name_font = ImageFont.truetype(font_path, 14)  # store_name은 작은 폰트 사용
-
+    sp_image_path = os.path.join(root_path, "app", "image", "BG_snow.png") 
     # RGBA 모드로 변환
     if image.mode != "RGBA":
         image = image.convert("RGBA")
 
-    # 투명도 조정
-    alpha = image.split()[3]  # 알파 채널
-    alpha = ImageEnhance.Brightness(alpha).enhance(transparency)  # 투명도 적용 (0.6 = 60%)
-    image.putalpha(alpha)
+    # 검은 바탕 생성 및 합성
+    black_overlay = Image.new("RGBA", (image_width, image_height), (0, 0, 0, int(255 * 0.3)))  # 검은 바탕(60% 투명도)
 
+    image = Image.alpha_composite(image, black_overlay)
+
+    # sp_image 불러오기 및 리사이즈
+    sp_image = Image.open(sp_image_path).convert("RGBA")
+    original_width, original_height = sp_image.size
+
+    # sp_image의 가로 길이를 기존 이미지의 가로 길이에 맞추고, 세로는 비율에 맞게 조정
+    new_width = image_width
+    new_height = int((new_width / original_width) * original_height)
+    sp_image = sp_image.resize((new_width, new_height))
+    # 투명도 조정
+    alpha = sp_image.split()[3]  # RGBA의 알파 채널 추출
+    alpha = ImageEnhance.Brightness(alpha).enhance(0.8)  # 투명도를 0.6으로 조정
+    sp_image.putalpha(alpha)  # 수정된 알파 채널을 다시 이미지에 적용
+
+    # sp_image에 투명한 배경 추가하여 기존 이미지와 크기 맞춤
+    padded_sp_image = Image.new("RGBA", (image_width, image_height), (0, 0, 0, 0))  # 투명 배경 생성
+    # sp_image 배치
+    offset_x = 0  # 기본 가로 정렬: 좌측
+    if alignment == "center":
+        offset_x = (image_width - new_width) // 2
+    elif alignment == "right":
+        offset_x = image_width - new_width
+
+    offset_y = (image_height - new_height) // 2  # 세로 중앙 배치
+    padded_sp_image.paste(sp_image, (offset_x, offset_y))  # sp_image를 배경 위에 붙임
+
+    # sp_image와 기존 이미지 합성
+    image = Image.alpha_composite(image.convert("RGBA"), padded_sp_image)
+
+
+
+
+    # 텍스트 설정
+    top_path = os.path.join(root_path, "app", "font", "JalnanGothicTTF.ttf") 
+    bottom_path = os.path.join(root_path, "app", "font", "BMHANNA_11yrs_ttf.ttf") 
+    top_font_size = image_width / 10
+    bottom_font_size = (top_font_size * 5) / 8
+    store_font_size = image_width / 20
+
+    # 폰트 설정
+    top_font = ImageFont.truetype(top_path, int(top_font_size))
+    bottom_font = ImageFont.truetype(bottom_path, int(bottom_font_size))
+    store_name_font = ImageFont.truetype(bottom_path, int(store_font_size))
+
+    # 텍스트 렌더링 (합성 작업 후)
     draw = ImageDraw.Draw(image)
 
     # 텍스트를 '<br>'로 구분하여 줄 나누기
-    lines = content.split('<br>')
-
+    # lines = content.split(' ')
+    # lines = [re.sub(r'<[^>]+>', '', line).replace('\r', '').replace('\n', '') for line in lines]
+    lines = re.split(r'[.!?,\n]', content)  # 구두점, 쉼표, 줄바꿈 모두 처리
+    lines = [line.strip() for line in lines if line.strip()]
     if len(lines) > 0:
-        # 첫 번째 문장은 상단에 배치
         top_line = lines[0].strip()
-        top_text_width = top_font.getbbox(top_line)[2]
-        top_text_height = top_font.getbbox("A")[3] + 10  # 줄 높이 계산
-        top_text_x = (image_width - top_text_width) // 2  # 중앙 정렬
-        top_text_y = 60  # 상단에서 40px 여백
-
-        # 흰색(80% 투명도)으로 top_line 추가
-        draw.text((top_text_x, top_text_y), top_line, font=top_font, fill=(255, 255, 255, int(255 * 0.8)))  # 흰색 80% 투명도
-
-    # 나머지 문장은 하단에 배치
-    bottom_lines = lines[1:]  # 첫 번째 문장 제외
-    line_height = bottom_font.getbbox("A")[3] + 10  # 줄 간격 포함
-    text_y = (image_height * 3) // 4  # 이미지 높이의 3/4 지점에서 시작
+        lines_list = split_top_line(top_line, max_length=9)  # 반환값은 리스트
+        # 첫 번째 줄 렌더링 Y 좌표 설정
+        top_text_y = image_height / 10
+        # 반복적으로 각 줄 렌더링
+        for i, line in enumerate(lines_list):
+            if line:  # 줄이 존재할 경우만 처리
+                # 텍스트 너비 계산
+                top_text_width = top_font.getbbox(line)[2]
+                # 중앙 정렬 X 좌표 계산
+                top_text_x = (image_width - top_text_width) // 2
+                # 현재 줄 렌더링
+                draw.text((top_text_x, top_text_y), line, font=top_font, fill=(255, 255, 255, int(255 * 0.8)))
+                # Y 좌표를 다음 줄로 이동
+                top_text_y += top_font.getbbox("A")[3] + 20
 
     # 하단 텍스트 추가
+    bottom_lines = lines[1:]
+    print(bottom_lines)
+    line_height = bottom_font.getbbox("A")[3] + 10
+    text_y = (image_height * 3) // 5
     for line in bottom_lines:
         line = line.strip()
         text_width = bottom_font.getbbox(line)[2]
-
-        # 정렬 설정
         if alignment == "center":
             text_x = (image_width - text_width) // 2
         elif alignment == "left":
@@ -369,15 +473,13 @@ def combine_ads(store_name, content, image_width, image_height, image, alignment
             text_x = image_width - text_width - 10
         else:
             raise ValueError("Invalid alignment option. Choose 'center', 'left', or 'right'.")
+        draw.text((text_x, text_y), line, font=bottom_font, fill="#03FF57")
+        text_y += line_height
 
-        # 초록색(100% 불투명도)으로 bottom_lines 추가
-        draw.text((text_x, text_y), line, font=bottom_font, fill="#03FF57")  # 초록색
-        text_y += line_height  # 다음 줄로 이동
-
-    # store_name 추가 (하단의 하단)
+    # store_name 추가
     store_name_width = store_name_font.getbbox(store_name)[2]
-    store_name_x = (image_width - store_name_width) // 2  # 중앙 정렬
-    store_name_y = image_height -  50
+    store_name_x = (image_width - store_name_width) // 2
+    store_name_y = image_height - (image_height / 10) # 분모가 작을수록 하단에 더 멀게
     draw.text((store_name_x, store_name_y), store_name, font=store_name_font, fill="white")
 
     # 이미지 메모리에 저장
