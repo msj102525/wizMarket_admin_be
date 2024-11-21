@@ -124,7 +124,6 @@ def combine_ads(
     except Exception as e:
         return {"error": f"Failed to open image: {str(e)}"}
     # 서비스 레이어 호출 (Base64 이미지 반환)
-    base64_image = service_combine_ads(store_name, road_name, content, image_width, image_height, pil_image)
-
-    # JSON 응답으로 Base64 이미지 반환
-    return JSONResponse(content={"image": base64_image})
+    image_1, image_2 = service_combine_ads(store_name, road_name, content, image_width, image_height, pil_image)
+    # JSON 응답으로 두 이미지를 반환
+    return JSONResponse(content={"images": [image_1, image_2]})

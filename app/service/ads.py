@@ -455,8 +455,13 @@ def split_top_line(text, max_length):
     return result
 
 
+def combine_ads (store_name, road_name, content, image_width, image_height, image, alignment="center"):
+    image_1 = combine_ads_ver1(store_name, road_name, content, image_width, image_height, image, alignment="center")
+    image_2 = combine_ads_ver2(store_name, road_name, content, image_width, image_height, image, alignment="center")
+    return (image_1, image_2)
+
 # 주제 + 문구 + 이미지 합치기
-def combine_ads(store_name, road_name, content, image_width, image_height, image, alignment="center"):
+def combine_ads_ver1(store_name, road_name, content, image_width, image_height, image, alignment="center"):
     root_path = os.getenv("ROOT_PATH", ".")
     sp_image_path = os.path.join(root_path, "app", "image", "BG_snow.png") 
     # RGBA 모드로 변환
@@ -575,6 +580,124 @@ def combine_ads(store_name, road_name, content, image_width, image_height, image
     road_name_x = (image_width - road_name_width) // 2
     road_name_y = image_height - (image_height / 10) # 분모가 작을수록 하단에 더 멀게
     draw.text((road_name_x, road_name_y), road_name, font=road_name_font, fill="white")
+
+    # 이미지 메모리에 저장
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    # Base64 인코딩
+    base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    return f"data:image/png;base64,{base64_image}"
+
+
+def combine_ads_ver2(store_name, road_name, content, image_width, image_height, image, alignment="center"):
+    root_path = os.getenv("ROOT_PATH", ".")
+    sp_image_path = os.path.join(root_path, "app", "image", "new_imo.png") 
+    
+    # RGBA 모드로 변환
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    # 검은 바탕 생성 및 합성
+    black_overlay = Image.new("RGBA", (image_width, image_height), (0, 0, 0, int(255 * 0.4)))  # 검은 바탕(60% 투명도)
+    image = Image.alpha_composite(image, black_overlay)
+
+    # sp_image 불러오기 및 리사이즈
+    sp_image = Image.open(sp_image_path).convert("RGBA")
+    original_width, original_height = sp_image.size
+
+    # sp_image의 가로 길이를 기존 이미지의 가로 길이의 1/4로 맞추고, 세로는 비율에 맞게 조정
+    new_width = int(image_width / 4)
+    new_height = int((new_width / original_width) * original_height)
+    sp_image = sp_image.resize((new_width, new_height))
+
+    # 4번 위치 (하단 오른쪽) 중심 좌표 계산
+    offset_x = (image_width * 3 // 4) - (new_width // 2)  # 4등분 했을 때 하단 오른쪽 중심 X
+    offset_y = (image_height * 3 // 4) - (new_height // 2)  # 4등분 했을 때 하단 오른쪽 중심 Y
+
+    # sp_image를 기존 이미지 위에 합성 (투명도 제거)
+    image.paste(sp_image, (offset_x, offset_y), sp_image)
+
+    # 텍스트 설정
+    top_path = os.path.join(root_path, "app", "font", "JalnanGothicTTF.ttf") 
+    bottom_path = os.path.join(root_path, "app", "font", "BMHANNA_11yrs_ttf.ttf") 
+    store_name_path = os.path.join(root_path, "app", "font", "Pretendard-Bold.ttf") 
+    road_name_path = os.path.join(root_path, "app", "font", "Pretendard-R.ttf") 
+    top_font_size = image_width / 20
+    bottom_font_size = image_width / 10
+    store_name_font_size = image_width / 24
+    road_name_font_size = image_width / 26
+
+    # 폰트 설정
+    top_font = ImageFont.truetype(top_path, int(top_font_size))
+    bottom_font = ImageFont.truetype(bottom_path, int(bottom_font_size))
+    store_name_font = ImageFont.truetype(store_name_path, int(store_name_font_size))
+    road_name_font = ImageFont.truetype(road_name_path, int(road_name_font_size))
+
+    # 텍스트 렌더링 (합성 작업 후)
+    draw = ImageDraw.Draw(image)
+
+    # 텍스트를 '<br>'로 구분하여 줄 나누기
+    # lines = content.split(' ')
+    # lines = [re.sub(r'<[^>]+>', '', line).replace('\r', '').replace('\n', '') for line in lines]
+    lines = re.split(r'[.!?,\n]', content)  # 구두점, 쉼표, 줄바꿈 모두 처리
+    lines = [line.strip() for line in lines if line.strip()]
+    if len(lines) > 0:
+        top_line = lines[0].strip()
+        lines_list = split_top_line(top_line, max_length=8)  # 반환값은 리스트
+        # 첫 번째 줄 렌더링 Y 좌표 설정
+        top_text_y = image_height / 10
+        # 반복적으로 각 줄 렌더링
+        for i, line in enumerate(lines_list):
+            if line:  # 줄이 존재할 경우만 처리
+                # 텍스트 너비 계산
+                top_text_width = top_font.getbbox(line)[2]
+                # 중앙 정렬 X 좌표 계산
+                top_text_x = (image_width - top_text_width) // 2
+                # 현재 줄 렌더링
+                draw.text((top_text_x, top_text_y), line, font=top_font, fill=(255, 255, 255, int(255 * 0.8)))
+                # Y 좌표를 다음 줄로 이동
+                top_text_y += top_font.getbbox("A")[3] + 5
+
+    # 하단 텍스트 추가
+    bottom_lines = lines[1:]  # 첫 번째 줄을 제외한 나머지
+    line_height = bottom_font.getbbox("A")[3] + 3
+    text_y = (image_height ) // 3
+
+    # 색상 리스트: 번갈아 사용할 색상
+    colors = ["#FFFFFF", "#FFFF00"]  # 흰색, 노란색
+
+    for line in bottom_lines:
+        line = line.strip()
+        # 하단 줄을 분리하여 20자 이상일 경우 나눔
+        split_lines = split_top_line(line, max_length=10)
+
+        for i, sub_line in enumerate(split_lines):
+            sub_line = sub_line.strip()
+            text_width = bottom_font.getbbox(sub_line)[2]
+
+            if alignment == "center":
+                text_x = (image_width - text_width) // 2
+            elif alignment == "left":
+                text_x = 10
+            elif alignment == "right":
+                text_x = image_width - text_width - 10
+            else:
+                raise ValueError("Invalid alignment option. Choose 'center', 'left', or 'right'.")
+
+            # 현재 줄 렌더링, 색상은 colors[i % len(colors)]로 선택
+            draw.text((text_x, text_y), sub_line, font=bottom_font, fill=colors[i % len(colors)])
+            text_y += line_height  # 다음 줄로 이동
+
+    # store_name 추가
+    store_name_width = store_name_font.getbbox(store_name)[2]
+    store_name_x = 10
+    store_name_y = image_height - (image_height / 13) # 분모가 작을수록 하단에 더 멀게
+    draw.text((store_name_x, store_name_y), store_name, font=store_name_font, fill="white")
+
+    
 
     # 이미지 메모리에 저장
     buffer = BytesIO()
