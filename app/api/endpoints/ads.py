@@ -101,10 +101,12 @@ def generate_image(request: AdsImageRequest):
         return data
     except HTTPException as http_ex:
         logger.error(f"HTTP error occurred: {http_ex.detail}")
+        print(f"HTTPException 발생: {http_ex.detail}")  # 추가 디버깅 출력
         raise http_ex
     except Exception as e:
         error_msg = f"Unexpected error while processing request: {str(e)}"
         logger.error(error_msg)
+        print(f"Exception 발생: {error_msg}")  # 추가 디버깅 출력
         raise HTTPException(status_code=500, detail=error_msg)
 
 # ADS 텍스트, 이미지 합성

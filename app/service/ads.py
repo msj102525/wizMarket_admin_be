@@ -3,7 +3,7 @@ from app.crud.ads import (
     select_ads_init_info as crud_select_ads_init_info
 )
 from app.schemas.ads import(
-    AdsInitInfoOutPut, AdsInitInfo
+    AdsInitInfoOutPut, AdsInitInfo, WeatherInfo
 )
 from fastapi import HTTPException
 import logging
@@ -18,6 +18,7 @@ import os
 from typing import List
 import base64
 import re
+from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -124,6 +125,79 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfoOutPut:
             status_code=500, detail=f"Service loc_store_content_list Error: {str(e)}"
         )
 
+
+def get_weather_info_by_lat_lng(
+    lat: float, lng: float, lang: str = "kr"
+) -> WeatherInfo:
+    try:
+        apikey = os.getenv("OPENWEATHERMAP_API_KEY")
+        if not apikey:
+            raise HTTPException(
+                status_code=500,
+                detail="Weather API key not found in environment variables.",
+            )
+
+        api_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lng}&appid={apikey}&lang={lang}&units=metric"
+
+        # logger.info(f"Requesting weather data for lat={lat}, lng={lng}")
+        weather_response = requests.get(api_url)
+        weather_data = weather_response.json()
+
+        if weather_response.status_code != 200:
+            error_msg = (
+                f"Weather API Error: {weather_data.get('message', 'Unknown error')}"
+            )
+            logger.error(error_msg)
+            raise HTTPException(
+                status_code=weather_response.status_code, detail=error_msg
+            )
+
+        # logger.info(f"Weather API response: {weather_data}")
+
+        sunrise_timestamp = weather_data["sys"]["sunrise"]
+        sunset_timestamp = weather_data["sys"]["sunset"]
+
+        kst_timezone = timezone(timedelta(hours=9))
+        sunrise = datetime.fromtimestamp(sunrise_timestamp, tz=kst_timezone).strftime(
+            "%H:%M"
+        )
+        sunset = datetime.fromtimestamp(sunset_timestamp, tz=kst_timezone).strftime(
+            "%H:%M"
+        )
+
+        weather_info = WeatherInfo(
+            main=weather_data["weather"][0]["main"],
+            icon=weather_data["weather"][0]["icon"],
+            temp=weather_data["main"]["temp"],
+            sunrise=sunrise,
+            sunset=sunset,
+        )
+
+        # logger.info(f"Processed weather info: {weather_info}")
+        return weather_info
+
+    except requests.RequestException as e:
+        error_msg = f"Failed to fetch weather data: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=503, detail=error_msg)
+
+    except (KeyError, ValueError) as e:
+        error_msg = f"Error processing weather data: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+
+    except Exception as e:
+        error_msg = f"Weather service error: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+
+
+
+
+
+
+
+
 # 문구 생성
 def generate_content(
     prompt, gpt_role, detail_content
@@ -151,7 +225,7 @@ client = OpenAI(api_key=api_key)
 def generate_image(
     use_option, model_option, ai_prompt
 ):
-    if use_option == 'MMS':
+    if use_option == '문자메시지':
         resize = (262, 362)
     elif use_option == '유튜브 썸네일':
         resize = (412, 232)
@@ -179,7 +253,7 @@ def generate_image(
     )
     prompt = completion.choices[0].message.content
     # prompt = "Silent forest, sun barely piercing treetops, mysterious lake turns dark red at dawn, reflecting colorful sky. Lone tree on shore with diamond-like dewdrops, photorealistic."
-    print(prompt)
+    #print(prompt)
     token = os.getenv("FACE_KEY")
     if model_option == 'basic':
         API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large"
@@ -271,7 +345,7 @@ def generate_image(
         
     elif model_option == 'dalle':
         try:
-            if use_option == 'MMS':
+            if use_option == '문자메시지':
                 resize = (1024, 1792)
             elif use_option == '유튜브 썸네일':
                 resize = (1792, 1024)
@@ -301,7 +375,7 @@ def generate_image(
             img = Image.open(io.BytesIO(image_response.content))
 
             # 원하는 크기로 다시 리사이즈 (예: 800x800)
-            if use_option == 'MMS':
+            if use_option == '문자메시지':
                 final_size = (263, 362)
             elif use_option == '유튜브 썸네일':
                 final_size = (412, 232)
@@ -425,14 +499,18 @@ def combine_ads(store_name, road_name, content, image_width, image_height, image
     # 텍스트 설정
     top_path = os.path.join(root_path, "app", "font", "JalnanGothicTTF.ttf") 
     bottom_path = os.path.join(root_path, "app", "font", "BMHANNA_11yrs_ttf.ttf") 
+    store_name_path = os.path.join(root_path, "app", "font", "Pretendard-Bold.ttf") 
+    road_name_path = os.path.join(root_path, "app", "font", "Pretendard-R.ttf") 
     top_font_size = image_width / 10
     bottom_font_size = (top_font_size * 5) / 8
-    store_font_size = image_width / 20
+    store_name_font_size = image_width / 20
+    road_name_font_size = image_width / 22
 
     # 폰트 설정
     top_font = ImageFont.truetype(top_path, int(top_font_size))
     bottom_font = ImageFont.truetype(bottom_path, int(bottom_font_size))
-    store_font = ImageFont.truetype(bottom_path, int(store_font_size))
+    store_name_font = ImageFont.truetype(store_name_path, int(store_name_font_size))
+    road_name_font = ImageFont.truetype(road_name_path, int(road_name_font_size))
 
     # 텍스트 렌더링 (합성 작업 후)
     draw = ImageDraw.Draw(image)
@@ -461,7 +539,7 @@ def combine_ads(store_name, road_name, content, image_width, image_height, image
 
     # 하단 텍스트 추가
     bottom_lines = lines[1:]  # 첫 번째 줄을 제외한 나머지
-    line_height = bottom_font.getbbox("A")[3] + 10
+    line_height = bottom_font.getbbox("A")[3] + 3
     text_y = (image_height * 3) // 5
 
     for line in bottom_lines:
@@ -487,16 +565,16 @@ def combine_ads(store_name, road_name, content, image_width, image_height, image
             text_y += line_height  # 다음 줄로 이동
 
     # store_name 추가
-    store_name_width = store_font.getbbox(store_name)[2]
+    store_name_width = store_name_font.getbbox(store_name)[2]
     store_name_x = (image_width - store_name_width) // 2
     store_name_y = image_height - (image_height / 7) # 분모가 작을수록 하단에 더 멀게
-    draw.text((store_name_x, store_name_y), store_name, font=store_font, fill="white")
+    draw.text((store_name_x, store_name_y), store_name, font=store_name_font, fill="white")
 
     # road_name 추가
-    road_name_width = store_font.getbbox(road_name)[2]
+    road_name_width = road_name_font.getbbox(road_name)[2]
     road_name_x = (image_width - road_name_width) // 2
     road_name_y = image_height - (image_height / 10) # 분모가 작을수록 하단에 더 멀게
-    draw.text((road_name_x, road_name_y), road_name, font=store_font, fill="white")
+    draw.text((road_name_x, road_name_y), road_name, font=road_name_font, fill="white")
 
     # 이미지 메모리에 저장
     buffer = BytesIO()

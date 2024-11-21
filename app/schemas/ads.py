@@ -26,6 +26,8 @@ class AdsInitInfo(BaseModel):
     city_name: str
     district_name: str
     sub_district_name: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     detail_category_name: str
     loc_info_average_sales_k: Optional[float] = None
     commercial_district_average_percent_mon : Optional[float]= None
@@ -66,12 +68,40 @@ class AdsInitInfoOutPut(BaseModel):
     city_name: str
     district_name: str
     sub_district_name: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     detail_category_name: str
     loc_info_average_sales_k: Optional[float] = None
     commercial_district_max_sales_day: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
     commercial_district_max_sales_time: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
     commercial_district_max_sales_m_age: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
     commercial_district_max_sales_f_age: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
+
+
+# 날씨 조회
+class WeatherInfo(BaseModel):
+    main: str
+    icon: str
+    temp: float
+    sunrise: str
+    sunset: str
+
+    class Config:
+        from_attributes = True
+
+
+class LocalStoreInfoWeaterInfoOutput(BaseModel):
+    localStoreInfo: AdsInitInfoOutPut
+    weatherInfo: WeatherInfo
+
+    class Config:
+        from_attributes = True
+
+
+
+
+
+
 
 
 # 문구 생성
@@ -93,6 +123,7 @@ class AdsImageRequest(BaseModel):
     
 
 class AdsGenerateImageOutPut(BaseModel):
-    image: str
+    image: Optional[str] = None
+    error: Optional[str] = None
 
 

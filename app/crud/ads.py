@@ -84,6 +84,8 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfo:
                     CITY_NAME,
                     DISTRICT_NAME,
                     SUB_DISTRICT_NAME,
+                    LATITUDE,
+                    LONGITUDE,
                     DETAIL_CATEGORY_NAME,
                     LOC_INFO_AVERAGE_SALES_K,
                     COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON,
