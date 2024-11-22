@@ -76,15 +76,16 @@ class AdsInitInfoOutPut(BaseModel):
     commercial_district_max_sales_time: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
     commercial_district_max_sales_m_age: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
     commercial_district_max_sales_f_age: Optional[Tuple[Optional[str], Optional[float]]] = (None, None)
+    id : int
+    main: Optional[str] = None
+    temp: Optional[float] = None
 
 
 # 날씨 조회
 class WeatherInfo(BaseModel):
+    id: int
     main: str
-    icon: str
     temp: float
-    sunrise: str
-    sunset: str
 
     class Config:
         from_attributes = True
@@ -124,6 +125,6 @@ class AdsImageRequest(BaseModel):
 
 class AdsGenerateImageOutPut(BaseModel):
     image: Optional[str] = None
-    error: Optional[str] = None
+
 
 

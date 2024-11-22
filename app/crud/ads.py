@@ -134,6 +134,8 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfo:
                 city_name=row.get("CITY_NAME"),
                 district_name=row.get("DISTRICT_NAME"),
                 sub_district_name=row.get("SUB_DISTRICT_NAME"),
+                latitude= row.get("LATITUDE"),
+                longitude=row.get("LONGITUDE"),
                 detail_category_name=row.get("DETAIL_CATEGORY_NAME"),
                 loc_info_average_sales_k=row.get("LOC_INFO_AVERAGE_SALES_K"),
                 commercial_district_average_percent_mon = row.get("COMMERCIAL_DISTRICT_AVERAGE_SALES_PERCENT_MON"),

@@ -102,6 +102,10 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfoOutPut:
         else:
             max_female_age = max(female_age_columns, key=lambda x: x[1] or 0) 
 
+
+        wether_main_temp = get_weather_info_by_lat_lng(raw_data.latitude, raw_data.longitude)
+        wether_main = translate_weather_id_to_main(wether_main_temp.id)
+
         # 결과 반환
         return AdsInitInfoOutPut(
             store_business_number=raw_data.store_business_number,
@@ -110,12 +114,17 @@ def select_ads_init_info(store_business_number: str) -> AdsInitInfoOutPut:
             city_name=raw_data.city_name,
             district_name=raw_data.district_name,
             sub_district_name=raw_data.sub_district_name,
+            latitude = raw_data.latitude,
+            longitude = raw_data.longitude,
             detail_category_name=raw_data.detail_category_name,
             loc_info_average_sales_k=raw_data.loc_info_average_sales_k,
             commercial_district_max_sales_day=max_sales_day,  
             commercial_district_max_sales_time=max_sales_time,
             commercial_district_max_sales_m_age=max_male_age,  
             commercial_district_max_sales_f_age=max_female_age,  
+            id = wether_main_temp.id,
+            main = wether_main,
+            temp = wether_main_temp.temp
         )
     except HTTPException:
         raise
@@ -136,13 +145,10 @@ def get_weather_info_by_lat_lng(
                 status_code=500,
                 detail="Weather API key not found in environment variables.",
             )
-
         api_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lng}&appid={apikey}&lang={lang}&units=metric"
-
         # logger.info(f"Requesting weather data for lat={lat}, lng={lng}")
         weather_response = requests.get(api_url)
         weather_data = weather_response.json()
-
         if weather_response.status_code != 200:
             error_msg = (
                 f"Weather API Error: {weather_data.get('message', 'Unknown error')}"
@@ -151,51 +157,43 @@ def get_weather_info_by_lat_lng(
             raise HTTPException(
                 status_code=weather_response.status_code, detail=error_msg
             )
-
-        # logger.info(f"Weather API response: {weather_data}")
-
-        sunrise_timestamp = weather_data["sys"]["sunrise"]
-        sunset_timestamp = weather_data["sys"]["sunset"]
-
-        kst_timezone = timezone(timedelta(hours=9))
-        sunrise = datetime.fromtimestamp(sunrise_timestamp, tz=kst_timezone).strftime(
-            "%H:%M"
-        )
-        sunset = datetime.fromtimestamp(sunset_timestamp, tz=kst_timezone).strftime(
-            "%H:%M"
-        )
-
         weather_info = WeatherInfo(
+            id = weather_data["weather"][0]["id"],
             main=weather_data["weather"][0]["main"],
-            icon=weather_data["weather"][0]["icon"],
             temp=weather_data["main"]["temp"],
-            sunrise=sunrise,
-            sunset=sunset,
         )
-
-        # logger.info(f"Processed weather info: {weather_info}")
         return weather_info
-
     except requests.RequestException as e:
         error_msg = f"Failed to fetch weather data: {str(e)}"
         logger.error(error_msg)
         raise HTTPException(status_code=503, detail=error_msg)
-
     except (KeyError, ValueError) as e:
         error_msg = f"Error processing weather data: {str(e)}"
         logger.error(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
-
     except Exception as e:
         error_msg = f"Weather service error: {str(e)}"
         logger.error(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
 
-
-
-
-
-
+# 날씨 id 값 따라 한글 번역
+def translate_weather_id_to_main(weather_id: int) -> str:
+    if 200 <= weather_id < 300:
+        return "뇌우"  # Thunderstorm
+    elif 300 <= weather_id < 400:
+        return "이슬비"  # Drizzle
+    elif 500 <= weather_id < 600:
+        return "비"  # Rain
+    elif 600 <= weather_id < 700:
+        return "눈"  # Snow
+    elif 700 <= weather_id < 800:
+        return "안개"  # Atmosphere (mist, fog, etc.)
+    elif weather_id == 800:
+        return "맑음"  # Clear
+    elif 801 <= weather_id < 900:
+        return "구름"  # Clouds
+    else:
+        return "알 수 없음"  # Unknown case
 
 
 # 문구 생성
@@ -226,7 +224,7 @@ def generate_image(
     use_option, model_option, ai_prompt
 ):
     if use_option == '문자메시지':
-        resize = (262, 362)
+        resize = (333, 458)
     elif use_option == '유튜브 썸네일':
         resize = (412, 232)
     elif use_option == '인스타그램 스토리':
@@ -252,10 +250,10 @@ def generate_image(
         ],
     )
     prompt = completion.choices[0].message.content
-    # prompt = "Silent forest, sun barely piercing treetops, mysterious lake turns dark red at dawn, reflecting colorful sky. Lone tree on shore with diamond-like dewdrops, photorealistic."
-    #print(prompt)
+
     token = os.getenv("FACE_KEY")
     if model_option == 'basic':
+        # print(prompt)
         API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large"
         headers = {"Authorization": f"Bearer {token}"}
         data = {"inputs": prompt}
@@ -268,9 +266,16 @@ def generate_image(
             # 응답 바이너리 데이터를 PIL 이미지로 변환
             image = Image.open(BytesIO(response.content))
 
-            # 이미지 리사이즈
             if resize:
-                image = image.resize(resize, Image.LANCZOS)
+                target_width = resize[0]  # 원하는 가로 크기
+                original_width, original_height = image.size
+                aspect_ratio = original_height / original_width  # 세로/가로 비율 계산
+
+                # 새로운 세로 크기 계산
+                target_height = int(target_width * aspect_ratio)
+
+                # 리사이즈 수행
+                image = image.resize((target_width, target_height), Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
             buffered = BytesIO()
@@ -299,7 +304,15 @@ def generate_image(
 
             # 이미지 리사이즈
             if resize:
-                image = image.resize(resize, Image.LANCZOS)
+                target_width = resize[0]  # 원하는 가로 크기
+                original_width, original_height = image.size
+                aspect_ratio = original_height / original_width  # 세로/가로 비율 계산
+
+                # 새로운 세로 크기 계산
+                target_height = int(target_width * aspect_ratio)
+
+                # 리사이즈 수행
+                image = image.resize((target_width, target_height), Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
             buffered = BytesIO()
@@ -329,7 +342,15 @@ def generate_image(
 
             # 이미지 리사이즈
             if resize:
-                image = image.resize(resize, Image.LANCZOS)
+                target_width = resize[0]  # 원하는 가로 크기
+                original_width, original_height = image.size
+                aspect_ratio = original_height / original_width  # 세로/가로 비율 계산
+
+                # 새로운 세로 크기 계산
+                target_height = int(target_width * aspect_ratio)
+
+                # 리사이즈 수행
+                image = image.resize((target_width, target_height), Image.LANCZOS)
 
             # 이미지를 Base64로 인코딩
             buffered = BytesIO()
@@ -358,6 +379,8 @@ def generate_image(
             else :
                 resize= None
             resize_str = f"{resize[0]}x{resize[1]}"
+            prompt = ai_prompt
+            # print(prompt)
             response = client.images.generate(
                 model="dall-e-3",
                 prompt=prompt,
@@ -376,7 +399,7 @@ def generate_image(
 
             # 원하는 크기로 다시 리사이즈 (예: 800x800)
             if use_option == '문자메시지':
-                final_size = (263, 362)
+                final_size = (333, 458)
             elif use_option == '유튜브 썸네일':
                 final_size = (412, 232)
             elif use_option == '인스타그램 스토리':
@@ -387,7 +410,17 @@ def generate_image(
                 final_size = (377, 377)
             else :
                 final_size= None
-            resized_img = img.resize(final_size, Image.LANCZOS)
+            # 이미지 리사이즈
+            if final_size:
+                target_width = final_size[0]  # 원하는 가로 크기
+                original_width, original_height = img.size
+                aspect_ratio = original_height / original_width  # 세로/가로 비율 계산
+
+                # 새로운 세로 크기 계산
+                target_height = int(target_width * aspect_ratio)
+
+                # 리사이즈 수행
+                resized_img = img.resize((target_width, target_height), Image.LANCZOS)
 
             # Base64 인코딩
             buffer = io.BytesIO()

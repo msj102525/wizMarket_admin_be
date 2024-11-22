@@ -15,7 +15,8 @@ from app.service.ads import (
     select_ads_init_info as service_select_ads_init_info,
     combine_ads as service_combine_ads,
     generate_content as service_generate_content,
-    generate_image as service_generate_image
+    generate_image as service_generate_image,
+    combine_ads_ver1 as service_combine_ads_ver1
 )
 from pathlib import Path
 from fastapi.responses import JSONResponse
@@ -110,6 +111,25 @@ def generate_image(request: AdsImageRequest):
         raise HTTPException(status_code=500, detail=error_msg)
 
 # ADS 텍스트, 이미지 합성
+# @router.post("/combine/image/text")
+# def combine_ads(
+#     store_name: str = Form(...),
+#     road_name: str = Form(...),
+#     content: str = Form(...),
+#     image_width: int = Form(...),
+#     image_height: int = Form(...),
+#     image: UploadFile = File(...)
+# ):
+#     try:
+#         pil_image = Image.open(image.file)
+#     except Exception as e:
+#         return {"error": f"Failed to open image: {str(e)}"}
+#     # 서비스 레이어 호출 (Base64 이미지 반환)
+#     image_1, image_2 = service_combine_ads(store_name, road_name, content, image_width, image_height, pil_image)
+#     # JSON 응답으로 두 이미지를 반환
+#     return JSONResponse(content={"images": [image_1, image_2]})
+
+
 @router.post("/combine/image/text")
 def combine_ads(
     store_name: str = Form(...),
@@ -124,6 +144,7 @@ def combine_ads(
     except Exception as e:
         return {"error": f"Failed to open image: {str(e)}"}
     # 서비스 레이어 호출 (Base64 이미지 반환)
-    image_1, image_2 = service_combine_ads(store_name, road_name, content, image_width, image_height, pil_image)
-    # JSON 응답으로 두 이미지를 반환
-    return JSONResponse(content={"images": [image_1, image_2]})
+    base64_image = service_combine_ads_ver1(store_name, road_name, content, image_width, image_height, pil_image)
+
+    # JSON 응답으로 Base64 이미지 반환
+    return JSONResponse(content={"image": base64_image})
