@@ -379,8 +379,8 @@ def generate_image(
             else :
                 resize= None
             resize_str = f"{resize[0]}x{resize[1]}"
-            prompt = ai_prompt
-            # print(prompt)
+            # prompt = ai_prompt 한글 주석
+            # print(prompt) 
             response = client.images.generate(
                 model="dall-e-3",
                 prompt=prompt,
