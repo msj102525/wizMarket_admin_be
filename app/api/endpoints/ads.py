@@ -55,7 +55,7 @@ def select_ads_list():
 
 # 매장 리스트에서 모달창 띄우기
 @router.post("/select/init/info", response_model=AdsInitInfoOutPut)
-def select_ads_init_info(store_business_number: str, request: Request):
+def select_ads_init_info(store_business_number: str):
     # 쿼리 매개변수로 전달된 store_business_number 값 수신
     try:
         # 요청 정보 출력
