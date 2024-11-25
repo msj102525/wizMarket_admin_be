@@ -5,14 +5,45 @@ from fastapi import UploadFile, File
 
 
 class AdsList(BaseModel):
-    local_store_content_id: int
+    ads_id: int
     store_business_number: str
     store_name:str
     road_name:str
     status: str
+    use_option: str
     title :str
+    detail_title: Optional[str] = None
     content :str
     created_at:datetime  
+
+    class Config:
+        from_attributes = True
+
+
+
+class AdsImageList(BaseModel):
+    ads_image_id: int
+    ads_id: int
+    ads_image_url: str
+
+    class Config:
+        from_attributes = True
+
+
+class AdsListOutPut(BaseModel):
+    ads_id: int
+    store_business_number: str
+    store_name:str
+    road_name:str
+    status: str
+    use_option: str
+    title :str
+    detail_title: Optional[str] = None
+    content :str
+    created_at:datetime  
+    ads_image_id: Optional[int] = None
+    ads_id: Optional[int] = None
+    ads_image_url: Optional[str] = None
 
     class Config:
         from_attributes = True

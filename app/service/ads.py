@@ -1,9 +1,12 @@
 from app.crud.ads import (
     select_ads_list as crud_select_ads_list,
-    select_ads_init_info as crud_select_ads_init_info
+    select_ads_image_list as crud_select_ads_image_list,
+    select_ads_init_info as crud_select_ads_init_info,
+    insert_ads as crud_insert_ads,
+    insert_ads_image as crud_insert_ads_image
 )
 from app.schemas.ads import(
-    AdsInitInfoOutPut, AdsInitInfo, WeatherInfo
+    AdsInitInfoOutPut, AdsInitInfo, WeatherInfo, AdsListOutPut
 )
 from fastapi import HTTPException
 import logging
@@ -31,14 +34,63 @@ client = OpenAI(api_key=api_key)
 # ADS 리스트 조회
 def select_ads_list():
     try:
-        return crud_select_ads_list()
+        ads_list = crud_select_ads_list()  # 광고 리스트 조회
+
+        # 최종 반환 리스트
+        result_list = []
+
+        # ads_id별 이미지 리스트 조회 및 합치기
+        for ads in ads_list:
+            # print(ads.ads_id)
+            ads_image_list = crud_select_ads_image_list(ads.ads_id)  # ads_id로 이미지 조회
+            # print(ads_image_list)
+            # 이미지 리스트를 순회하며 AdsListOutPut 형태로 변환
+            for image in ads_image_list:
+                result_list.append(
+                    AdsListOutPut(
+                        ads_id=ads.ads_id,
+                        store_business_number=ads.store_business_number,
+                        store_name=ads.store_name,
+                        road_name=ads.road_name,
+                        status=ads.status,
+                        use_option=ads.use_option,
+                        title=ads.title,
+                        detail_title=ads.detail_title,
+                        content=ads.content,
+                        created_at=ads.created_at,
+                        ads_image_id=image.ads_image_id,
+                        ads_image_url=image.ads_image_url,
+                    )
+                )
+
+        # 광고에 이미지가 없는 경우도 추가
+        for ads in ads_list:
+            if not any(out.ads_id == ads.ads_id for out in result_list):
+                result_list.append(
+                    AdsListOutPut(
+                        ads_id=ads.ads_id,
+                        store_business_number=ads.store_business_number,
+                        store_name=ads.store_name,
+                        road_name=ads.road_name,
+                        status=ads.status,
+                        use_option=ads.use_option,
+                        title=ads.title,
+                        detail_title=ads.detail_title,
+                        content=ads.content,
+                        created_at=ads.created_at,
+                    )
+                )
+
+        return result_list
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Service loc_store_content_list Error: {str(e)}")
+        logger.error(f"Service ads_list Error: {str(e)}")
         raise HTTPException(
-            status_code=500, detail=f"Service loc_store_content_list Error: {str(e)}"
+            status_code=500, detail=f"Service ads_list Error: {str(e)}"
         )
+
+
 
 # 초기 데이터 가져오기
 def select_ads_init_info(store_business_number: str) -> AdsInitInfoOutPut:
@@ -487,13 +539,13 @@ def split_top_line(text, max_length):
 
     return result
 
-
+# 템플릿 버전 1, 2 같이 리턴
 def combine_ads (store_name, road_name, content, image_width, image_height, image, alignment="center"):
     image_1 = combine_ads_ver1(store_name, road_name, content, image_width, image_height, image, alignment="center")
     image_2 = combine_ads_ver2(store_name, road_name, content, image_width, image_height, image, alignment="center")
     return (image_1, image_2)
 
-# 주제 + 문구 + 이미지 합치기
+# 주제 + 문구 + 이미지 합치기 ver.1
 def combine_ads_ver1(store_name, road_name, content, image_width, image_height, image, alignment="center"):
     root_path = os.getenv("ROOT_PATH", ".")
     sp_image_path = os.path.join(root_path, "app", "image", "BG_snow.png") 
@@ -624,7 +676,7 @@ def combine_ads_ver1(store_name, road_name, content, image_width, image_height, 
 
     return f"data:image/png;base64,{base64_image}"
 
-
+# 주제 + 문구 + 이미지 합치기 ver.1
 def combine_ads_ver2(store_name, road_name, content, image_width, image_height, image, alignment="center"):
     root_path = os.getenv("ROOT_PATH", ".")
     sp_image_path = os.path.join(root_path, "app", "image", "new_imo.png") 
@@ -730,8 +782,6 @@ def combine_ads_ver2(store_name, road_name, content, image_width, image_height, 
     store_name_y = image_height - (image_height / 13) # 분모가 작을수록 하단에 더 멀게
     draw.text((store_name_x, store_name_y), store_name, font=store_name_font, fill="white")
 
-    
-
     # 이미지 메모리에 저장
     buffer = BytesIO()
     image.save(buffer, format="PNG")
@@ -742,3 +792,10 @@ def combine_ads_ver2(store_name, road_name, content, image_width, image_height, 
 
     return f"data:image/png;base64,{base64_image}"
 
+
+def insert_ads(store_business_number: str, use_option: str, title: str, detail_title: str, content: str, image_url: str):
+    # 글 먼저 저장
+    ads_pk = crud_insert_ads(store_business_number, use_option, title, detail_title, content)
+
+    # 글 pk 로 이미지 저장
+    crud_insert_ads_image(ads_pk, image_url)

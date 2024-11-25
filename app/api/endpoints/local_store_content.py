@@ -64,7 +64,7 @@ def save_store_content(
             # 이미지 URL 생성 (예: "/static/images/content/filename.jpg")
             image_url = f"/static/images/content/{unique_filename}"
             image_urls.append(image_url)
-    print(image_urls)
+    # print(image_urls)
     service_insert_store_content(store_business_number, title, content, image_urls)
 
     # 예시 응답 데이터
