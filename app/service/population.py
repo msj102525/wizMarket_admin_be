@@ -15,7 +15,6 @@ from app.crud.population import (
 )
 from app.crud.loc_store import (
     select_loc_info_report_data_by_sub_district_id as crud_select_loc_info_report_data_by_sub_district_id,
-    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
 )
 import logging
 

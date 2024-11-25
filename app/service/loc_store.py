@@ -1,10 +1,8 @@
-from app.schemas.loc_store import LocalStoreLatLng, LocStoreInfoForContentOutPut
+from app.schemas.loc_store import LocStoreInfoForContentOutPut
 from app.service.population import *
 from app.db.connect import *
 from app.crud.loc_store import (
-    get_report_store_info_by_store_business_id as crud_get_report_store_info_by_store_business_id,
-    get_lat_lng_by_store_business_id as crud_get_lat_lng_by_store_business_id,
-    select_loc_store_for_content_by_store_business_number as crud_select_loc_store_for_content_by_store_business_number
+    select_loc_store_for_content_by_store_business_number as crud_select_loc_store_for_content_by_store_business_number,
 )
 from app.crud.loc_store import *
 
@@ -18,26 +16,14 @@ async def filter_loc_store(filters):
 
     return data, total_items
 
-def get_report_store_info_by_store_business_id(
-    store_business_id: str,
-) -> LocalStoreInfo:
-    results = crud_get_report_store_info_by_store_business_id(store_business_id)
-    if not results:
-        raise HTTPException(status_code=404, detail="report loc_info not found")
-    return results
-
-
-def get_lat_lng_by_store_business_id(store_business_id: str) -> LocalStoreLatLng:
-    results = crud_get_lat_lng_by_store_business_id(store_business_id)
-    if not results:
-        raise HTTPException(status_code=404, detail="report loc_info not found")
-    return results
 
 def select_loc_store_for_content_by_store_business_number(
-    store_business_number:str
+    store_business_number: str,
 ) -> LocStoreInfoForContentOutPut:
-    
-    results = crud_select_loc_store_for_content_by_store_business_number(store_business_number)
+
+    results = crud_select_loc_store_for_content_by_store_business_number(
+        store_business_number
+    )
     if not results:
         raise HTTPException(status_code=404, detail="report loc_info not found")
     return results

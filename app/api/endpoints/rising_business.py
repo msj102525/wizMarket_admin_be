@@ -1,26 +1,16 @@
+from datetime import date
+import logging
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
-from app.schemas.rising_business import RisingBusinessOutput
+from app.schemas.rising_business import RisingBusinessDataDate, RisingBusinessOutput
 from app.service.rising_business import (
-    get_all_rising_business_by_region_name,
     select_all_rising_business_by_dynamic_query as service_select_all_rising_business_by_dynamic_query,
+    select_rising_business_data_date as service_select_rising_business_data_date,
 )
-
 
 router = APIRouter()
 
-
-@router.get("", response_model=List[RisingBusinessOutput])
-def get_rising_business(city: str, district: str, sub_district: str):
-    # print(f"city: {city}, district: {district}, sub_d: {sub_district}")
-    try:
-        results = get_all_rising_business_by_region_name(city, district, sub_district)
-        return results
-    except HTTPException as http_ex:
-        raise http_ex
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+logger = logging.getLogger(__name__)
 
 @router.get("/rb", response_model=List[RisingBusinessOutput])
 def select_all_rising_business_by_dynamic_query(
@@ -35,6 +25,7 @@ def select_all_rising_business_by_dynamic_query(
     growth_rate_max: Optional[float] = Query(None),
     rank_min: Optional[int] = Query(None),
     rank_max: Optional[int] = Query(None),
+    y_m: Optional[date] = Query(None),
 ):
     try:
         results = service_select_all_rising_business_by_dynamic_query(
@@ -49,9 +40,25 @@ def select_all_rising_business_by_dynamic_query(
             growth_rate_max=growth_rate_max,
             rank_min=rank_min,
             rank_max=rank_max,
+            y_m=y_m
         )
         return results
     except HTTPException as http_ex:
         raise http_ex
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/data/date")
+def select_rising_business_data_date() -> List[RisingBusinessDataDate]:
+    try:
+        return service_select_rising_business_data_date()
+
+    except HTTPException as http_ex:
+        logger.error(f"HTTP error occurred: {http_ex.detail}")
+        raise http_ex
+
+    except Exception as e:
+        error_msg = f"Unexpected error while processing request: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+

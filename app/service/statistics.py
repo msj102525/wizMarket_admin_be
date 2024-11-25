@@ -21,10 +21,6 @@ from app.crud.commercial_district_usage_count_statistics import (
     select_commercial_district_usage_count_info,
 )
 from app.crud.district import get_district_id as crud_get_district_id
-from app.crud.loc_store import (
-    get_region_id_by_store_business_number as crud_get_region_id_by_store_business_number,
-    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number,
-)
 from app.crud.stat_item import (
     select_detail_category_id_by_stat_item_id as crud_select_detail_category_id_by_stat_item_id,
     select_stat_item_info_by_stat_item_id as crud_select_stat_item_info_by_stat_item_id,
@@ -814,7 +810,7 @@ def select_statistics_by_sub_district_detail_category_new(
     district_name: str,
     sub_district_name: str,
     biz_detail_category_name: str,
-    y_m: date
+    y_m: date,
 ):
 
     city_id = crud_get_city_id(city_name)

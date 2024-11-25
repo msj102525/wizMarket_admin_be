@@ -60,6 +60,8 @@ class RisingBusinessOutput(BaseModel):
         from_attributes = True
 
 
-class RisingBusinessNationwideTop5AndSubDistrictTop3(BaseModel):
-    nationwide_top5: List[RisingBusinessOutput]
-    sub_district_top3_data: List[RisingBusinessOutput]
+class RisingBusinessDataDate(BaseModel):
+    y_m: date
+
+    class Config:
+        from_attributes = True

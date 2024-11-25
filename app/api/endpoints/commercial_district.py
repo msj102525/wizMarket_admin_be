@@ -14,7 +14,6 @@ from app.service.commercial_district import (
     select_commercial_district_data_date as service_select_commercial_district_data_date,
 )
 from app.service.statistics import (
-    select_statistics_by_sub_district_detail_category as service_select_statistics_by_sub_district_detail_category,
     select_statistics_by_sub_district_detail_category_new as service_select_statistics_by_sub_district_detail_category_new,
 )
 
@@ -71,7 +70,7 @@ def get_commercial_district_by_query(
                 rental_cost_max,
                 avg_profit_min,
                 avg_profit_max,
-                y_m
+                y_m,
             )
         )
 

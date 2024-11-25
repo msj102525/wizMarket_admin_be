@@ -14,9 +14,6 @@ from app.crud.loc_info import (
     select_loc_info_data_date as crud_select_loc_info_data_date
 )
 import pandas as pd
-from app.crud.loc_store import (
-    select_local_store_sub_distirct_id_by_store_business_number as crud_select_local_store_sub_distirct_id_by_store_business_number, 
-)
 from app.crud.statistics import (
     select_nationwide_jscore_by_stat_item_id_and_sub_district_id as crud_select_nationwide_jscore_by_stat_item_id_and_sub_district_id,
     select_state_item_id as crud_select_state_item_id,
