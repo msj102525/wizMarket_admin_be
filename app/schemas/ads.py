@@ -22,9 +22,9 @@ class AdsList(BaseModel):
 
 
 class AdsImageList(BaseModel):
-    ads_image_id: int
-    ads_id: int
-    ads_image_url: str
+    ads_image_id: Optional[int] = None
+    ads_id: Optional[int] = None
+    ads_image_url: Optional[str] = None
 
     class Config:
         from_attributes = True

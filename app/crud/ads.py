@@ -90,11 +90,6 @@ def select_ads_image_list(ads_id: int):
             """
             cursor.execute(select_query, (ads_id,))  # ads_id를 쿼리에 바인딩
             rows = cursor.fetchall()
-            if not rows:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"AdsImageList: ADS_ID {ads_id}에 해당하는 매장 정보를 찾을 수 없습니다.",
-                )
             result = [
                 AdsImageList(
                     ads_image_id=row["ADS_IMAGE_ID"],
