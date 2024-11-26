@@ -129,13 +129,6 @@ class LocalStoreInfoWeaterInfoOutput(BaseModel):
     class Config:
         from_attributes = True
 
-
-
-
-
-
-
-
 # 문구 생성
 class AdsContentRequest(BaseModel):
     prompt : str
@@ -157,5 +150,12 @@ class AdsImageRequest(BaseModel):
 class AdsGenerateImageOutPut(BaseModel):
     image: Optional[str] = None
 
+# 게시 상태 여부 업데이트
+class UpdateStatusRequest(BaseModel):
+    ads_id: int
+    status: str
+
+    class Config:
+        from_attributes = True
 
 
