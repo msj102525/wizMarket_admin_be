@@ -159,3 +159,9 @@ class UpdateStatusRequest(BaseModel):
         from_attributes = True
 
 
+# 검색 조회 필터
+class FilterRequest(BaseModel):
+    store_name: Optional[str]
+    use_option: Optional[str]
+    title : Optional[str]
+    match_type : Optional[str]

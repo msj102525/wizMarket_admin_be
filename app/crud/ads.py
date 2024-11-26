@@ -136,3 +136,82 @@ def update_ads_status(ads_id: int, status: str) -> bool:
         if cursor:
             close_cursor(cursor)
         close_connection(connection)
+
+
+# 필터 조회
+def select_filters_list(filters):
+    connection = get_re_db_connection()
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            select_query = """
+                SELECT 
+                    a.ADS_ID,
+                    a.STORE_BUSINESS_NUMBER,
+                    r.STORE_NAME,
+                    r.ROAD_NAME,
+                    a.USE_OPTION,
+                    a.TITLE,
+                    a.DETAIL_TITLE,
+                    a.CONTENT,
+                    a.STATUS,
+                    a.CREATED_AT
+                FROM
+                    ADS a
+                STRAIGHT_JOIN REPORT r
+                ON r.STORE_BUSINESS_NUMBER = a.STORE_BUSINESS_NUMBER
+                WHERE a.STATUS != 'D'
+            """
+
+            query_params = []
+
+            # 필터 조건 추가
+            if filters.get("use_option"):
+                select_query += " AND a.USE_OPTION = %s"
+                query_params.append(filters["use_option"])
+
+            if filters.get("title"):
+                select_query += " AND a.TITLE = %s"
+                query_params.append(filters["title"])
+
+            if filters.get("match_type") == "=" and filters.get("store_name"):
+                select_query += " AND r.STORE_NAME = %s"
+                query_params.append(filters["store_name"])
+
+            if filters.get("match_type") == "LIKE" and filters.get("store_name"):
+                select_query += " AND r.STORE_NAME LIKE %s"
+                query_params.append(f"%{filters['store_name']}%")
+
+            # 커서 실행
+            cursor.execute(select_query, query_params)
+            rows = cursor.fetchall()
+            if not rows:
+                raise HTTPException(
+                    status_code=404,
+                    detail="AdsList 해당하는 매장 정보를 찾을 수 없습니다.",
+                )
+            result = [
+                AdsList(
+                    ads_id=row["ADS_ID"],
+                    store_business_number=row["STORE_BUSINESS_NUMBER"],
+                    store_name=row["STORE_NAME"],
+                    road_name=row["ROAD_NAME"],
+                    use_option=row["USE_OPTION"],
+                    title=row["TITLE"],
+                    detail_title=row["DETAIL_TITLE"],
+                    content=row["CONTENT"],
+                    status=row["STATUS"],
+                    created_at=row["CREATED_AT"],
+                )
+                for row in rows
+            ]
+            return result
+    except pymysql.Error as e:
+        logger.error(f"Database error occurred: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error occurred LocalStoreBasicInfo: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
+    finally:
+        close_connection(connection)  # connection만 닫기
+
+

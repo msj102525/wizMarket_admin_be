@@ -2,14 +2,15 @@ from fastapi import (
     APIRouter, HTTPException
 )
 from app.schemas.ads import (
-    AdsListOutPut, UpdateStatusRequest
+    AdsListOutPut, UpdateStatusRequest, FilterRequest
 )
 
 import logging
 from typing import List
 from app.service.ads import (
     select_ads_list as service_select_ads_list,
-    update_ads_status as service_update_ads_status
+    update_ads_status as service_update_ads_status,
+    select_filters_list as service_select_filters_list
 )
 from pathlib import Path
 from dotenv import load_dotenv
@@ -59,3 +60,14 @@ def update_ads_status(request: UpdateStatusRequest):
         print(f"Error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+# 필터 검색
+@router.post("/select/filters/list")
+async def select_filters_list(request: FilterRequest):
+    # 필터 정보를 서비스 레이어로 전달
+    filters = request.dict()
+    data =  service_select_filters_list(filters)
+    print(data)
+    return {
+        "data": data,     # 페이징된 데이터
+    }
