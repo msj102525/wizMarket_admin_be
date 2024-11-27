@@ -11,6 +11,7 @@ from app.schemas.category_content import (
     CategoryDetailRequest
 )
 from fastapi import Request
+from datetime import datetime
 import logging
 from typing import List
 from app.service.category_content import (
@@ -55,7 +56,8 @@ def insert_category_content(
         for image in images:
             # 고유 이미지 명 생성
             filename, ext = os.path.splitext(image.filename)
-            unique_filename = f"{filename}_jyes_{uuid.uuid4()}{ext}"
+            today = datetime.now().strftime("%Y%m%d")
+            unique_filename = f"{filename}_jyes_category_content_{today}_{uuid.uuid4()}{ext}"
             # 파일 저장 경로 지정
             file_path = FULL_PATH / unique_filename
             with open(file_path, "wb") as buffer:
@@ -166,7 +168,8 @@ async def update_loc_store_content(
             for image in new_images:
                 # 고유한 파일명 생성
                 filename, ext = os.path.splitext(image.filename)
-                unique_filename = f"{filename}_jyes_{uuid.uuid4()}{ext}"
+                today = datetime.now().strftime("%Y%m%d")
+                unique_filename = f"{filename}_jyes_category_content_{today}_{uuid.uuid4()}{ext}"
                 file_path = FULL_PATH / unique_filename
                 with open(file_path, "wb") as buffer:
                     shutil.copyfileobj(image.file, buffer)

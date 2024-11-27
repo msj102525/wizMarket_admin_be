@@ -82,7 +82,8 @@ def select_ads_image_list(ads_id: int):
                 SELECT 
                     ADS_IMAGE_ID,
                     ADS_ID,
-                    ADS_IMAGE_URL
+                    ADS_IMAGE_URL,
+                    ADS_FINAL_IMAGE_URL
                 FROM
                     ADS_IMAGE
                 WHERE
@@ -95,6 +96,7 @@ def select_ads_image_list(ads_id: int):
                     ads_image_id=row["ADS_IMAGE_ID"],
                     ads_id=row["ADS_ID"],
                     ads_image_url=row["ADS_IMAGE_URL"],
+                    ads_final_image_url=row["ADS_FINAL_IMAGE_URL"],
                 )
                 for row in rows
             ]

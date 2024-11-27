@@ -52,6 +52,7 @@ def select_ads_list():
                         created_at=ads.created_at,
                         ads_image_id=image.ads_image_id,
                         ads_image_url=image.ads_image_url,
+                        ads_final_image_url=image.ads_final_image_url,
                     )
                 )
 

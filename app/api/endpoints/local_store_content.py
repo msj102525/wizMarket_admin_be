@@ -27,6 +27,7 @@ from typing import Optional
 from dotenv import load_dotenv
 import os
 import uuid
+from datetime import datetime
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -54,7 +55,8 @@ def save_store_content(
         for image in images:
             # 고유 이미지 명 생성
             filename, ext = os.path.splitext(image.filename)
-            unique_filename = f"{filename}_jyes_{uuid.uuid4()}{ext}"
+            today = datetime.now().strftime("%Y%m%d")
+            unique_filename = f"{filename}_jyes_store_content_{today}_{uuid.uuid4()}{ext}"
 
             # 파일 저장 경로 지정
             file_path = FULL_PATH / unique_filename
@@ -172,7 +174,8 @@ async def update_loc_store_content(
         if new_images:
             for image in new_images:
                 filename, ext = os.path.splitext(image.filename)
-                unique_filename = f"{filename}_jyes_{uuid.uuid4()}{ext}"
+                today = datetime.now().strftime("%Y%m%d")
+                unique_filename = f"{filename}_jyes_store_content_{today}_{uuid.uuid4()}{ext}"
                 
                 # 파일 저장 경로 지정
                 file_path = FULL_PATH / unique_filename

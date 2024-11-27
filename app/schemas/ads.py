@@ -25,6 +25,7 @@ class AdsImageList(BaseModel):
     ads_image_id: Optional[int] = None
     ads_id: Optional[int] = None
     ads_image_url: Optional[str] = None
+    ads_final_image_url: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -44,6 +45,7 @@ class AdsListOutPut(BaseModel):
     ads_image_id: Optional[int] = None
     ads_id: Optional[int] = None
     ads_image_url: Optional[str] = None
+    ads_final_image_url: Optional[str] = None
 
     class Config:
         from_attributes = True

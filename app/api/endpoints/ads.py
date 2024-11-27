@@ -30,7 +30,6 @@ def select_ads_list():
     try:
         # 서비스에서 데이터를 가져와 result 변수에 저장
         result: AdsListOutPut = service_select_ads_list()
-        # print(result)
         return result  # result를 반환
 
     except HTTPException as http_ex:
