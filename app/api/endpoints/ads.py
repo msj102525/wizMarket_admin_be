@@ -66,7 +66,6 @@ async def select_filters_list(request: FilterRequest):
     # 필터 정보를 서비스 레이어로 전달
     filters = request.dict()
     data =  service_select_filters_list(filters)
-    print(data)
     return {
         "data": data,     # 페이징된 데이터
     }
