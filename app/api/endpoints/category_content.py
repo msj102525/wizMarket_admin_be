@@ -8,7 +8,8 @@ from app.schemas.category_content import (
     BizCategoryNumberListRequest,
     UpdatePublishStatusRequest,
     CategoryDetailContentResponse,
-    CategoryDetailRequest
+    CategoryDetailRequest,
+    CategoryContentListOutPut
 )
 from fastapi import Request
 from datetime import datetime
@@ -74,11 +75,12 @@ def insert_category_content(
 
 
 # 리스트 컨텐츠 정보 조회
-@router.get("/select/list", response_model=List[CategoryContentList])
+@router.get("/select/list", response_model=List[CategoryContentListOutPut])
 def get_category_content():
     try:
         # 서비스에서 데이터를 가져와 result 변수에 저장
-        result: CategoryContentList = service_select_category_content_list()
+        result: CategoryContentListOutPut = service_select_category_content_list()
+        print(result)
         return result  # result를 반환
 
     except HTTPException as http_ex:

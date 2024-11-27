@@ -11,7 +11,8 @@ from app.schemas.category_content import (
     CategoryBizCategoryList, 
     CategoryDetailContent, 
     CategoryDetailContentResponse,
-    CategoryImage
+    CategoryImage,
+    CategoryImageList
 )
 from typing import Optional, List
 
@@ -118,6 +119,48 @@ def select_category_content_list():
         raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
     finally:
         close_connection(connection)  # connection만 닫기
+
+# 이미지 미리보기 처리를 위한 이미지 리스트 가져오기
+def select_category_image_list(biz_detail_category_content_id: int):
+    connection = get_re_db_connection()
+
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            select_query = """
+                SELECT 
+                    BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_ID,
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID,
+                    BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL
+                FROM
+                    BIZ_DETAIL_CATEGORY_CONTENT_IMAGE
+                WHERE
+                    BIZ_DETAIL_CATEGORY_CONTENT_ID = %s
+            """
+            cursor.execute(select_query, (biz_detail_category_content_id,))
+            rows = cursor.fetchall()  # 모든 결과 가져오기
+
+            if not rows:
+                return []  # 빈 리스트 반환
+
+            # CategoryImageList 객체 리스트로 변환
+            return [
+                CategoryImageList(
+                    biz_detail_category_content_image_id=row["BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_ID"],
+                    biz_detail_category_content_id=row["BIZ_DETAIL_CATEGORY_CONTENT_ID"],
+                    biz_detail_category_content_image_url=row["BIZ_DETAIL_CATEGORY_CONTENT_IMAGE_URL"],
+                )
+                for row in rows
+            ]
+
+    except pymysql.Error as e:
+        logger.error(f"Database error occurred: {str(e)} | ID: {biz_detail_category_content_id}")
+        raise HTTPException(status_code=503, detail=f"데이터베이스 연결 오류: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error occurred in select_category_image_list: {str(e)} | ID: {biz_detail_category_content_id}")
+        raise HTTPException(status_code=500, detail=f"내부 서버 오류: {str(e)}")
+    finally:
+        close_connection(connection)
+
 
 
 

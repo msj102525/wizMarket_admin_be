@@ -1,5 +1,6 @@
 from typing import List
 
+from app.schemas.category_content import CategoryContentListOutPut
 from app.crud.category_content import (
     insert_category_content as crud_insert_category_content,
     select_category_content_list as crud_select_category_content_list,
@@ -10,7 +11,8 @@ from app.crud.category_content import (
     update_category_content as crud_update_category_content,
     select_category_existing_image as crud_select_category_existing_image,
     delete_category_existing_image as crud_delete_category_existing_image,
-    insert_category_new_image as crud_insert_category_new_image
+    insert_category_new_image as crud_insert_category_new_image,
+    select_category_image_list as crud_select_category_image_list
 
 )
 from app.crud.category_content_image import(
@@ -54,7 +56,43 @@ def insert_category_content(
 # 컨텐츠 정보 리스트 불러오기
 def select_category_content_list():
     try:
-        return crud_select_category_content_list()
+        category_content_list = crud_select_category_content_list()
+        result_list = []
+
+        # 각 카테고리에 대한 이미지 리스트 조회 및 합치기
+        for category in category_content_list:
+            category_content_image_list = crud_select_category_image_list(category.biz_detail_category_content_id)
+            
+            # 이미지가 있는 경우
+            if category_content_image_list:
+                for image in category_content_image_list:
+                    result_list.append(
+                        CategoryContentListOutPut(
+                            biz_detail_category_content_id=category.biz_detail_category_content_id,
+                            detail_category_id=category.detail_category_id,
+                            status=category.status,
+                            title=category.title,
+                            content=category.content,
+                            created_at=category.created_at,
+                            biz_detail_category_content_image_id=image.biz_detail_category_content_image_id,
+                            biz_detail_category_content_image_url=image.biz_detail_category_content_image_url,
+                        )
+                    )
+            else:
+                # 이미지가 없는 경우에도 추가
+                result_list.append(
+                    CategoryContentListOutPut(
+                        biz_detail_category_content_id=category.biz_detail_category_content_id,
+                        detail_category_id=category.detail_category_id,
+                        status=category.status,
+                        title=category.title,
+                        content=category.content,
+                        created_at=category.created_at,
+                    )
+                )
+        # print(result_list)
+        return result_list
+
     except HTTPException:
         raise
     except Exception as e:
@@ -62,6 +100,7 @@ def select_category_content_list():
         raise HTTPException(
             status_code=500, detail=f"Service category_content_list Error: {str(e)}"
         )
+
     
 
 # 업종 조회

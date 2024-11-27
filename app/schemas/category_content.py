@@ -14,6 +14,27 @@ class CategoryContentList(BaseModel):
     class Config:
         from_attributes = True
 
+class CategoryImageList(BaseModel):
+    biz_detail_category_content_image_id: Optional[int] = None
+    biz_detail_category_content_id: Optional[int] = None
+    biz_detail_category_content_image_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class CategoryContentListOutPut(BaseModel):
+    biz_detail_category_content_id: int
+    detail_category_id: int
+    status: str
+    title :str
+    content :str
+    created_at:datetime  
+    biz_detail_category_content_image_id: Optional[int] = None
+    biz_detail_category_content_image_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 # 업종 조회
 class CategoryBizCategoryList(BaseModel):
     biz_detail_category_id: int
