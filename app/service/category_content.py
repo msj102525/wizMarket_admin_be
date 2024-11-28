@@ -59,25 +59,25 @@ def select_category_content_list():
         category_content_list = crud_select_category_content_list()
         result_list = []
 
-        # 각 카테고리에 대한 이미지 리스트 조회 및 합치기
+        # 각 카테고리에 대한 이미지 조회 및 합치기
         for category in category_content_list:
-            category_content_image_list = crud_select_category_image_list(category.biz_detail_category_content_id)
+            # 이미지 리스트 대신 하나의 이미지만 가져오기
+            category_content_image = crud_select_category_image_list(category.biz_detail_category_content_id)
             
             # 이미지가 있는 경우
-            if category_content_image_list:
-                for image in category_content_image_list:
-                    result_list.append(
-                        CategoryContentListOutPut(
-                            biz_detail_category_content_id=category.biz_detail_category_content_id,
-                            detail_category_id=category.detail_category_id,
-                            status=category.status,
-                            title=category.title,
-                            content=category.content,
-                            created_at=category.created_at,
-                            biz_detail_category_content_image_id=image.biz_detail_category_content_image_id,
-                            biz_detail_category_content_image_url=image.biz_detail_category_content_image_url,
-                        )
+            if category_content_image:
+                result_list.append(
+                    CategoryContentListOutPut(
+                        biz_detail_category_content_id=category.biz_detail_category_content_id,
+                        detail_category_id=category.detail_category_id,
+                        status=category.status,
+                        title=category.title,
+                        content=category.content,
+                        created_at=category.created_at,
+                        biz_detail_category_content_image_id=category_content_image.biz_detail_category_content_image_id,
+                        biz_detail_category_content_image_url=category_content_image.biz_detail_category_content_image_url,
                     )
+                )
             else:
                 # 이미지가 없는 경우에도 추가
                 result_list.append(
@@ -100,6 +100,7 @@ def select_category_content_list():
         raise HTTPException(
             status_code=500, detail=f"Service category_content_list Error: {str(e)}"
         )
+
 
     
 
