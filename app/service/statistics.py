@@ -20,6 +20,7 @@ from app.crud.commercial_district_sub_district_density_statistics import (
 from app.crud.commercial_district_usage_count_statistics import (
     select_commercial_district_usage_count_info,
 )
+from app.crud.commercial_district_weighted_average import select_commercial_district_j_score_weighted_avg
 from app.crud.district import get_district_id as crud_get_district_id
 from app.crud.stat_item import (
     select_detail_category_id_by_stat_item_id as crud_select_detail_category_id_by_stat_item_id,
@@ -842,6 +843,9 @@ def select_statistics_by_sub_district_detail_category_new(
             city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
         sub_district_density=select_commercial_district_sub_district_density_info(
+            city_id, district_id, sub_district_id, detail_category_id, y_m
+        ),
+        j_score_avg=select_commercial_district_j_score_weighted_avg(
             city_id, district_id, sub_district_id, detail_category_id, y_m
         ),
     )

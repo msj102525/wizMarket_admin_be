@@ -224,6 +224,7 @@ class CommercialStatisticsData(BaseModel):
     average_payment: Optional[CommercialStatistics] = None
     usage_count: Optional[CommercialStatistics] = None
     sub_district_density: Optional[CommercialStatistics] = None
+    j_score_avg: Optional[float] = None
 
     class Config:
         from_attributes = True
