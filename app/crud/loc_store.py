@@ -28,7 +28,7 @@ def get_filtered_loc_store(filters: dict):
 
     connection = get_db_connection()
     cursor = None
-    total_items = 0  # 총 아이템 개수를 저장할 변수
+    total_items = []  # 총 아이템 개수를 저장할 변수
 
     try:
         # 총 개수 구하기 위한 쿼리
@@ -36,7 +36,7 @@ def get_filtered_loc_store(filters: dict):
         cursor.execute("SET SESSION MAX_EXECUTION_TIME=30000;")  # 30초로 제한
 
         count_query = """
-            SELECT COUNT(*) as total
+            SELECT *
             FROM local_store
             JOIN city ON local_store.city_id = city.city_id
             JOIN district ON local_store.district_id = district.district_id
@@ -84,7 +84,7 @@ def get_filtered_loc_store(filters: dict):
         # 총 개수 계산 쿼리 실행
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(count_query, query_params)
-        total_items = cursor.fetchone()["total"]  # 총 개수
+        total_items = cursor.fetchall()
 
         # 데이터를 가져오는 쿼리 (페이징 적용)
         data_query = """
