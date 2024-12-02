@@ -36,12 +36,12 @@ def select_commercial_district_j_score_weighted_avg(
                 row = cursor.fetchone()
 
                 if row is None:
-                    return 0.0()
+                    return 0.0
 
                 result = row["J_SCORE_AVG"]
 
                 return result
 
     except Exception as e:
-        logger.error(f"Error selecting from sub_district_density: {e}")
+        logger.error(f"Error select_commercial_district_j_score_weighted_avg: {e}")
         raise
