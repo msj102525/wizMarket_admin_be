@@ -55,6 +55,7 @@ class FilterRequest(BaseModel):
     residentMax: Optional[int] = None
     jScoreMax: Optional[int] = None
     selectedOptions: Optional[List[str]] 
+    isLikeSearch : bool = False
 
 
 

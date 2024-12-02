@@ -138,7 +138,7 @@ def get_filter_corr(filters, year):
 
 
 ################################################        
-def get_filtered_locations(filters):
+def select_info_list(filters):
 
     connection = get_db_connection()
     cursor = None
@@ -292,6 +292,171 @@ def get_filtered_locations(filters):
             merged_results.append(merged_record)
         # print(merged_results)
         return merged_results
+
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+
+
+def select_info_list_similar(filters):
+
+    connection = get_db_connection()
+    cursor = None
+    try:
+        # 지역 관련 필터 조건 생성
+        query_params_loc_info = []
+        query_params_statistics = []
+        query_params_similar = []
+        location_conditions = ""
+
+        if filters.get("city") is not None:
+            location_conditions += " AND city.city_id = %s"
+            # query_params_loc_info.append(filters["city"])
+            # query_params_statistics.append(filters["city"])
+            query_params_similar.append(filters["city"])
+
+        if filters.get("district") is not None:
+            location_conditions += " AND district.district_id = %s"
+            # query_params_loc_info.append(filters["district"])
+            # query_params_statistics.append(filters["district"])
+            query_params_similar.append(filters["district"])
+
+        if filters.get("subDistrict") is not None:
+            location_conditions += " AND sub_district.sub_district_id = %s"
+            # query_params_loc_info.append(filters["subDistrict"])
+            # query_params_statistics.append(filters["subDistrict"])
+            query_params_similar.append(filters["subDistrict"])
+
+        # 날짜 관련 필터 조건 생성
+        date_conditions_loc_info = ""
+        date_conditions_statistics = ""
+        date_conditions_similar = ""
+        
+        if filters.get("selectedOptions"):
+            date_placeholders_loc_info = " OR ".join(["loc_info.y_m = %s" for _ in filters["selectedOptions"]])
+            date_conditions_loc_info = f" AND ({date_placeholders_loc_info})"
+            query_params_loc_info.extend(filters["selectedOptions"])
+
+            date_placeholders_stats = " OR ".join(["loc_info_statistics.ref_date = %s" for _ in filters["selectedOptions"]])
+            date_conditions_statistics = f" AND ({date_placeholders_stats})"
+            query_params_statistics.extend(filters["selectedOptions"])
+
+            date_placeholders_similar = " OR ".join(["loc_info_statistics.ref_date = %s" for _ in filters["selectedOptions"]])
+            date_conditions_similar = f" AND ({date_placeholders_similar})"
+            query_params_similar.extend(filters["selectedOptions"])
+
+        query_similar = f"""
+            SELECT
+                city.city_name AS city_name, 
+                district.district_name AS district_name, 
+                sub_district.sub_district_name AS sub_district_name,
+                city.city_id AS city_id, 
+                district.district_id AS district_id, 
+                sub_district.sub_district_id AS sub_district_id,
+                loc_info_statistics.j_score_non_outliers
+            FROM loc_info_statistics
+            LEFT JOIN city ON loc_info_statistics.city_id = city.city_id
+            LEFT JOIN district ON loc_info_statistics.district_id = district.district_id
+            LEFT JOIN sub_district ON loc_info_statistics.sub_district_id = sub_district.sub_district_id
+            WHERE loc_info_statistics.target_item = 'j_score_avg' 
+            {location_conditions} {date_conditions_similar}
+        """
+
+        # Execute the loc_info query
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(query_similar, query_params_similar)
+        loc_info_similar = cursor.fetchall()
+        # print(loc_info_similar)
+
+        # 20% 조정
+        if loc_info_similar and "j_score_non_outliers" in loc_info_similar[0]:
+            j_score_non_outliers = loc_info_similar[0]["j_score_non_outliers"]
+            min_j_score = j_score_non_outliers * 0.9  # -20%
+            max_j_score = j_score_non_outliers * 1.1  # +20%
+        else:
+            raise ValueError("j_score_non_outliers 값이 loc_info_similar에 없습니다.")
+
+        # loc_info_statistics 쿼리 (지역 및 날짜 필터 조건만 적용)
+        query_2 = f"""
+            SELECT
+                city.city_name AS city_name, 
+                district.district_name AS district_name, 
+                sub_district.sub_district_name AS sub_district_name,
+                city.city_id AS city_id, 
+                district.district_id AS district_id, 
+                sub_district.sub_district_id AS sub_district_id,
+                loc_info_statistics.j_score_rank,
+                loc_info_statistics.j_score_per,
+                loc_info_statistics.j_score,
+                loc_info_statistics.j_score_per_non_outliers,
+                loc_info_statistics.j_score_non_outliers,
+                loc_info_statistics.ref_date
+            FROM loc_info_statistics
+            LEFT JOIN city ON loc_info_statistics.city_id = city.city_id
+            LEFT JOIN district ON loc_info_statistics.district_id = district.district_id
+            LEFT JOIN sub_district ON loc_info_statistics.sub_district_id = sub_district.sub_district_id
+            WHERE loc_info_statistics.target_item = 'j_score_avg' 
+            {date_conditions_statistics}
+            AND loc_info_statistics.j_score_non_outliers BETWEEN %s AND %s
+        """
+        
+        query_params_statistics.extend([min_j_score, max_j_score])
+        cursor.execute(query_2, query_params_statistics)
+        statistics_results = cursor.fetchall()
+        # print(statistics_results)
+
+        # statistics_results에서 3개씩 지역 ID 추출
+        combined_results = []  # 최종 결과 리스트
+
+        for stat in statistics_results:
+            city_id = stat["city_id"]
+            district_id = stat["district_id"]
+            sub_district_id = stat["sub_district_id"]
+
+            # loc_info 쿼리 (지역 필터 및 나머지 필터 조건)
+            query_1 = f"""
+                SELECT 
+                    city.city_name AS city_name, 
+                    district.district_name AS district_name, 
+                    sub_district.sub_district_name AS sub_district_name,
+                    city.city_id AS city_id, 
+                    district.district_id AS district_id, 
+                    sub_district.sub_district_id AS sub_district_id,
+                    loc_info.loc_info_id,
+                    loc_info.shop, loc_info.move_pop, loc_info.sales, loc_info.work_pop, 
+                    loc_info.income, loc_info.spend, loc_info.house, loc_info.resident,
+                    loc_info.y_m
+                FROM loc_info
+                LEFT JOIN city ON loc_info.city_id = city.city_id
+                LEFT JOIN district ON loc_info.district_id = district.district_id
+                LEFT JOIN sub_district ON loc_info.sub_district_id = sub_district.sub_district_id
+                WHERE loc_info.city_id = %s AND loc_info.district_id = %s AND loc_info.sub_district_id = %s
+                {date_conditions_loc_info}
+            """
+
+            # 지역별 쿼리 파라미터 준비
+            query_params = [city_id, district_id, sub_district_id]
+
+            # 날짜 조건 파라미터 추가
+            if filters.get("selectedOptions"):
+                query_params.extend(filters["selectedOptions"])
+
+
+            # 지역별 쿼리 실행
+            cursor.execute(query_1, query_params)
+            loc_info_result = cursor.fetchall()
+            
+            # 결과를 합치기
+            for loc_info in loc_info_result:
+                combined_data = {**stat, **loc_info}  # 두 딕셔너리를 병합
+                combined_results.append(combined_data)
+
+        print(combined_results)
+        
+
+        return combined_results, loc_info_similar
 
     finally:
         if cursor:
