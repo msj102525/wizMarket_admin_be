@@ -22,80 +22,9 @@ def execute_query(connection, query, params=None, fetch="all"):
     """유틸리티 함수: 쿼리 실행 및 결과 반환"""
     with connection.cursor(pymysql.cursors.DictCursor) as cursor:
         cursor.execute("SET SESSION MAX_EXECUTION_TIME=30000;")  # 30초 제한
+        
         cursor.execute(query, params or [])
         return cursor.fetchall() if fetch == "all" else cursor.fetchone()
-
-
-def build_query_with_filters(base_query, filters, additional_conditions=None):
-    """필터 조건을 추가하여 쿼리 생성"""
-    query = base_query
-    params = []
-
-    # 필터 조건 추가
-    if filters.get("city"):
-        query += " AND local_store.city_id = %s"
-        params.append(filters["city"])
-
-    if filters.get("district"):
-        query += " AND local_store.district_id = %s"
-        params.append(filters["district"])
-
-    if filters.get("subDistrict"):
-        query += " AND local_store.sub_district_id = %s"
-        params.append(filters["subDistrict"])
-
-    if filters.get("storeName"):
-        if filters.get("matchType") == "=":
-            query += " AND local_store.store_name = %s"
-            params.append(filters["storeName"])
-        else:
-            query += " AND local_store.store_name LIKE %s"
-            params.append(f"%{filters['storeName']}%")
-
-    # 추가 조건이 있는 경우 처리
-    if additional_conditions:
-        query += additional_conditions["query"]
-        params.extend(additional_conditions["params"])
-
-    return query, params
-
-
-def get_small_category_codes(connection, filters):
-    """카테고리 매핑 로직: 소분류 코드 리스트 반환"""
-    category_query = """
-        SELECT b.biz_detail_category_id AS detail_id
-        FROM biz_detail_category b
-        JOIN biz_sub_category s ON b.biz_sub_category_id = s.biz_sub_category_id
-        JOIN biz_main_category m ON s.biz_main_category_id = m.biz_main_category_id
-        WHERE 1 = 1
-    """
-    query_params = []
-    if filters.get("mainCategory"):
-        category_query += " AND m.biz_main_category_id = %s"
-        query_params.append(filters["mainCategory"])
-    if filters.get("subCategory"):
-        category_query += " AND s.biz_sub_category_id = %s"
-        query_params.append(filters["subCategory"])
-    if filters.get("detailCategory"):
-        category_query += " AND b.biz_detail_category_id = %s"
-        query_params.append(filters["detailCategory"])
-
-    detail_ids = [item["detail_id"] for item in execute_query(connection, category_query, query_params)]
-
-    if not detail_ids:
-        return []
-
-    placeholders = ", ".join(["%s"] * len(detail_ids))
-    mapping_query = f"""
-        SELECT detail_category_code
-        FROM business_area_category
-        WHERE business_area_category_id IN (
-            SELECT business_area_category_id 
-            FROM detail_category_mapping 
-            WHERE detail_category_id IN ({placeholders})
-        )
-    """
-    return [item["detail_category_code"] for item in execute_query(connection, mapping_query, detail_ids)]
 
 
 def get_filtered_loc_store(filters: dict):
@@ -104,11 +33,16 @@ def get_filtered_loc_store(filters: dict):
     try:
         # 기본 쿼리
         base_count_query = """
-            SELECT count(*) as total
+            SELECT COUNT(*) AS total
             FROM local_store
             JOIN city ON local_store.city_id = city.city_id
             JOIN district ON local_store.district_id = district.district_id
             JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
+            JOIN business_area_category ON local_store.SMALL_CATEGORY_CODE = business_area_category.DETAIL_CATEGORY_CODE
+            JOIN detail_category_mapping ON business_area_category.BUSINESS_AREA_CATEGORY_ID = detail_category_mapping.BUSINESS_AREA_CATEGORY_ID
+            JOIN biz_detail_category ON detail_category_mapping.DETAIL_CATEGORY_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
+            JOIN biz_sub_category ON biz_detail_category.BIZ_SUB_CATEGORY_ID = biz_sub_category.BIZ_SUB_CATEGORY_ID
+            JOIN biz_main_category ON biz_sub_category.BIZ_MAIN_CATEGORY_ID = biz_main_category.BIZ_MAIN_CATEGORY_ID
             WHERE IS_EXIST = 1
         """
         base_data_query = """
@@ -119,25 +53,57 @@ def get_filtered_loc_store(filters: dict):
                 local_store.floor_info, local_store.unit_info, local_store.local_year, local_store.local_quarter,
                 city.city_name AS city_name, 
                 district.district_name AS district_name, 
-                sub_district.sub_district_name AS sub_district_name
+                sub_district.sub_district_name AS sub_district_name,
+                business_area_category.BUSINESS_AREA_CATEGORY_ID,
+                detail_category_mapping.DETAIL_CATEGORY_ID,
+                biz_main_category.BIZ_MAIN_CATEGORY_NAME,
+                biz_sub_category.BIZ_SUB_CATEGORY_NAME,
+                biz_detail_category.BIZ_DETAIL_CATEGORY_NAME
             FROM local_store
             JOIN city ON local_store.city_id = city.city_id
             JOIN district ON local_store.district_id = district.district_id
             JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
+            JOIN business_area_category ON local_store.SMALL_CATEGORY_CODE = business_area_category.DETAIL_CATEGORY_CODE
+            JOIN detail_category_mapping ON business_area_category.BUSINESS_AREA_CATEGORY_ID = detail_category_mapping.BUSINESS_AREA_CATEGORY_ID
+            JOIN biz_detail_category ON detail_category_mapping.DETAIL_CATEGORY_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
+            JOIN biz_sub_category ON biz_detail_category.BIZ_SUB_CATEGORY_ID = biz_sub_category.BIZ_SUB_CATEGORY_ID
+            JOIN biz_main_category ON biz_sub_category.BIZ_MAIN_CATEGORY_ID = biz_main_category.BIZ_MAIN_CATEGORY_ID
             WHERE IS_EXIST = 1
         """
-
-        # 카테고리 관련 조건 추가
+        # 필터 조건 추가
         additional_conditions = {"query": "", "params": []}
-        if filters.get("reference") != 3:
-            small_category_codes = get_small_category_codes(connection, filters)
-            if small_category_codes:
-                placeholders = ", ".join(["%s"] * len(small_category_codes))
-                additional_conditions["query"] += f" AND local_store.small_category_code IN ({placeholders})"
-                additional_conditions["params"].extend(small_category_codes)
+        if filters.get("city"):
+            additional_conditions["query"] += " AND local_store.city_id = %s"
+            additional_conditions["params"].append(filters["city"])
 
-        elif filters.get("reference") == 3:
-            # `mainCategory`, `subCategory`, `detailCategory` 조건 추가
+        if filters.get("district"):
+            additional_conditions["query"] += " AND local_store.district_id = %s"
+            additional_conditions["params"].append(filters["district"])
+
+        if filters.get("subDistrict"):
+            additional_conditions["query"] += " AND local_store.sub_district_id = %s"
+            additional_conditions["params"].append(filters["subDistrict"])
+
+        if filters.get("storeName"):
+            if filters.get("matchType") == "=":
+                additional_conditions["query"] += " AND local_store.store_name = %s"
+                additional_conditions["params"].append(filters["storeName"])
+            else:
+                additional_conditions["query"] += " AND local_store.store_name LIKE %s"
+                additional_conditions["params"].append(f"%{filters['storeName']}%")
+
+        if filters.get("reference") == 1:
+            if filters.get("mainCategory"):
+                additional_conditions["query"] += " AND biz_main_category.biz_main_category_id = %s"
+                additional_conditions["params"].append(filters["mainCategory"])
+            if filters.get("subCategory"):
+                additional_conditions["query"] += " AND biz_sub_category.biz_sub_category_id = %s"
+                additional_conditions["params"].append(filters["subCategory"])
+            if filters.get("detailCategory"):
+                additional_conditions["query"] += " AND biz_detail_category.biz_detail_category_id = %s"
+                additional_conditions["params"].append(filters["detailCategory"])
+        
+        if filters.get("reference") == 3:
             if filters.get("mainCategory"):
                 additional_conditions["query"] += " AND local_store.large_category_code = %s"
                 additional_conditions["params"].append(filters["mainCategory"])
@@ -148,16 +114,21 @@ def get_filtered_loc_store(filters: dict):
                 additional_conditions["query"] += " AND local_store.small_category_code = %s"
                 additional_conditions["params"].append(filters["detailCategory"])
 
-        # 쿼리 생성
-        count_query, count_params = build_query_with_filters(base_count_query, filters, additional_conditions)
-        data_query, data_params = build_query_with_filters(base_data_query, filters, additional_conditions)
+        # 쿼리에 필터 조건 추가
+        count_query = base_count_query + additional_conditions["query"]
+        data_query = base_data_query + additional_conditions["query"]
 
         # 페이징 처리
         page = filters.get("page", 1)
         page_size = filters.get("page_size", 20)
         offset = (page - 1) * page_size
         data_query += " ORDER BY local_store.store_name LIMIT %s OFFSET %s"
-        data_params.extend([page_size, offset])
+
+        # count_query는 페이징 매개변수를 포함하지 않음
+        count_params = additional_conditions["params"]
+
+        # data_query에는 페이징 매개변수를 추가
+        data_params = additional_conditions["params"] + [page_size, offset]
 
         # 쿼리 실행
         total_items = execute_query(connection, count_query, count_params, fetch="one")
@@ -166,6 +137,8 @@ def get_filtered_loc_store(filters: dict):
         return result, total_items
     finally:
         connection.close()
+
+
 
 
 # 엑셀 다운로드
