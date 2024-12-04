@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 @router.post("/select/store/list")
 def filter_data(filters: FilterRequest):
     # 필터 정보를 서비스 레이어로 전달
-    # print(filters)
+
     data, total_items = filter_loc_store(filters)
 
     return {

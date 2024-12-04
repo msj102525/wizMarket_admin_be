@@ -136,6 +136,18 @@ def get_filtered_loc_store(filters: dict):
                 additional_conditions["query"] += f" AND local_store.small_category_code IN ({placeholders})"
                 additional_conditions["params"].extend(small_category_codes)
 
+        elif filters.get("reference") == 3:
+            # `mainCategory`, `subCategory`, `detailCategory` 조건 추가
+            if filters.get("mainCategory"):
+                additional_conditions["query"] += " AND local_store.large_category_code = %s"
+                additional_conditions["params"].append(filters["mainCategory"])
+            if filters.get("subCategory"):
+                additional_conditions["query"] += " AND local_store.medium_category_code = %s"
+                additional_conditions["params"].append(filters["subCategory"])
+            if filters.get("detailCategory"):
+                additional_conditions["query"] += " AND local_store.small_category_code = %s"
+                additional_conditions["params"].append(filters["detailCategory"])
+
         # 쿼리 생성
         count_query, count_params = build_query_with_filters(base_count_query, filters, additional_conditions)
         data_query, data_params = build_query_with_filters(base_data_query, filters, additional_conditions)
