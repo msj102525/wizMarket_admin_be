@@ -21,7 +21,7 @@ def parse_quarter(quarter_str):
 def execute_query(connection, query, params=None, fetch="all"):
     """유틸리티 함수: 쿼리 실행 및 결과 반환"""
     with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-        cursor.execute("SET SESSION MAX_EXECUTION_TIME=60000;")  # 30초 제한
+        cursor.execute("SET SESSION MAX_EXECUTION_TIME=120000;")  # 30초 제한
         
         cursor.execute(query, params or [])
         return cursor.fetchall() if fetch == "all" else cursor.fetchone()
@@ -52,6 +52,10 @@ def get_filtered_loc_store(filters: dict):
                     local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                     local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info,
                     local_store.floor_info, local_store.unit_info, local_store.local_year, local_store.local_quarter,
+                    local_store.kakao_review_score, local_store.kakao_review_count, 
+                    local_store.menu_1, local_store.menu_1_price,
+                    local_store.menu_2, local_store.menu_2_price,
+                    local_store.menu_3, local_store.menu_3_price,
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name,
@@ -136,6 +140,10 @@ def get_filtered_loc_store(filters: dict):
                     local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                     local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info,
                     local_store.floor_info, local_store.unit_info, local_store.local_year, local_store.local_quarter,
+                    local_store.kakao_review_score, local_store.kakao_review_count, 
+                    local_store.menu_1, local_store.menu_1_price,
+                    local_store.menu_2, local_store.menu_2_price,
+                    local_store.menu_3, local_store.menu_3_price,
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name
@@ -143,7 +151,7 @@ def get_filtered_loc_store(filters: dict):
                 JOIN city ON local_store.city_id = city.city_id
                 JOIN district ON local_store.district_id = district.district_id
                 JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
-                WHERE IS_EXIST = 1
+                WHERE IS_EXIST = 1 
             """
             # 필터 조건 추가
             additional_conditions = {"query": "", "params": []}
@@ -218,6 +226,10 @@ def select_download_store_list(filters: dict):
                 local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                 local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info,
                 local_store.floor_info, local_store.unit_info, local_store.local_year, local_store.local_quarter,
+                local_store.kakao_review_score, local_store.kakao_review_count, 
+                local_store.menu_1, local_store.menu_1_price,
+                local_store.menu_2, local_store.menu_2_price,
+                local_store.menu_3, local_store.menu_3_price,
                 city.city_name AS city_name, 
                 district.district_name AS district_name, 
                 sub_district.sub_district_name AS sub_district_name,
