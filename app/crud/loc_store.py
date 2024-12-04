@@ -34,20 +34,20 @@ def get_filtered_loc_store(filters: dict):
         if filters.get("reference") == 1:
             # 기본 쿼리
             base_count_query = """
-                SELECT COUNT(*) AS total
+                SELECT DISTINCT COUNT(*) AS total
                 FROM local_store
                 JOIN city ON local_store.city_id = city.city_id
                 JOIN district ON local_store.district_id = district.district_id
                 JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
                 JOIN business_area_category ON local_store.SMALL_CATEGORY_CODE = business_area_category.DETAIL_CATEGORY_CODE
                 JOIN detail_category_mapping ON business_area_category.BUSINESS_AREA_CATEGORY_ID = detail_category_mapping.BUSINESS_AREA_CATEGORY_ID
-                JOIN biz_detail_category ON detail_category_mapping.DETAIL_CATEGORY_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
+                JOIN biz_detail_category ON detail_category_mapping.REP_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
                 JOIN biz_sub_category ON biz_detail_category.BIZ_SUB_CATEGORY_ID = biz_sub_category.BIZ_SUB_CATEGORY_ID
                 JOIN biz_main_category ON biz_sub_category.BIZ_MAIN_CATEGORY_ID = biz_main_category.BIZ_MAIN_CATEGORY_ID
                 WHERE IS_EXIST = 1
             """
             base_data_query = """
-                SELECT 
+                SELECT DISTINCT
                     local_store.store_business_number, local_store.store_name, local_store.branch_name, local_store.road_name_address,
                     local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                     local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info,
@@ -55,8 +55,6 @@ def get_filtered_loc_store(filters: dict):
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name,
-                    business_area_category.BUSINESS_AREA_CATEGORY_ID,
-                    detail_category_mapping.DETAIL_CATEGORY_ID,
                     biz_main_category.BIZ_MAIN_CATEGORY_NAME,
                     biz_sub_category.BIZ_SUB_CATEGORY_NAME,
                     biz_detail_category.BIZ_DETAIL_CATEGORY_NAME
@@ -66,7 +64,7 @@ def get_filtered_loc_store(filters: dict):
                 JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
                 JOIN business_area_category ON local_store.SMALL_CATEGORY_CODE = business_area_category.DETAIL_CATEGORY_CODE
                 JOIN detail_category_mapping ON business_area_category.BUSINESS_AREA_CATEGORY_ID = detail_category_mapping.BUSINESS_AREA_CATEGORY_ID
-                JOIN biz_detail_category ON detail_category_mapping.DETAIL_CATEGORY_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
+                JOIN biz_detail_category ON detail_category_mapping.REP_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
                 JOIN biz_sub_category ON biz_detail_category.BIZ_SUB_CATEGORY_ID = biz_sub_category.BIZ_SUB_CATEGORY_ID
                 JOIN biz_main_category ON biz_sub_category.BIZ_MAIN_CATEGORY_ID = biz_main_category.BIZ_MAIN_CATEGORY_ID
                 WHERE IS_EXIST = 1
@@ -93,16 +91,15 @@ def get_filtered_loc_store(filters: dict):
                     additional_conditions["query"] += " AND local_store.store_name LIKE %s"
                     additional_conditions["params"].append(f"%{filters['storeName']}%")
 
-            if filters.get("reference") == 1:
-                if filters.get("mainCategory"):
-                    additional_conditions["query"] += " AND biz_main_category.biz_main_category_id = %s"
-                    additional_conditions["params"].append(filters["mainCategory"])
-                if filters.get("subCategory"):
-                    additional_conditions["query"] += " AND biz_sub_category.biz_sub_category_id = %s"
-                    additional_conditions["params"].append(filters["subCategory"])
-                if filters.get("detailCategory"):
-                    additional_conditions["query"] += " AND biz_detail_category.biz_detail_category_id = %s"
-                    additional_conditions["params"].append(filters["detailCategory"])
+            if filters.get("mainCategory"):
+                additional_conditions["query"] += " AND biz_main_category.biz_main_category_id = %s"
+                additional_conditions["params"].append(filters["mainCategory"])
+            if filters.get("subCategory"):
+                additional_conditions["query"] += " AND biz_sub_category.biz_sub_category_id = %s"
+                additional_conditions["params"].append(filters["subCategory"])
+            if filters.get("detailCategory"):
+                additional_conditions["query"] += " AND biz_detail_category.biz_detail_category_id = %s"
+                additional_conditions["params"].append(filters["detailCategory"])
 
             # 쿼리에 필터 조건 추가
             count_query = base_count_query + additional_conditions["query"]
@@ -216,7 +213,7 @@ def select_download_store_list(filters: dict):
     try:
         # 기본 쿼리
         data_query = """
-            SELECT 
+            SELECT DISTINCT
                 local_store.store_business_number, local_store.store_name, local_store.branch_name, local_store.road_name_address,
                 local_store.large_category_name, local_store.medium_category_name, local_store.small_category_name,
                 local_store.industry_name, local_store.building_name, local_store.new_postal_code, local_store.dong_info,
@@ -224,8 +221,6 @@ def select_download_store_list(filters: dict):
                 city.city_name AS city_name, 
                 district.district_name AS district_name, 
                 sub_district.sub_district_name AS sub_district_name,
-                business_area_category.BUSINESS_AREA_CATEGORY_ID,
-                detail_category_mapping.DETAIL_CATEGORY_ID,
                 biz_main_category.BIZ_MAIN_CATEGORY_NAME,
                 biz_sub_category.BIZ_SUB_CATEGORY_NAME,
                 biz_detail_category.BIZ_DETAIL_CATEGORY_NAME
@@ -235,7 +230,7 @@ def select_download_store_list(filters: dict):
             JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
             JOIN business_area_category ON local_store.SMALL_CATEGORY_CODE = business_area_category.DETAIL_CATEGORY_CODE
             JOIN detail_category_mapping ON business_area_category.BUSINESS_AREA_CATEGORY_ID = detail_category_mapping.BUSINESS_AREA_CATEGORY_ID
-            JOIN biz_detail_category ON detail_category_mapping.DETAIL_CATEGORY_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
+            JOIN biz_detail_category ON detail_category_mapping.REP_ID = biz_detail_category.BIZ_DETAIL_CATEGORY_ID
             JOIN biz_sub_category ON biz_detail_category.BIZ_SUB_CATEGORY_ID = biz_sub_category.BIZ_SUB_CATEGORY_ID
             JOIN biz_main_category ON biz_sub_category.BIZ_MAIN_CATEGORY_ID = biz_main_category.BIZ_MAIN_CATEGORY_ID
             WHERE IS_EXIST = 1
