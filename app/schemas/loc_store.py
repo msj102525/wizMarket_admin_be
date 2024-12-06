@@ -12,6 +12,7 @@ class FilterRequest(BaseModel):
     mainCategory: Optional[str] = None
     subCategory: Optional[str] = None
     detailCategory: Optional[str] = None
+    selectedOptions: Optional[list] = None
     page: Optional[int] = 1  # 페이지 번호 (기본값 1)
     page_size: Optional[int] = 20  # 페이지 크기 (기본값 20)
 
