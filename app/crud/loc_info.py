@@ -187,7 +187,7 @@ def select_info_list(filters):
                 sub_district.sub_district_id AS sub_district_id,
                 loc_info.loc_info_id,
                 loc_info.shop, loc_info.move_pop, loc_info.sales, loc_info.work_pop, 
-                loc_info.income, loc_info.spend, loc_info.house, loc_info.resident,
+                loc_info.income, loc_info.spend, loc_info.house, loc_info.resident, loc_info.apart_price,
                 loc_info.y_m
             FROM loc_info
             LEFT JOIN city ON loc_info.city_id = city.city_id
@@ -206,6 +206,7 @@ def select_info_list(filters):
             ("spendMin", "spend >= %s"),
             ("houseMin", "house >= %s"),
             ("residentMin", "resident >= %s"),
+            ("apartPriceMin", "apart_price >= %s"),
             ("shopMax", "shop <= %s"),
             ("move_popMax", "move_pop <= %s"),
             ("salesMax", "sales <= %s"),
@@ -214,6 +215,7 @@ def select_info_list(filters):
             ("spendMax", "spend <= %s"),
             ("houseMax", "house <= %s"),
             ("residentMax", "resident <= %s"),
+            ("apartPriceMin", "apart_price <= %s"),
         ]
 
         for filter_key, condition in additional_conditions:

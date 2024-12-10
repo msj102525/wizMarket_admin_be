@@ -43,6 +43,7 @@ class FilterRequest(BaseModel):
     spendMin: Optional[int] = None
     houseMin: Optional[int] = None
     residentMin: Optional[int] = None
+    apartPriceMin: Optional[int] = None
     jScoreMin: Optional[int] = None
 
     shopMax: Optional[int] = None
@@ -53,6 +54,7 @@ class FilterRequest(BaseModel):
     spendMax: Optional[int] = None
     houseMax: Optional[int] = None
     residentMax: Optional[int] = None
+    apartPriceMax: Optional[int] = None
     jScoreMax: Optional[int] = None
     selectedOptions: Optional[List[str]] 
     isLikeSearch : bool = False
