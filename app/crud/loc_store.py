@@ -151,22 +151,27 @@ def get_filtered_loc_store(filters: dict):
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name
-                FROM local_store
+                FROM local_store USE INDEX (idx_local_store_ktmyshop_jsam_exist)
                 JOIN city ON local_store.city_id = city.city_id
                 JOIN district ON local_store.district_id = district.district_id
                 JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
                 WHERE IS_EXIST = 1 
             """
-            # print(filters)
+            print(filters)
             # 필터 조건 추가
             additional_conditions = {"query": "", "params": []}
 
             if filters.get("selectedOptions"):
+                conditions = []  # 조건을 저장할 리스트
                 for option in filters["selectedOptions"]:
-                    if option == "KT_MYSHOP":
-                        additional_conditions["query"] += " AND local_store.ktmyshop = 1"
-                    elif option == "JSAM":
-                        additional_conditions["query"] += " AND local_store.jsam = 1"
+                    if option == "ktmyshop":
+                        conditions.append("local_store.ktmyshop = 1")
+                    elif option == "jsam":  # "JSAM"의 value 값은 "jsam"이라고 가정
+                        conditions.append("local_store.jsam = 1")
+                
+                if conditions:
+                    # 조건들을 OR로 묶어서 추가
+                    additional_conditions["query"] += f" AND ({' OR '.join(conditions)})"
 
             if filters.get("city"):
                 additional_conditions["query"] += " AND local_store.city_id = %s"
@@ -180,14 +185,6 @@ def get_filtered_loc_store(filters: dict):
                 additional_conditions["query"] += " AND local_store.sub_district_id = %s"
                 additional_conditions["params"].append(filters["subDistrict"])
 
-            if filters.get("storeName"):
-                if filters.get("matchType") == "=":
-                    additional_conditions["query"] += " AND local_store.store_name = %s"
-                    additional_conditions["params"].append(filters["storeName"])
-                else:
-                    additional_conditions["query"] += " AND local_store.store_name LIKE %s"
-                    additional_conditions["params"].append(f"%{filters['storeName']}%")
-            
             if filters.get("reference") == 3:
                 if filters.get("mainCategory"):
                     additional_conditions["query"] += " AND local_store.large_category_code = %s"
@@ -198,6 +195,16 @@ def get_filtered_loc_store(filters: dict):
                 if filters.get("detailCategory"):
                     additional_conditions["query"] += " AND local_store.small_category_code = %s"
                     additional_conditions["params"].append(filters["detailCategory"])
+
+            if filters.get("storeName"):
+                if filters.get("matchType") == "=":
+                    additional_conditions["query"] += " AND local_store.store_name = %s"
+                    additional_conditions["params"].append(filters["storeName"])
+                else:
+                    additional_conditions["query"] += " AND local_store.store_name LIKE %s"
+                    additional_conditions["params"].append(f"%{filters['storeName']}%")
+            
+            
 
             # 쿼리에 필터 조건 추가
             count_query = base_count_query + additional_conditions["query"]
