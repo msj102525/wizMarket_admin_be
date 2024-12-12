@@ -32,7 +32,7 @@ def get_init_stat_data():
     return result
 
 def get_init_corr_data():
-    years = ['2024-08-01', '2024-10-01']
+    years = ['2024-08-01', '2024-10-01', '2024-12-01']
 
     # 년도별로 결과를 저장하기 위한 딕셔너리
     all_corr_matrices = {}
@@ -53,14 +53,17 @@ def get_init_corr_data():
                 "SPEND",
                 "HOUSE",
                 "RESIDENT",
+                "APART_PRICE"
             ],
         )
+        
 
         # 전국 상관분석 수행
-        all_corr_matrix = df_all.corr().to_dict()
-
+        all_corr_matrix = df_all.corr().fillna('-')  # NaN 값을 '-'로 대체
+        all_corr_matrix_dict = all_corr_matrix.to_dict()
         # 년도별 상관분석 결과를 저장
-        all_corr_matrices[year] = all_corr_matrix
+        all_corr_matrices[year] = all_corr_matrix_dict
+
 
     return all_corr_matrices
 
@@ -70,7 +73,7 @@ def select_info_list(filters: dict):
         filtered_locations = crud_select_info_list(filters)
 
         # 상관 분석 처리
-        years = ['2024-08-01', '2024-10-01']
+        years = ['2024-08-01', '2024-10-01', '2024-12-01']
 
         # 년도별로 결과를 저장하기 위한 딕셔너리
         filter_corr_matrices = {}

@@ -151,13 +151,13 @@ def get_filtered_loc_store(filters: dict):
                     city.city_name AS city_name, 
                     district.district_name AS district_name, 
                     sub_district.sub_district_name AS sub_district_name
-                FROM local_store USE INDEX (idx_local_store_ktmyshop_jsam_exist)
+                FROM local_store 
                 JOIN city ON local_store.city_id = city.city_id
                 JOIN district ON local_store.district_id = district.district_id
                 JOIN sub_district ON local_store.sub_district_id = sub_district.sub_district_id
                 WHERE IS_EXIST = 1 
             """
-            print(filters)
+            # print(filters)
             # 필터 조건 추가
             additional_conditions = {"query": "", "params": []}
 

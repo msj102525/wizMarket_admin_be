@@ -532,16 +532,16 @@ def select_stat_data_avg()-> StatDataForInit:
             JOIN sub_district ON li.sub_district_id = sub_district.sub_district_id
             WHERE li.city_id = 1
             AND li.district_id = 1
-            AND li.sub_district_id = 1
+            AND li.sub_district_id = 3
             AND li.REF_DATE = (select max(ref_date) from loc_info_statistics)
-            LIMIT 9;
+            LIMIT 10;
         """
         query_params = []
 
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute(query, query_params)
         rows = cursor.fetchall()
-
+        # print(rows)
         for row in rows:
             loc_info_by_region = StatDataForInit(
                 city_id= row.get("CITY_ID"),
