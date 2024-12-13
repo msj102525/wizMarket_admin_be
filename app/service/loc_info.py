@@ -32,7 +32,7 @@ def get_init_stat_data():
     return result
 
 def get_init_corr_data():
-    years = ['2024-08-01', '2024-10-01', '2024-12-01']
+    years = ['2024-08-01', '2024-10-01', '2024-11-01']
 
     # 년도별로 결과를 저장하기 위한 딕셔너리
     all_corr_matrices = {}
@@ -73,7 +73,7 @@ def select_info_list(filters: dict):
         filtered_locations = crud_select_info_list(filters)
 
         # 상관 분석 처리
-        years = ['2024-08-01', '2024-10-01', '2024-12-01']
+        years = ['2024-08-01', '2024-10-01', '2024-11-01']
 
         # 년도별로 결과를 저장하기 위한 딕셔너리
         filter_corr_matrices = {}
@@ -97,6 +97,7 @@ def select_info_list(filters: dict):
                     "SPEND",
                     "HOUSE",
                     "RESIDENT",
+                    "APART_PRICE"
                 ]
             ].corr()
             
