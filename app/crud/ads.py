@@ -36,7 +36,8 @@ def select_ads_list():
                     ADS a
                 STRAIGHT_JOIN REPORT r
                 ON r.STORE_BUSINESS_NUMBER = a.STORE_BUSINESS_NUMBER
-                AND a.STATUS != 'D';
+                AND a.STATUS != 'D'
+                ORDER BY a.CREATED_AT DESC;
 
             """
             cursor.execute(select_query)
