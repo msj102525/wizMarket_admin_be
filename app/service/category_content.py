@@ -33,7 +33,7 @@ def insert_category_content(
 ):
     # 글 먼저 저장하고, category_content_pk와 created_at 값을 반환받음
     insert_item = crud_insert_category_content(detail_category, title, content)
-
+    # print(insert_item) # 가상서버 깃 감지 테스트용
     category_content_pk = insert_item.biz_detail_category_content_id
     status = insert_item.status
     created_at = insert_item.created_at
