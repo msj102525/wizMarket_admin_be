@@ -51,7 +51,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/")
 async def read_root():
-    return {"message": "Welcome to FastAPI!2222222"}
+    return {"message": "Welcome to FastAPI!"}
 
 
 app.include_router(hello.router, prefix="/hello")
