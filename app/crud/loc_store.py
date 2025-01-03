@@ -30,7 +30,7 @@ def execute_query(connection, query, params=None, fetch="all"):
 def get_filtered_loc_store(filters: dict):
     """필터 조건에 따라 상권 정보 조회"""
     connection = get_db_connection()
-    print(filters)
+    # print(filters)
     try:
         if filters.get("reference") == 1:
             # 기본 쿼리
